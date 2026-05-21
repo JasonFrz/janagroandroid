@@ -1,15 +1,13 @@
 package com.example.janagroandroid.data.remote
 
-data class RemoteProductDto(
-    val name: String,
-    val category: String,
-    val price: Double,
-    val stock: Int,
-    val imageUrl: String,
-    val description: String
-)
+import com.example.janagroandroid.data.remote.dto.ProductDto
 
 data class RemoteProductResponse(
     val success: Boolean,
-    val data: List<RemoteProductDto> = emptyList()
+    val message: String? = null,
+    val data: RemoteProductData? = null
+)
+
+data class RemoteProductData(
+    val products: List<ProductDto> = emptyList()
 )

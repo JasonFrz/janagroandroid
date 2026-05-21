@@ -25,7 +25,7 @@ class AddProductViewModel(
         viewModelScope.launch {
             repo.addProduct(
                 ProductEntity(
-                    ownerId = currentUserId,
+                    merchant_id = currentUserId,
                     name = name,
                     price = price,
                     stock = stock,

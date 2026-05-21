@@ -4,9 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -20,34 +22,35 @@ class LoginFragment : Fragment() {
     private val vm: AuthViewModel by viewModels { AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext())) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.fragment_login, container, false)
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val uiState by vm.uiState.collectAsState()
+                LoginScreen(
+                    uiState = uiState,
+                    onLoginClick = { email, pass ->
+                        handleLogin(email, pass)
+                    },
+                    onRegisterClick = {
+                        findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+                    }
+                )
+            }
+        }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val etEmail = view.findViewById<EditText>(R.id.etEmail)
-        val etPass = view.findViewById<EditText>(R.id.etPassword)
-
-        view.findViewById<TextView>(R.id.tvGoRegister).setOnClickListener {
-            findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+    private fun handleLogin(emailOrUsername: String, pass: String) {
+        if (emailOrUsername.isEmpty() || pass.isEmpty()) {
+            Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        view.findViewById<View>(R.id.btnLogin).setOnClickListener {
-            val emailOrUsername = etEmail.text.toString().trim()
-            val password = etPass.text.toString()
-
-            if (emailOrUsername.isEmpty() || password.isEmpty()) {
-                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Note: Pastikan repository backend-mu mendukung validasi via username ATAU email.
-            lifecycleScope.launch {
-                vm.login(emailOrUsername, password) { isSuccess ->
-                    if (isSuccess) {
-                        findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-                    } else {
-                        Toast.makeText(requireContext(), "Invalid credentials", Toast.LENGTH_SHORT).show()
-                    }
+        lifecycleScope.launch {
+            vm.login(emailOrUsername, pass) { isSuccess ->
+                if (isSuccess) {
+                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                } else {
+                    Toast.makeText(requireContext(), "Invalid credentials", Toast.LENGTH_SHORT).show()
                 }
             }
         }

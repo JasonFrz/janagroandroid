@@ -9,8 +9,8 @@ interface ProductDao {
     @Query("SELECT * FROM products ORDER BY id DESC")
     fun getAll(): LiveData<List<ProductEntity>>
 
-    @Query("SELECT * FROM products WHERE ownerId = :ownerId ORDER BY id DESC")
-    fun getSellerProducts(ownerId: Long): LiveData<List<ProductEntity>>
+    @Query("SELECT * FROM products WHERE merchant_id = :merchantId ORDER BY id DESC")
+    fun getSellerProducts(merchantId: Long): LiveData<List<ProductEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(product: ProductEntity)

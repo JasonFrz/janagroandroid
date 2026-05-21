@@ -64,7 +64,7 @@ class AppRepository(
     suspend fun refreshRemoteProducts(): Boolean {
         val response = apiService.getProducts()
         return if (response.isSuccessful) {
-            val items = response.body().orEmpty().map { it.toEntity(ownerId = 0) }
+            val items = response.body()?.data?.products.orEmpty().map { it.toEntity(merchantId = 0) }
             productDao.insertAll(items)
             true
         } else {
