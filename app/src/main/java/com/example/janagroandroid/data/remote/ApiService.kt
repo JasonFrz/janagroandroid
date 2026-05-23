@@ -12,8 +12,8 @@ interface ApiService {
     @POST("/api/v1/auth/login")
     suspend fun login(@Body request: Map<String, String>): Response<AuthResponse>
 
-    @POST("/api/v1/register")
-    suspend fun register(@Body request: Map<String, Any>): Response<AuthResponse>
+    @POST("/api/v1/auth/register")
+    suspend fun register(@Body request: Map<String, String>): Response<AuthResponse>
 
     @POST("/api/v1/auth/logout")
     suspend fun logout(): Response<AuthResponse>

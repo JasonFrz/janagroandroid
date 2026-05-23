@@ -66,25 +66,29 @@ class AppRepository(
         }
     }
 
-    suspend fun register(user: UserEntity): Boolean {
+    suspend fun register(user: UserEntity, passwordConfirm: String): Boolean {
         return try {
             val request = mapOf(
                 "name" to user.name,
                 "email" to user.email,
                 "password" to user.password,
+                "passwordConfirm" to passwordConfirm,
                 "phone" to (user.phone ?: ""),
                 "role" to user.role
             )
             val response = apiService.register(request)
             if (response.isSuccessful) {
                 val responseBody = response.body()
-                val userDto = responseBody?.data?.user
+                val authData = responseBody?.data
+                
+                // Cari UserDto baik di authData.user atau di root data (jika backend tidak membungkusnya)
+                val userDto = authData?.user 
                 
                 if (userDto != null) {
                     userDao.insert(userDto.toEntity())
                     true
                 } else {
-                    false
+                    responseBody?.status == "success"
                 }
             } else {
                 false

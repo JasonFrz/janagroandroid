@@ -28,8 +28,8 @@ class RegisterFragment : Fragment() {
                 val uiState by vm.uiState.collectAsState()
                 RegisterScreen(
                     uiState = uiState,
-                    onRegisterClick = { name, email, pass, phone, role ->
-                        handleRegistration(name, email, pass, phone, role)
+                    onRegisterClick = { name, email, pass, phone, role, confirmPass ->
+                        handleRegistration(name, email, pass, phone, role, confirmPass)
                     },
                     onLoginClick = {
                         findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
@@ -39,15 +39,20 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    private fun handleRegistration(name: String, email: String, pass: String, phone: String, role: String) {
+    private fun handleRegistration(name: String, email: String, pass: String, phone: String, role: String, confirmPass: String) {
         // Basic Validation
         if (name.isEmpty() || email.isEmpty() || pass.isEmpty() || phone.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill all required fields", Toast.LENGTH_SHORT).show()
             return
         }
+        
+        if (pass != confirmPass) {
+            Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         lifecycleScope.launch {
-            vm.register(name, email, pass, phone, role) { isSuccess ->
+            vm.register(name, email, pass, phone, role, confirmPass) { isSuccess ->
                 if (isSuccess) {
                     Toast.makeText(requireContext(), "Registration successful", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
