@@ -13,15 +13,22 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
+import com.example.janagroandroid.ui.auth.AuthViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
     private val viewModel: HomeViewModel by viewModels {
+        AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
+    }
+    
+    private val authViewModel: AuthViewModel by viewModels {
         AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
     }
 
@@ -63,6 +70,12 @@ class HomeFragment : Fragment() {
                     },
                     onSearchClick = {
                         // Handle search
+                    },
+                    onLogoutClick = {
+                        lifecycleScope.launch {
+                            authViewModel.logout()
+                            // Navigasi ke splash akan ditangani oleh observer di MainActivity
+                        }
                     }
                 )
             }

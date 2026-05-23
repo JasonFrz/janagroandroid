@@ -67,4 +67,10 @@ class AuthViewModel(
     fun resetState() {
         _uiState.value = AuthUiState.Idle
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            repo.logout()
+        }
+    }
 }

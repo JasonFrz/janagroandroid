@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -36,12 +37,25 @@ fun HomeScreen(
     products: List<ProductEntity>,
     onProfileClick: () -> Unit,
     onProductClick: (ProductEntity) -> Unit,
-    onSearchClick: () -> Unit
+    onSearchClick: () -> Unit,
+    onLogoutClick: () -> Unit = {}
 ) {
     JanAgroTheme {
         Scaffold(
             topBar = {
-                HomeHeader(user = user, onProfileClick = onProfileClick, onSearchClick = onSearchClick)
+                // Membungkus Header dalam Surface agar area sentuh terjamin
+                Surface(
+                    shadowElevation = 2.dp,
+                    color = Color.White,
+                    modifier = Modifier.statusBarsPadding() // Jarak aman dari Notch/Status Bar
+                ) {
+                    HomeHeader(
+                        user = user, 
+                        onProfileClick = onProfileClick, 
+                        onSearchClick = onSearchClick,
+                        onLogoutClick = onLogoutClick
+                    )
+                }
             }
         ) { paddingValues ->
             Column(
@@ -61,7 +75,7 @@ fun HomeScreen(
                     onProductClick = onProductClick
                 )
 
-                Spacer(modifier = Modifier.height(80.dp)) // Extra space for bottom nav if any
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
@@ -71,12 +85,13 @@ fun HomeScreen(
 fun HomeHeader(
     user: UserEntity?,
     onProfileClick: () -> Unit,
-    onSearchClick: () -> Unit
+    onSearchClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(horizontal = 20.dp, vertical = 6.dp), // Dikurangi lagi agar tidak terlalu turun
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -112,8 +127,22 @@ fun HomeHeader(
             Icon(Icons.Default.Search, contentDescription = "Search")
         }
 
-        IconButton(onClick = { /* Menu */ }) {
-            Icon(Icons.Default.Settings, contentDescription = "Menu")
+        if (user != null) {
+            // Pastikan IconButton memiliki ukuran yang cukup untuk disentuh
+            IconButton(
+                onClick = onLogoutClick,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = "Logout",
+                    tint = Color.Red
+                )
+            }
+        } else {
+            IconButton(onClick = { /* Menu Settings */ }) {
+                Icon(Icons.Default.Settings, contentDescription = "Menu")
+            }
         }
     }
 }

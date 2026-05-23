@@ -22,6 +22,7 @@ class AppViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         val vm: ViewModel = when {
             modelClass.isAssignableFrom(SplashViewModel::class.java) -> SplashViewModel(app, repo)
+            modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel(repo)
             modelClass.isAssignableFrom(AuthViewModel::class.java) -> AuthViewModel(app, repo)
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> HomeViewModel(app, repo)
             modelClass.isAssignableFrom(ProductDetailViewModel::class.java) -> ProductDetailViewModel(app, repo)

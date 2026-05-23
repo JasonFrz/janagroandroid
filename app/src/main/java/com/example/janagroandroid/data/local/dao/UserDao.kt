@@ -9,6 +9,9 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE isLoggedIn = 1 LIMIT 1")
     fun getCurrentUser(): LiveData<UserEntity?>
 
+    @Query("SELECT * FROM users WHERE isLoggedIn = 1 LIMIT 1")
+    suspend fun getCurrentUserSync(): UserEntity?
+
     @Query("SELECT id FROM users WHERE isLoggedIn = 1 LIMIT 1")
     suspend fun getCurrentUserId(): Long?
 

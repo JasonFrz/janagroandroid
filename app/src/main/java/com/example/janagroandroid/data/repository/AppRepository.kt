@@ -25,6 +25,8 @@ class AppRepository(
     val history: LiveData<List<HistoryEntity>> = historyDao.getAll()
     val getUser: LiveData<UserEntity?> = userDao.getCurrentUser()
 
+    suspend fun getCurrentUser(): UserEntity? = userDao.getCurrentUserSync()
+
     fun currentUserId(): Long = getUser.value?.id ?: 0L
     fun isLoggedIn(): Boolean = getUser.value != null
 
@@ -93,9 +95,18 @@ class AppRepository(
         }
     }
 
-    suspend fun logout() {
-        userDao.logoutAll()
-        sessionManager.clear()
+    suspend fun logout(): Boolean {
+        return try {
+            val response = apiService.logout()
+
+            userDao.logoutAll()
+            sessionManager.clear()
+            response.isSuccessful
+        } catch (e: Exception) {
+            userDao.logoutAll()
+            sessionManager.clear()
+            false
+        }
     }
 
     suspend fun addProduct(product: ProductEntity) {

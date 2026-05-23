@@ -2,7 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@id/splashFragment">
 
     <fragment
         android:id="@+id/splashFragment"
@@ -11,8 +11,14 @@
         <action
             android:id="@+id/action_splashFragment_to_homeFragment"
             app:destination="@id/homeFragment"
-            app:popUpTo="@id/splashFragment"
-            app:popUpToInclusive="true"/> </fragment>
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"/>
+        <action
+            android:id="@+id/action_splashFragment_to_adminHomeFragment"
+            app:destination="@id/adminHomeFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"/>
+    </fragment>
 
     <fragment
         android:id="@+id/homeFragment"
@@ -44,7 +50,12 @@
         <action
             android:id="@+id/action_loginFragment_to_homeFragment"
             app:destination="@id/homeFragment"
-            app:popUpTo="@id/homeFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true"/>
+        <action
+            android:id="@+id/action_loginFragment_to_adminHomeFragment"
+            app:destination="@id/adminHomeFragment"
+            app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true"/>
     </fragment>
 
@@ -93,6 +104,32 @@
             app:popUpTo="@id/homeFragment"
             app:popUpToInclusive="true"/>
     </fragment>
+
+    <!-- Admin Fragments -->
+    <fragment
+        android:id="@+id/adminHomeFragment"
+        android:name="com.example.janagroandroid.ui.admin.AdminHomeFragment"
+        android:label="Admin Dashboard" />
+
+    <fragment
+        android:id="@+id/adminUsersFragment"
+        android:name="com.example.janagroandroid.ui.admin.AdminUsersFragment"
+        android:label="User Management" />
+
+    <fragment
+        android:id="@+id/adminMerchantsFragment"
+        android:name="com.example.janagroandroid.ui.admin.AdminMerchantsFragment"
+        android:label="Merchant Approval" />
+
+    <fragment
+        android:id="@+id/adminVouchersFragment"
+        android:name="com.example.janagroandroid.ui.admin.AdminVouchersFragment"
+        android:label="Voucher Management" />
+
+    <fragment
+        android:id="@+id/adminReportsFragment"
+        android:name="com.example.janagroandroid.ui.admin.AdminReportsFragment"
+        android:label="Reports &amp; Moderation" />
 
     <fragment
         android:id="@+id/sellerDashboardFragment"

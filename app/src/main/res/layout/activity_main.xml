@@ -33,7 +33,7 @@
             android:background="@android:color/transparent"
             app:elevation="0dp"
             app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_nav" />
+            app:menu="@menu/menu_customer" />
 
     </com.google.android.material.bottomappbar.BottomAppBar>
 

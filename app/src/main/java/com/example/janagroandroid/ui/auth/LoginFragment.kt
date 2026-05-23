@@ -48,7 +48,15 @@ class LoginFragment : Fragment() {
         lifecycleScope.launch {
             vm.login(emailOrUsername, pass) { isSuccess ->
                 if (isSuccess) {
-                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                    lifecycleScope.launch {
+                        val repo = AppGraph.repository(requireContext())
+                        val user = repo.getCurrentUser()
+                        if (user?.role == "Admin") {
+                            findNavController().navigate(R.id.action_loginFragment_to_adminHomeFragment)
+                        } else {
+                            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                        }
+                    }
                 } else {
                     Toast.makeText(requireContext(), "Invalid credentials", Toast.LENGTH_SHORT).show()
                 }
