@@ -40,19 +40,17 @@ class AuthViewModel(
     }
 
     fun register(
-        name: String, username: String, email: String, password: String,
-        dob: String, gender: String, role: String, onResult: (Boolean) -> Unit = {}
+        name: String, email: String, password: String,
+        phone: String, role: String, onResult: (Boolean) -> Unit = {}
     ) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             val success = repo.register(
                 UserEntity(
                     name = name,
-                    username = username,
                     email = email,
                     password = password,
-                    dateOfBirth = dob,
-                    gender = gender,
+                    phone = phone,
                     role = role
                 )
             )

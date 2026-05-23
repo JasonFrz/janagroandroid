@@ -1,6 +1,7 @@
 package com.example.janagroandroid.data.repository
 
 import androidx.lifecycle.LiveData
+import com.example.janagroandroid.data.local.SessionManager
 import com.example.janagroandroid.data.local.dao.CartDao
 import com.example.janagroandroid.data.local.dao.HistoryDao
 import com.example.janagroandroid.data.local.dao.ProductDao
@@ -17,7 +18,8 @@ class AppRepository(
     private val productDao: ProductDao,
     private val cartDao: CartDao,
     private val historyDao: HistoryDao,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val sessionManager: SessionManager
 ) {
     val products: LiveData<List<ProductEntity>> = productDao.getAll()
     val history: LiveData<List<HistoryEntity>> = historyDao.getAll()
@@ -33,28 +35,67 @@ class AppRepository(
         get() = productDao.getSellerProducts(currentUserId())
 
     suspend fun login(email: String, password: String): Boolean {
-        val user = userDao.login(email, password)
-        return if (user != null) {
-            userDao.logoutAll()
-            userDao.setLoggedIn(user.id)
-            true
-        } else {
+        return try {
+            val response = apiService.login(mapOf("email" to email, "password" to password))
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                val authData = responseBody?.data
+                val userDto = authData?.user
+                val token = authData?.token
+                
+                if (userDto != null && token != null) {
+                    userDao.logoutAll()
+                    val userEntity = userDto.toEntity(isLoggedIn = true)
+                    userDao.insert(userEntity)
+                    
+                    // Simpan token ke SessionManager
+                    sessionManager.saveToken(token)
+                    
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }
 
     suspend fun register(user: UserEntity): Boolean {
-        val exists = userDao.findByEmail(user.email)
-        return if (exists == null) {
-            userDao.insert(user)
-            true
-        } else {
+        return try {
+            val request = mapOf(
+                "name" to user.name,
+                "email" to user.email,
+                "password" to user.password,
+                "phone" to (user.phone ?: ""),
+                "role" to user.role
+            )
+            val response = apiService.register(request)
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                val userDto = responseBody?.data?.user
+                
+                if (userDto != null) {
+                    userDao.insert(userDto.toEntity())
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }
 
     suspend fun logout() {
         userDao.logoutAll()
+        sessionManager.clear()
     }
 
     suspend fun addProduct(product: ProductEntity) {

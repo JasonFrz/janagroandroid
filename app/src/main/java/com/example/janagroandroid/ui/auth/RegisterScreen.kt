@@ -22,30 +22,15 @@ import java.util.*
 @Composable
 fun RegisterScreen(
     uiState: AuthUiState,
-    onRegisterClick: (String, String, String, String, String, String, String) -> Unit,
+    onRegisterClick: (String, String, String, String, String) -> Unit,
     onLoginClick: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var dob by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("Male") }
-    var role by remember { mutableStateOf("customer") }
+    var phone by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("Customer") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance()
-
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            dob = "$dayOfMonth/${month + 1}/$year"
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
 
     val isLoading = uiState is AuthUiState.Loading
 
@@ -85,17 +70,6 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Username") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = !isLoading
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email Address") },
@@ -108,47 +82,14 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = dob,
-                    onValueChange = { },
-                    label = { Text("Date of Birth") },
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Phone Number") },
                     modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    trailingIcon = {
-                        IconButton(onClick = { if (!isLoading) datePickerDialog.show() }) {
-                            // Icon could go here
-                        }
-                    },
-                    enabled = !isLoading,
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                    enabled = !isLoading
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Gender",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val genders = listOf("Male", "Female")
-                    genders.forEach { item ->
-                        val selected = gender == item
-                        OutlinedButton(
-                            onClick = { if (!isLoading) gender = item },
-                            modifier = Modifier.weight(1f),
-                            enabled = !isLoading,
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
-                            )
-                        ) {
-                            Text(text = item, color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
-                        }
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -162,7 +103,7 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val roles = listOf("customer", "farmer")
+                    val roles = listOf("Customer", "Admin")
                     roles.forEach { item ->
                         val selected = role == item
                         OutlinedButton(
@@ -173,7 +114,7 @@ fun RegisterScreen(
                                 containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                             )
                         ) {
-                            Text(text = item.replaceFirstChar { it.uppercase() }, color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
+                            Text(text = item, color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
@@ -207,7 +148,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = { onRegisterClick(name, username, email, dob, gender, role, password) },
+                    onClick = { onRegisterClick(name, email, password, phone, role) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),

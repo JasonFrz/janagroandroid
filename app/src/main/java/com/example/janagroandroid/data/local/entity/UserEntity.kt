@@ -8,12 +8,11 @@ data class UserEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String,
-    val username: String, // Field baru
     val email: String,
-    val password: String,
-    val dateOfBirth: String, // Field baru
-    val gender: String, // Field baru
-    val role: String,
+    val password: String = "",
+    val phone: String? = null,
     val profilePicture: String? = null,
+    val role: String = "Customer",
+    val isMerchant: Boolean = false,
     val isLoggedIn: Boolean = false
 )

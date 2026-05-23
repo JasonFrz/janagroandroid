@@ -24,6 +24,11 @@ class MainActivity : AppCompatActivity() {
         val host = supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment
         navController = host.navController
 
+        // Tampilkan Splash di awal jika baru pertama kali buka
+        if (savedInstanceState == null) {
+            navController.navigate(R.id.splashFragment)
+        }
+
         // 2. Inisialisasi View
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         val bottomAppBar = findViewById<BottomAppBar>(R.id.bottomAppBar)

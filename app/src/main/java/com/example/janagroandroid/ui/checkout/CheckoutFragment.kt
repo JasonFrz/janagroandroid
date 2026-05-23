@@ -4,11 +4,11 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
 import com.example.janagroandroid.databinding.FragmentCheckoutBinding
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
@@ -27,7 +27,9 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
         binding.btnPay.setOnClickListener {
             viewModel.checkout(total)
-            findNavController().navigate(R.id.historyFragment)
+            // Menggunakan selectedItemId agar Bottom Navigation tersinkronisasi ke tab History
+            val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
+            bottomNav.selectedItemId = R.id.historyFragment
         }
     }
 

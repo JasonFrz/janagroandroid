@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HomeFragment : Fragment() {
 
@@ -36,7 +37,9 @@ class HomeFragment : Fragment() {
                     products = products,
                     onProfileClick = {
                         if (user != null) {
-                            findNavController().navigate(R.id.profileFragment)
+                            // Menggunakan selectedItemId agar state BottomNav tersinkronisasi
+                            val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
+                            bottomNav.selectedItemId = R.id.profileFragment
                         } else {
                             findNavController().navigate(R.id.loginFragment)
                         }

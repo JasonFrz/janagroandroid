@@ -17,7 +17,11 @@ class SplashFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 SplashScreen(onNext = {
-                    findNavController().navigate(R.id.homeFragment)
+                    // Karena homeFragment sekarang adalah startDestination, 
+                    // kita cukup pop splashFragment untuk kembali ke home
+                    if (!findNavController().popBackStack()) {
+                        findNavController().navigate(R.id.homeFragment)
+                    }
                 })
             }
         }
