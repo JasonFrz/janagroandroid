@@ -128,6 +128,21 @@ class AppRepository(
         }
     }
 
+    suspend fun getRemoteProductDetail(id: Long): ProductEntity? {
+        return try {
+            val response = apiService.getProductDetail(id)
+            if (response.isSuccessful) {
+                val productDto = response.body()?.data?.product
+                productDto?.toEntity()
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     suspend fun addToCart(item: CartEntity) {
         cartDao.insert(item)
     }

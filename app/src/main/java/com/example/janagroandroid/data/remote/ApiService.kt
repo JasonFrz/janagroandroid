@@ -33,4 +33,7 @@ interface ApiService {
 //    PRODUCT API
     @GET("/api/v1/products")
     suspend fun getProducts(): Response<RemoteProductResponse>
+
+    @GET("/api/v1/products/{id}")
+    suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
 }

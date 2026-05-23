@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -149,7 +150,8 @@ fun HomeHeader(
 
 @Composable
 fun CategorySection() {
-    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+    // saya ingin memberikan padding top
+    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
         Text(
             text = "Shop By Categories",
             fontSize = 20.sp,
@@ -238,8 +240,9 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
         modifier = Modifier
             .width(160.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
             AsyncImage(
@@ -247,21 +250,53 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
-                contentScale = ContentScale.Crop,
+                    .height(130.dp)
+                    .padding(8.dp),
+                contentScale = ContentScale.Fit,
                 placeholder = painterResource(id = R.drawable.farmer)
             )
-            Column(modifier = Modifier.padding(12.dp)) {
+            
+            Column(modifier = Modifier.padding(start = 12.dp, end = 0.dp, bottom = 0.dp)) {
                 Text(
                     text = product.name,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1
+                    fontSize = 14.sp,
+                    maxLines = 2,
+                    minLines = 2,
+                    lineHeight = 18.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(end = 12.dp)
                 )
-                Text(
-                    text = "Rp ${product.price}",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Rp ${product.price}",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                    
+                    Surface(
+                        modifier = Modifier.size(40.dp),
+                        color = Color(0xFF006432), // Dark Green
+                        shape = RoundedCornerShape(topStart = 12.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }

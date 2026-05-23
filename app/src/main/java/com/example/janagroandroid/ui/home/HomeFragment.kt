@@ -56,11 +56,9 @@ class HomeFragment : Fragment() {
                             val bundle = bundleOf(
                                 "id" to product.id,
                                 "name" to product.name,
-                                "price" to product.price,
-                                "stock" to product.stock,
+                                "price" to product.price.toFloat(),
                                 "imageUrl" to product.imageUrl,
-                                "description" to product.description,
-                                "category" to product.category
+                                "description" to product.description
                             )
                             findNavController().navigate(R.id.productDetailFragment, bundle)
                         } else {
