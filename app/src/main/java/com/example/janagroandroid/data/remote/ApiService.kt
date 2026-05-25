@@ -1,5 +1,6 @@
 package com.example.janagroandroid.data.remote
 
+import com.example.janagroandroid.data.remote.dto.AdminStatsResponse
 import com.example.janagroandroid.data.remote.dto.AuthResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -36,4 +37,8 @@ interface ApiService {
 
     @GET("/api/v1/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
+
+//    ADMIN API
+    @GET("/api/v1/admin/stats")
+    suspend fun getAdminStats(): Response<AdminStatsResponse>
 }
