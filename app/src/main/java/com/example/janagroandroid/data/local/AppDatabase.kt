@@ -9,12 +9,17 @@ import com.example.janagroandroid.data.local.dao.HistoryDao
 import com.example.janagroandroid.data.local.dao.ProductDao
 import com.example.janagroandroid.data.local.dao.UserDao
 import com.example.janagroandroid.data.local.entity.CartEntity
-import com.example.janagroandroid.data.local.entity.HistoryEntity
 import com.example.janagroandroid.data.local.entity.ProductEntity
+import com.example.janagroandroid.data.local.entity.TransactionEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 
 @Database(
-    entities = [UserEntity::class, ProductEntity::class, CartEntity::class, HistoryEntity::class],
+    entities = [
+        UserEntity::class,
+        ProductEntity::class,
+        CartEntity::class,
+        TransactionEntity::class
+    ],
     version = 1,
     exportSchema = false
 )
@@ -31,13 +36,11 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
+                INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "jan_agro.db"
-                ).fallbackToDestructiveMigration().build()
-                INSTANCE = instance
-                instance
+                    "jan_agro_db"
+                ).build().also { INSTANCE = it }
             }
         }
     }

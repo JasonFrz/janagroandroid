@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
@@ -37,14 +36,13 @@ class HomeFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val products by viewModel.products.observeAsState(emptyList())
-                val user by viewModel.currentUser.observeAsState()
+                val user by viewModel.user.observeAsState()
 
                 HomeScreen(
                     user = user,
                     products = products,
                     onProfileClick = {
                         if (user != null) {
-                            // Menggunakan selectedItemId agar state BottomNav tersinkronisasi
                             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
                             bottomNav.selectedItemId = R.id.profileFragment
                         } else {
@@ -54,9 +52,9 @@ class HomeFragment : Fragment() {
                     onProductClick = { product ->
                         if (user != null) {
                             val bundle = bundleOf(
-                                "id" to product.id,
+                                "id" to product.productId.toLong(),
                                 "name" to product.name,
-                                "price" to product.price.toFloat(),
+                                "price" to product.price,
                                 "imageUrl" to product.imageUrl,
                                 "description" to product.description
                             )
@@ -72,7 +70,6 @@ class HomeFragment : Fragment() {
                     onLogoutClick = {
                         lifecycleScope.launch {
                             authViewModel.logout()
-                            // Navigasi ke splash akan ditangani oleh observer di MainActivity
                         }
                     }
                 )
@@ -82,6 +79,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.refreshRemote()
+        viewModel.refreshRemoteProducts()
     }
 }

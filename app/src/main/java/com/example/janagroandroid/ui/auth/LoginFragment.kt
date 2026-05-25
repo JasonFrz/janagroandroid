@@ -14,14 +14,21 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
-import com.example.janagroandroid.ui.AppViewModelFactory
 import com.example.janagroandroid.di.AppGraph
+import com.example.janagroandroid.ui.AppViewModelFactory
 import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
-    private val vm: AuthViewModel by viewModels { AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext())) }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    private val vm: AuthViewModel by viewModels {
+        AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
@@ -39,24 +46,16 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private fun handleLogin(emailOrUsername: String, pass: String) {
-        if (emailOrUsername.isEmpty() || pass.isEmpty()) {
+    private fun handleLogin(email: String, pass: String) {
+        if (email.isBlank() || pass.isBlank()) {
             Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch {
-            vm.login(emailOrUsername, pass) { isSuccess ->
+            vm.login(email, pass) { isSuccess ->
                 if (isSuccess) {
-                    lifecycleScope.launch {
-                        val repo = AppGraph.repository(requireContext())
-                        val user = repo.getCurrentUser()
-                        if (user?.role == "Admin") {
-                            findNavController().navigate(R.id.action_loginFragment_to_adminHomeFragment)
-                        } else {
-                            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-                        }
-                    }
+                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                 } else {
                     Toast.makeText(requireContext(), "Invalid credentials", Toast.LENGTH_SHORT).show()
                 }

@@ -1,20 +1,18 @@
 package com.example.janagroandroid.data.local.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
-import com.example.janagroandroid.data.local.entity.HistoryEntity
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.janagroandroid.data.local.entity.TransactionEntity
 
 @Dao
 interface HistoryDao {
-    @Query("SELECT * FROM history ORDER BY id DESC")
-    fun getAll(): LiveData<List<HistoryEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(item: HistoryEntity)
+    suspend fun insert(item: TransactionEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(items: List<HistoryEntity>)
-
-    @Query("DELETE FROM history")
-    suspend fun clearAll()
+    @Query("SELECT * FROM transactions WHERE userId = :userId ORDER BY createdAt DESC")
+    fun getHistory(userId: Int): LiveData<List<TransactionEntity>>
 }

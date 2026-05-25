@@ -1,15 +1,18 @@
 package com.example.janagroandroid.data.remote
 
-import com.example.janagroandroid.data.local.SessionManager
-import okhttp3.OkHttpClient
+import com.example.janagroandroid.data.SessionManager
 import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-//    private const val BASE_URL = "http://10.0.2.2:3000/"
-private const val BASE_URL = "http://192.168.1.4:3000/"
+
+    // Gunakan 10.0.2.2 untuk akses localhost dari emulator
+    // Gunakan IP Laptop (misal 192.168.1.4) jika menggunakan HP Real
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     fun getApiService(sessionManager: SessionManager? = null): ApiService {
         val logging = HttpLoggingInterceptor().apply {
@@ -20,22 +23,20 @@ private const val BASE_URL = "http://192.168.1.4:3000/"
             .addInterceptor(logging)
             .addInterceptor(Interceptor { chain ->
                 val request = chain.request()
-                val requestBuilder = request.newBuilder()
-                
-                // Jangan kirim token untuk endpoint login dan register
                 val path = request.url.encodedPath
-                val isAuthRoute = path.contains("/login") || path.contains("/register")
+                val isAuthRoute = path.contains("/api/auth/login") || path.contains("/api/auth/register")
 
+                val builder = request.newBuilder()
                 if (!isAuthRoute) {
-                    sessionManager?.getToken()?.let { token ->
-                        if (token.isNotEmpty()) {
-                            requestBuilder.addHeader("Authorization", "Bearer $token")
-                        }
+                    val token = sessionManager?.getToken().orEmpty()
+                    if (token.isNotBlank()) {
+                        builder.addHeader("Authorization", "Bearer $token")
                     }
                 }
-                
-                chain.proceed(requestBuilder.build())
+                chain.proceed(builder.build())
             })
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
             .build()
 
         return Retrofit.Builder()
@@ -45,6 +46,4 @@ private const val BASE_URL = "http://192.168.1.4:3000/"
             .build()
             .create(ApiService::class.java)
     }
-
-    val apiService: ApiService by lazy { getApiService() }
 }

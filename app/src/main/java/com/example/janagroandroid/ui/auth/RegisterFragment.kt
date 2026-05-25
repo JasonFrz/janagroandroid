@@ -14,22 +14,29 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
-import com.example.janagroandroid.ui.AppViewModelFactory
 import com.example.janagroandroid.di.AppGraph
+import com.example.janagroandroid.ui.AppViewModelFactory
 import kotlinx.coroutines.launch
 
 class RegisterFragment : Fragment() {
-    private val vm: AuthViewModel by viewModels { AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext())) }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    private val vm: AuthViewModel by viewModels {
+        AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val uiState by vm.uiState.collectAsState()
                 RegisterScreen(
                     uiState = uiState,
-                    onRegisterClick = { name, email, pass, phone, role, confirmPass ->
-                        handleRegistration(name, email, pass, phone, role, confirmPass)
+                    onRegisterClick = { name, email, phone, password ->
+                        handleRegistration(name, email, phone, password)
                     },
                     onLoginClick = {
                         findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
@@ -39,20 +46,19 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    private fun handleRegistration(name: String, email: String, pass: String, phone: String, role: String, confirmPass: String) {
-        // Basic Validation
-        if (name.isEmpty() || email.isEmpty() || pass.isEmpty() || phone.isEmpty()) {
+    private fun handleRegistration(
+        name: String,
+        email: String,
+        phone: String,
+        password: String
+    ) {
+        if (name.isBlank() || email.isBlank() || phone.isBlank() || password.isBlank()) {
             Toast.makeText(requireContext(), "Please fill all required fields", Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        if (pass != confirmPass) {
-            Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch {
-            vm.register(name, email, pass, phone, role, confirmPass) { isSuccess ->
+            vm.register(name, email, phone, password) { isSuccess ->
                 if (isSuccess) {
                     Toast.makeText(requireContext(), "Registration successful", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_registerFragment_to_loginFragment)

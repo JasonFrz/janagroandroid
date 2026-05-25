@@ -11,7 +11,7 @@ data class AdminStatsData(
 )
 
 data class AdminStats(
-    val totalTransactionsToday: Long = 0,
-    val activeUsers: Long = 0,
-    val systemStatus: String = "-"
+    val totalUsers: Int = 0,
+    val totalProducts: Int = 0,
+    val totalTransactions: Int = 0
 )

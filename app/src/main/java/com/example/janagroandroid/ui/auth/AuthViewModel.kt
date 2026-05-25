@@ -29,6 +29,7 @@ class AuthViewModel(
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             val success = repo.login(email, password)
+
             if (success) {
                 _uiState.value = AuthUiState.Success("Login successful")
                 onResult(true)
@@ -40,22 +41,26 @@ class AuthViewModel(
     }
 
     fun register(
-        name: String, email: String, password: String,
-        phone: String, role: String, passwordConfirm: String, 
+        name: String,
+        email: String,
+        phone: String,
+        password: String,
         onResult: (Boolean) -> Unit = {}
     ) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
-            
+
             val user = UserEntity(
+                id = 0L,
                 name = name,
                 email = email,
-                password = password,
                 phone = phone,
-                role = role
+                password = password,
+                isLoggedIn = false
             )
-            
-            val success = repo.register(user, passwordConfirm)
+
+            val success = repo.register(user)
+
             if (success) {
                 _uiState.value = AuthUiState.Success("Registration successful")
                 onResult(true)

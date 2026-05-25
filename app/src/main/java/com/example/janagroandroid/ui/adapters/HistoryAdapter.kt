@@ -3,21 +3,26 @@ package com.example.janagroandroid.ui.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.janagroandroid.data.local.entity.HistoryEntity
+import com.example.janagroandroid.data.local.entity.TransactionEntity
 import com.example.janagroandroid.databinding.ItemHistoryBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class HistoryAdapter(
-    private var items: List<HistoryEntity> = emptyList()
+    private var items: List<TransactionEntity> = emptyList()
 ) : RecyclerView.Adapter<HistoryAdapter.VH>() {
 
-    fun submitList(newItems: List<HistoryEntity>) {
+    private val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+
+    fun submitList(newItems: List<TransactionEntity>) {
         items = newItems
         notifyDataSetChanged()
     }
 
     inner class VH(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: HistoryEntity) {
-            binding.tvDate.text = item.date
+        fun bind(item: TransactionEntity) {
+            binding.tvDate.text = dateFormat.format(Date(item.createdAt))
             binding.tvTotal.text = "Total: Rp ${item.total}"
             binding.tvStatus.text = item.status
         }

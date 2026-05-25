@@ -1,26 +1,35 @@
-package com.example.janagroandroid.data.remote.dto
+package com.example.janagroandroid.data.remote
 
 import com.example.janagroandroid.data.local.entity.ProductEntity
+import com.google.gson.annotations.SerializedName
 
 data class ProductDto(
-    val id: Long? = null,
-    val name: String? = null,
-    val price: Double? = null,
-    val stock: Int? = null,
-    val imageUrl: String? = null,
-    val description: String? = null,
-    val category: String? = null
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("merchant_id")
+    val merchantId: Int = 0,
+
+    val name: String,
+    val category: String,
+    val price: Double,
+    val stock: Int,
+
+    @SerializedName("image_url")
+    val imageUrl: String="",
+
+    val description: String=""
 )
 
-fun ProductDto.toEntity(merchantId: Long = 0): ProductEntity {
+fun ProductDto.toEntity(): ProductEntity{
     return ProductEntity(
-        id = id ?: 0,
-        merchant_id = merchantId,
-        name = name ?: "",
-        price = price ?: 0.0,
-        stock = stock ?: 0,
-        imageUrl = imageUrl ?: "",
-        description = description ?: "",
-        category = category ?: ""
+        productId=id,
+        sellerId=merchantId,
+        name=name,
+        category=category,
+        price=price,
+        stock=stock,
+        imageUrl=imageUrl,
+        description=description
     )
 }

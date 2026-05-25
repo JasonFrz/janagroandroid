@@ -6,6 +6,7 @@ import com.example.janagroandroid.data.local.entity.UserEntity
 
 @Dao
 interface UserDao {
+
     @Query("SELECT * FROM users WHERE isLoggedIn = 1 LIMIT 1")
     fun getCurrentUser(): LiveData<UserEntity?>
 
