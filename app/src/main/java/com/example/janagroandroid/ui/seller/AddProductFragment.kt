@@ -2,10 +2,8 @@ package com.example.janagroandroid.ui.seller
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
 import com.example.janagroandroid.databinding.FragmentAddProductBinding
 import com.example.janagroandroid.di.AppGraph
@@ -31,26 +29,13 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
             val description = binding.etDescription.text.toString()
             val category = binding.etCategory.text.toString()
 
-            if (name.isBlank() || category.isBlank()) {
-                Toast.makeText(requireContext(), "Nama dan kategori harus diisi", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            viewModel.addProduct(
+            viewModel.save(
                 name = name,
                 price = price,
                 stock = stock,
                 imageUrl = imageUrl,
                 description = description,
-                category = category,
-                onDone = { success ->
-                    if (success) {
-                        Toast.makeText(requireContext(), "Produk berhasil ditambahkan", Toast.LENGTH_SHORT).show()
-                        findNavController().popBackStack()
-                    } else {
-                        Toast.makeText(requireContext(), "Gagal menambahkan produk", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                category = category
             )
         }
     }

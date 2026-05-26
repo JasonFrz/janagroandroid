@@ -1,13 +1,14 @@
 package com.example.janagroandroid.ui.history
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import com.example.janagroandroid.data.local.entity.TransactionEntity
+import com.example.janagroandroid.data.local.entity.HistoryEntity
 import com.example.janagroandroid.data.repository.AppRepository
 
 class HistoryViewModel(
+    app: Application,
     private val repo: AppRepository
-) : ViewModel() {
-
-    val history: LiveData<List<TransactionEntity>> = repo.history
+) : AndroidViewModel(app) {
+    val history: LiveData<List<HistoryEntity>> = repo.history
 }

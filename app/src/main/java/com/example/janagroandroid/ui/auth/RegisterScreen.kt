@@ -7,14 +7,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,13 +25,15 @@ import com.example.janagroandroid.ui.theme.JanAgroTheme
 @Composable
 fun RegisterScreen(
     uiState: AuthUiState,
-    onRegisterClick: (String, String, String, String) -> Unit,
+    onRegisterClick: (String, String, String, String, String, String) -> Unit,
     onLoginClick: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
+    val role = "Customer"
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     val isLoading = uiState is AuthUiState.Loading
 
@@ -130,10 +131,25 @@ fun RegisterScreen(
                     enabled = !isLoading
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    enabled = !isLoading
+                )
+
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Button(
-                    onClick = { onRegisterClick(name, email, phone, password) },
+                    onClick = { onRegisterClick(name, email, password, phone, role, confirmPassword) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -141,10 +157,7 @@ fun RegisterScreen(
                     enabled = !isLoading
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
                         Text("Register", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }

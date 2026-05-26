@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -20,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
@@ -52,7 +52,7 @@ class AdminHomeFragment : Fragment() {
                     onLogout = {
                         lifecycleScope.launch {
                             authViewModel.logout()
-                            findNavController().navigate(R.id.loginFragment)
+                            findNavController().navigate(R.id.splashFragment)
                         }
                     },
                     onRefresh = { adminViewModel.loadStats() }
@@ -69,8 +69,8 @@ fun AdminHomeScreen(
     onLogout: () -> Unit,
     onRefresh: () -> Unit
 ) {
-    val stats by viewModel.stats.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val stats: AdminStats? by viewModel.stats.observeAsState()
+    val isLoading: Boolean by viewModel.isLoading.observeAsState(false)
 
     JanAgroTheme {
         Scaffold(
@@ -112,9 +112,9 @@ fun AdminHomeScreen(
                         CircularProgressIndicator()
                     }
                 } else {
-                    StatCard("Total Produk", (stats?.totalProducts ?: 0).toString())
-                    StatCard("Jumlah User", (stats?.totalUsers ?: 0).toString())
-                    StatCard("Total Transaksi", (stats?.totalTransactions ?: 0).toString())
+                    StatCard("Total Transaksi Hari Ini", formatRupiah(stats?.totalTransactionsToday ?: 0L))
+                    StatCard("Jumlah User Aktif", (stats?.activeUsers ?: 0L).toString())
+                    StatCard("Status Sistem", stats?.systemStatus ?: "-")
                 }
             }
         }

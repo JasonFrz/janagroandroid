@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -23,16 +23,16 @@ class ProductDetailFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val id = arguments?.getLong("id") ?: 0L
         val initialName = arguments?.getString("name").orEmpty()
-        val initialPrice = arguments?.getDouble("price") ?: 0.0
+        val initialPrice = arguments?.getFloat("price")?.toDouble() ?: 0.0
         val initialImageUrl = arguments?.getString("imageUrl").orEmpty()
         val initialDescription = arguments?.getString("description").orEmpty()
 
-        viewModel.loadProductDetail(id)
+        viewModel.fetchProductDetail(id)
 
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val productDetail by viewModel.product.collectAsStateWithLifecycle()
+                val productDetail by viewModel.product.observeAsState()
                 
                 ProductDetailScreen(
                     id = id,
@@ -42,10 +42,8 @@ class ProductDetailFragment : Fragment() {
                     description = productDetail?.description ?: initialDescription,
                     onBackClick = { findNavController().popBackStack() },
                     onAddToCartClick = { qty ->
-                        productDetail?.let {
-                            viewModel.addToCart(it, qty)
-                            findNavController().popBackStack()
-                        }
+                        viewModel.addToCart(id, initialName, initialPrice, initialImageUrl, qty)
+                        findNavController().popBackStack()
                     }
                 )
             }

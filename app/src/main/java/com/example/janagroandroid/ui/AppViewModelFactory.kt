@@ -8,59 +8,36 @@ import com.example.janagroandroid.ui.admin.AdminHomeViewModel
 import com.example.janagroandroid.ui.auth.AuthViewModel
 import com.example.janagroandroid.ui.cart.CartViewModel
 import com.example.janagroandroid.ui.checkout.CheckoutViewModel
-import com.example.janagroandroid.ui.history.HistoryViewModel
 import com.example.janagroandroid.ui.home.HomeViewModel
-import com.example.janagroandroid.ui.product.ProductDetailViewModel
+import com.example.janagroandroid.ui.history.HistoryViewModel
 import com.example.janagroandroid.ui.profile.ProfileViewModel
+import com.example.janagroandroid.ui.product.ProductDetailViewModel
 import com.example.janagroandroid.ui.seller.AddProductViewModel
 import com.example.janagroandroid.ui.seller.SellerDashboardViewModel
 import com.example.janagroandroid.ui.splash.SplashViewModel
 
 class AppViewModelFactory(
-    private val application: Application,
-    private val repository: AppRepository
+    private val app: Application,
+    private val repo: AppRepository
 ) : ViewModelProvider.Factory {
-
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return when {
-            modelClass.isAssignableFrom(AuthViewModel::class.java) ->
-                AuthViewModel(application, repository) as T
-
-            modelClass.isAssignableFrom(MainViewModel::class.java) ->
-                MainViewModel(repository) as T
-
-            modelClass.isAssignableFrom(SplashViewModel::class.java) ->
-                SplashViewModel(repository) as T
-
-            modelClass.isAssignableFrom(HomeViewModel::class.java) ->
-                HomeViewModel(repository) as T
-
-            modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
-                ProfileViewModel(repository) as T
-
-            modelClass.isAssignableFrom(CartViewModel::class.java) ->
-                CartViewModel(repository) as T
-
-            modelClass.isAssignableFrom(CheckoutViewModel::class.java) ->
-                CheckoutViewModel(repository) as T
-
-            modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
-                HistoryViewModel(repository) as T
-
-            modelClass.isAssignableFrom(ProductDetailViewModel::class.java) ->
-                ProductDetailViewModel(repository) as T
-
-            modelClass.isAssignableFrom(AddProductViewModel::class.java) ->
-                AddProductViewModel(repository) as T
-
-            modelClass.isAssignableFrom(SellerDashboardViewModel::class.java) ->
-                SellerDashboardViewModel(repository) as T
-
-            modelClass.isAssignableFrom(AdminHomeViewModel::class.java) ->
-                AdminHomeViewModel(repository) as T
-
+        val vm: ViewModel = when {
+            modelClass.isAssignableFrom(SplashViewModel::class.java) -> SplashViewModel(app, repo)
+            modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel(repo)
+            modelClass.isAssignableFrom(AuthViewModel::class.java) -> AuthViewModel(app, repo)
+            modelClass.isAssignableFrom(HomeViewModel::class.java) -> HomeViewModel(app, repo)
+            modelClass.isAssignableFrom(ProductDetailViewModel::class.java) -> ProductDetailViewModel(app, repo)
+            modelClass.isAssignableFrom(CartViewModel::class.java) -> CartViewModel(app, repo)
+            modelClass.isAssignableFrom(CheckoutViewModel::class.java) -> CheckoutViewModel(app, repo)
+            modelClass.isAssignableFrom(HistoryViewModel::class.java) -> HistoryViewModel(app, repo)
+            modelClass.isAssignableFrom(ProfileViewModel::class.java) -> ProfileViewModel(app, repo)
+            modelClass.isAssignableFrom(SellerDashboardViewModel::class.java) -> SellerDashboardViewModel(app, repo)
+            modelClass.isAssignableFrom(AddProductViewModel::class.java) -> AddProductViewModel(app, repo)
+            modelClass.isAssignableFrom(AdminHomeViewModel::class.java) -> AdminHomeViewModel(app, repo)
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
+
+        @Suppress("UNCHECKED_CAST")
+        return vm as T
     }
 }

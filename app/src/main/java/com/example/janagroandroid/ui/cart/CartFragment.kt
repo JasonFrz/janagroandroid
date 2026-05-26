@@ -29,7 +29,7 @@ class CartFragment : Fragment(R.layout.fragment_cart) {
         _binding = FragmentCartBinding.bind(view)
 
         adapter = CartAdapter(emptyList()) { item ->
-            viewModel.deleteCart(item)
+            viewModel.delete(item)
         }
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())

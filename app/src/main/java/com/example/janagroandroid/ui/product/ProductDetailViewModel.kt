@@ -1,35 +1,62 @@
 package com.example.janagroandroid.ui.product
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.janagroandroid.data.local.entity.CartEntity
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.repository.AppRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ProductDetailViewModel(
+    app: Application,
     private val repo: AppRepository
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
-    private val _product = MutableStateFlow<ProductEntity?>(null)
-    val product: StateFlow<ProductEntity?> = _product.asStateFlow()
+    private val _product = MutableLiveData<ProductEntity?>()
+    val product: LiveData<ProductEntity?> = _product
 
-    fun loadProductDetail(id: Long) {
+    fun fetchProductDetail(id: Long) {
         viewModelScope.launch {
-            _product.value = repo.getRemoteProductDetail(id)
+            val result = repo.getRemoteProductDetail(id)
+            _product.postValue(result)
         }
     }
 
-    fun addToCart(product: ProductEntity, qty: Int = 1) {
+    fun addToCart(product: ProductEntity) {
         viewModelScope.launch {
             repo.addToCart(
-                productId = product.productId.toLong(),
-                productName = product.name,
-                price = product.price,
-                qty = qty,
-                imageUrl = product.imageUrl
+                CartEntity(
+                    userId = repo.currentUserId(),
+                    productId = product.id,
+                    productName = product.name,
+                    price = product.price,
+                    imageUrl = product.imageUrl,
+                    qty = 1
+                )
+            )
+        }
+    }
+
+    fun addToCart(
+        productId: Long,
+        productName: String,
+        price: Double,
+        imageUrl: String,
+        qty: Int = 1
+    ) {
+        viewModelScope.launch {
+            repo.addToCart(
+                CartEntity(
+                    userId = repo.currentUserId(),
+                    productId = productId,
+                    productName = productName,
+                    price = price,
+                    imageUrl = imageUrl,
+                    qty = qty
+                )
             )
         }
     }

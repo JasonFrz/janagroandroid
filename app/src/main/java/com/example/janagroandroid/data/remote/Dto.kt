@@ -1,5 +1,7 @@
 package com.example.janagroandroid.data.remote
 
+import com.example.janagroandroid.data.remote.dto.ProductDto
+
 data class RemoteProductResponse(
     val status: String? = null,
     val message: String? = null,
