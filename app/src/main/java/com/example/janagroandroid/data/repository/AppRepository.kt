@@ -11,6 +11,7 @@ import com.example.janagroandroid.data.local.entity.HistoryEntity
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.ApiService
+import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.data.remote.dto.toEntity
 
 class AppRepository(
@@ -118,9 +119,11 @@ class AppRepository(
     }
 
     suspend fun refreshRemoteProducts(): Boolean {
-        val response = apiService.getProducts()
+        // Menggunakan parameter baru: limit=10, sortBy=created_at, sortDir=DESC
+        val response = apiService.getProducts(limit = 10, sortBy = "created_at", sortDir = "DESC")
         return if (response.isSuccessful) {
-            val items = response.body()?.data?.products.orEmpty().map { it.toEntity(merchantId = 0) }
+            val items = response.body()?.data?.products.orEmpty()
+                .map { it.toEntity(merchantId = 0) }
             productDao.insertAll(items)
             true
         } else {
@@ -140,6 +143,20 @@ class AppRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    suspend fun getHighestRatedMerchants(limit: Int = 6): List<MerchantDto> {
+        return try {
+            val response = apiService.getHighestRatedMerchants(limit)
+            if (response.isSuccessful) {
+                response.body()?.data?.merchants.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 

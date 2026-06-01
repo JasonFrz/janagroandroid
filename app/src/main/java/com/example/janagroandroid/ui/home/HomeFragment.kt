@@ -37,11 +37,13 @@ class HomeFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val products by viewModel.products.observeAsState(emptyList())
+                val topMerchants by viewModel.topMerchants.observeAsState(emptyList())
                 val user by viewModel.currentUser.observeAsState()
 
                 HomeScreen(
                     user = user,
                     products = products,
+                    topMerchants = topMerchants,
                     onProfileClick = {
                         if (user != null) {
                             // Menggunakan selectedItemId agar state BottomNav tersinkronisasi

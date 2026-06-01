@@ -3,9 +3,11 @@ package com.example.janagroandroid.ui.home
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
+import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.data.repository.AppRepository
 import kotlinx.coroutines.launch
 
@@ -19,9 +21,30 @@ class HomeViewModel(
     // Asumsi repo punya variabel untuk mendapatkan user yang sedang aktif
     val currentUser: LiveData<UserEntity?> = repo.getUser
 
+    private val _topMerchants = MutableLiveData<List<MerchantDto>>()
+    val topMerchants: LiveData<List<MerchantDto>> = _topMerchants
+
+    init {
+        currentUser.observeForever { user ->
+            if (user == null) {
+                _topMerchants.postValue(emptyList())
+            }
+        }
+    }
+
     fun refreshRemote() {
         viewModelScope.launch {
             repo.refreshRemoteProducts()
+            if (currentUser.value != null) {
+                fetchTopMerchants()
+            }
+        }
+    }
+
+    fun fetchTopMerchants() {
+        viewModelScope.launch {
+            val result = repo.getHighestRatedMerchants(6)
+            _topMerchants.postValue(result)
         }
     }
 }

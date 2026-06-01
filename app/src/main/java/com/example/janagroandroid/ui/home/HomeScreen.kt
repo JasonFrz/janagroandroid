@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,16 +27,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 import coil.compose.AsyncImage
 import com.example.janagroandroid.R
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
+import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
 @Composable
 fun HomeScreen(
     user: UserEntity?,
     products: List<ProductEntity>,
+    topMerchants: List<MerchantDto> = emptyList(),
     onProfileClick: () -> Unit,
     onProductClick: (ProductEntity) -> Unit,
     onSearchClick: () -> Unit,
@@ -72,6 +76,21 @@ fun HomeScreen(
 
                 ProductSection(
                     title = "Recently Listed",
+                    products = products,
+                    onProductClick = onProductClick
+                )
+
+                if (user != null && topMerchants.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    MerchantSection(
+                        title = "Top Rated Merchants",
+                        merchants = topMerchants
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                AllProductsSection(
+                    title = "All Products",
                     products = products,
                     onProductClick = onProductClick
                 )
@@ -189,6 +208,209 @@ fun CategoryChip(text: String, isSelected: Boolean) {
                 color = if (isSelected) Color.White else Color.Black,
                 fontWeight = FontWeight.Medium
             )
+        }
+    }
+}
+
+@Composable
+fun MerchantSection(
+    title: String,
+    merchants: List<MerchantDto>
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Text(
+                text = "View all",
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(merchants) { merchant ->
+                MerchantItem(merchant = merchant)
+            }
+        }
+    }
+}
+
+@Composable
+fun MerchantItem(merchant: MerchantDto) {
+    Card(
+        modifier = Modifier
+            .width(140.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AsyncImage(
+                model = merchant.owner?.profilePicture,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.farmer)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = merchant.storeName ?: merchant.owner?.name ?: "Unknown",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                maxLines = 1,
+                color = Color.Black
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = Color(0xFFFFB300),
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = " ${String.format(Locale.US, "%.1f", merchant.averageRating)} (${merchant.reviewCount})",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AllProductsSection(
+    title: String,
+    products: List<ProductEntity>,
+    onProductClick: (ProductEntity) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Grid 2 kolom menggunakan Column & Row karena di dalam verticalScroll
+        val chunks = products.chunked(2)
+        chunks.forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowItems.forEach { product ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        AllProductItem(product = product, onClick = { onProductClick(product) })
+                    }
+                }
+                // Jika ganjil, tambahkan spacer di akhir row terakhir
+                if (rowItems.size < 2) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column {
+            AsyncImage(
+                model = product.imageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .padding(8.dp),
+                contentScale = ContentScale.Fit,
+                placeholder = painterResource(id = R.drawable.farmer)
+            )
+            
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = product.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    maxLines = 2,
+                    minLines = 2,
+                    lineHeight = 18.sp,
+                    color = Color.Black
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Rp ${product.price}",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                    
+                    Surface(
+                        modifier = Modifier.size(32.dp),
+                        color = Color(0xFF006432),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add",
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

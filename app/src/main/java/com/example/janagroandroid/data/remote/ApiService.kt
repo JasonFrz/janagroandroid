@@ -1,6 +1,7 @@
 package com.example.janagroandroid.data.remote
 
 import com.example.janagroandroid.data.remote.dto.AuthResponse
+import com.example.janagroandroid.data.remote.dto.HighestRatedMerchantsResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -32,8 +33,23 @@ interface ApiService {
 
 //    PRODUCT API
     @GET("/api/v1/products")
-    suspend fun getProducts(): Response<RemoteProductResponse>
+    suspend fun getProducts(
+        @Query("search") search: String? = null,
+        @Query("category_id") categoryId: Int? = null,
+        @Query("minPrice") minPrice: Double? = null,
+        @Query("maxPrice") maxPrice: Double? = null,
+        @Query("page") page: Int? = 1,
+        @Query("limit") limit: Int? = 10,
+        @Query("sortBy") sortBy: String? = "created_at",
+        @Query("sortDir") sortDir: String? = "DESC"
+    ): Response<RemoteProductResponse>
 
     @GET("/api/v1/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
+
+//    MERCHANT API
+    @GET("/api/v1/merchants/highest-rated")
+    suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
+
+
 }
