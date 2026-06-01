@@ -1,5 +1,6 @@
 package com.example.janagroandroid.data.remote
 
+import com.example.janagroandroid.data.remote.dto.AdminStatsResponse
 import com.example.janagroandroid.data.remote.dto.AuthResponse
 import com.example.janagroandroid.data.remote.dto.HighestRatedMerchantsResponse
 import okhttp3.MultipartBody
@@ -52,4 +53,8 @@ interface ApiService {
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
 
 
+
+//    ADMIN API
+    @GET("/api/v1/admin/stats")
+    suspend fun getAdminStats(): Response<AdminStatsResponse>
 }

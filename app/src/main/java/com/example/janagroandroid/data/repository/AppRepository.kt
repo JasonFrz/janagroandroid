@@ -12,6 +12,7 @@ import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.ApiService
 import com.example.janagroandroid.data.remote.dto.MerchantDto
+import com.example.janagroandroid.data.remote.dto.AdminStats
 import com.example.janagroandroid.data.remote.dto.toEntity
 
 class AppRepository(
@@ -128,6 +129,20 @@ class AppRepository(
             true
         } else {
             false
+        }
+    }
+
+    suspend fun getAdminStats(): AdminStats? {
+        return try {
+            val response = apiService.getAdminStats()
+            if (response.isSuccessful) {
+                response.body()?.data?.stats
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
