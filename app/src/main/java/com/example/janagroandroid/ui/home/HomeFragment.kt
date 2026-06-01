@@ -27,10 +27,6 @@ class HomeFragment : Fragment() {
     private val viewModel: HomeViewModel by viewModels {
         AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
     }
-    
-    private val authViewModel: AuthViewModel by viewModels {
-        AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return ComposeView(requireContext()).apply {
@@ -46,7 +42,6 @@ class HomeFragment : Fragment() {
                     topMerchants = topMerchants,
                     onProfileClick = {
                         if (user != null) {
-                            // Menggunakan selectedItemId agar state BottomNav tersinkronisasi
                             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
                             bottomNav.selectedItemId = R.id.profileFragment
                         } else {
@@ -68,14 +63,12 @@ class HomeFragment : Fragment() {
                             findNavController().navigate(R.id.loginFragment)
                         }
                     },
-                    onSearchClick = {
-                        // Handle search
+                    onNotificationClick = {
+                        Toast.makeText(requireContext(), "Notifikasi", Toast.LENGTH_SHORT).show()
                     },
-                    onLogoutClick = {
-                        lifecycleScope.launch {
-                            authViewModel.logout()
-                            // Navigasi ke splash akan ditangani oleh observer di MainActivity
-                        }
+                    onCartClick = {
+                        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
+                        bottomNav.selectedItemId = R.id.cartFragment
                     }
                 )
             }

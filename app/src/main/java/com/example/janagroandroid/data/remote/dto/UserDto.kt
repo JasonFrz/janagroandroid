@@ -23,6 +23,8 @@ data class AuthResponse(
 
 data class AuthData(
     val token: String? = null,
+    @SerializedName("refresh_token")
+    val refreshToken: String? = null,
     val user: UserDto? = null
 )
 

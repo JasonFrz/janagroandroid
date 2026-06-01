@@ -54,7 +54,8 @@ class AppRepository(
                     
                     // Simpan token ke SessionManager
                     sessionManager.saveToken(token)
-                    
+                    authData.refreshToken?.let { sessionManager.saveRefreshToken(it) }
+
                     true
                 } else {
                     false

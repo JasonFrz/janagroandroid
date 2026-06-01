@@ -6,12 +6,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +27,7 @@ import com.example.janagroandroid.R
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     user: UserEntity?,
@@ -37,24 +43,28 @@ fun ProfileScreen(
     }
 
     JanAgroTheme {
-        Scaffold { padding ->
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text("Profile", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.White
+                    )
+                )
+            }
+        ) { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(24.dp),
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Profile",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Box(
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
                         .clickable { launcher.launch("image/*") }
                 ) {
@@ -67,22 +77,98 @@ fun ProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                InfoRow(label = "Name", value = user?.name ?: "-")
-                InfoRow(label = "Email", value = user?.email ?: "-")
+                Text(
+                    text = user?.name ?: "Guest User",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = user?.email ?: "guest@example.com",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Menu Items
+                ProfileMenuItem(
+                    icon = Icons.Default.Person,
+                    title = "Edit Profile",
+                    onClick = { /* Handle */ }
+                )
+                
                 InfoRow(label = "Role", value = user?.role ?: "-")
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Button(
-                    onClick = onLogoutClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                // Logout as a special Menu Item
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                        .clickable { onLogoutClick() },
+                    color = Color.Transparent
                 ) {
-                    Text("Logout")
+                    Row(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = null,
+                            tint = Color.Red
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "Logout",
+                            color = Color.Red,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun ProfileMenuItem(
+    icon: ImageVector,
+    title: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        color = Color.Transparent
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = title,
+                modifier = Modifier.weight(1f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = Color.Gray
+            )
         }
     }
 }

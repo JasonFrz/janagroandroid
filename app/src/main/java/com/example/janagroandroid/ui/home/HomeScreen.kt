@@ -11,11 +11,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,23 +40,22 @@ fun HomeScreen(
     topMerchants: List<MerchantDto> = emptyList(),
     onProfileClick: () -> Unit,
     onProductClick: (ProductEntity) -> Unit,
-    onSearchClick: () -> Unit,
-    onLogoutClick: () -> Unit = {}
+    onNotificationClick: () -> Unit,
+    onCartClick: () -> Unit
 ) {
     JanAgroTheme {
         Scaffold(
             topBar = {
-                // Membungkus Header dalam Surface agar area sentuh terjamin
                 Surface(
-                    shadowElevation = 2.dp,
+                    shadowElevation = 0.dp,
                     color = Color.White,
-                    modifier = Modifier.statusBarsPadding() // Jarak aman dari Notch/Status Bar
+                    modifier = Modifier.statusBarsPadding()
                 ) {
                     HomeHeader(
                         user = user, 
-                        onProfileClick = onProfileClick, 
-                        onSearchClick = onSearchClick,
-                        onLogoutClick = onLogoutClick
+                        onProfileClick = onProfileClick,
+                        onNotificationClick = onNotificationClick,
+                        onCartClick = onCartClick
                     )
                 }
             }
@@ -70,6 +67,8 @@ fun HomeScreen(
                     .verticalScroll(rememberScrollState())
                     .background(Color(0xFFF5F7F9))
             ) {
+                SearchSection(onSearch = { /* Handle search */ })
+
                 CategorySection()
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -105,13 +104,13 @@ fun HomeScreen(
 fun HomeHeader(
     user: UserEntity?,
     onProfileClick: () -> Unit,
-    onSearchClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onNotificationClick: () -> Unit,
+    onCartClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 6.dp), // Dikurangi lagi agar tidak terlalu turun
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -143,25 +142,89 @@ fun HomeHeader(
             )
         }
 
-        IconButton(onClick = onSearchClick) {
-            Icon(Icons.Default.Search, contentDescription = "Search")
+        // Notification Icon with Badge
+        Box {
+            IconButton(onClick = onNotificationClick) {
+                Icon(Icons.Outlined.Notifications, contentDescription = "Notifications", modifier = Modifier.size(28.dp))
+            }
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 8.dp, end = 8.dp)
+                    .size(10.dp),
+                color = Color.Red,
+                shape = CircleShape,
+                border = androidx.compose.foundation.BorderStroke(2.dp, Color.White)
+            ) {}
         }
 
-        if (user != null) {
-            // Pastikan IconButton memiliki ukuran yang cukup untuk disentuh
-            IconButton(
-                onClick = onLogoutClick,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = "Logout",
-                    tint = Color.Red
-                )
+        // Cart Icon with Badge
+        Box {
+            IconButton(onClick = onCartClick) {
+                Icon(Icons.Outlined.ShoppingCart, contentDescription = "Cart", modifier = Modifier.size(28.dp))
             }
-        } else {
-            IconButton(onClick = { /* Menu Settings */ }) {
-                Icon(Icons.Default.Settings, contentDescription = "Menu")
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 4.dp, end = 4.dp)
+                    .size(18.dp),
+                color = Color(0xFF006432),
+                shape = CircleShape,
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("3", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchSection(onSearch: (String) -> Unit) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
+            placeholder = { Text("Cari benih, pupuk, atau alat...", color = Color.Gray, fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFFF0F0F0),
+                unfocusedContainerColor = Color(0xFFF0F0F0),
+                disabledContainerColor = Color(0xFFF0F0F0),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Surface(
+            modifier = Modifier
+                .size(56.dp)
+                .clickable { /* Filter click */ },
+            color = Color(0xFF2E7D32),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Menu, // Fallback to Menu if Tune/FilterList is missing
+                    contentDescription = "Filter",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
     }
@@ -169,7 +232,6 @@ fun HomeHeader(
 
 @Composable
 fun CategorySection() {
-    // saya ingin memberikan padding top
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
         Text(
             text = "Shop By Categories",
@@ -326,7 +388,6 @@ fun AllProductsSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Grid 2 kolom menggunakan Column & Row karena di dalam verticalScroll
         val chunks = products.chunked(2)
         chunks.forEach { rowItems ->
             Row(
@@ -338,7 +399,6 @@ fun AllProductsSection(
                         AllProductItem(product = product, onClick = { onProductClick(product) })
                     }
                 }
-                // Jika ganjil, tambahkan spacer di akhir row terakhir
                 if (rowItems.size < 2) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -506,7 +566,7 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                     
                     Surface(
                         modifier = Modifier.size(40.dp),
-                        color = Color(0xFF006432), // Dark Green
+                        color = Color(0xFF006432),
                         shape = RoundedCornerShape(topStart = 12.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {

@@ -20,6 +20,9 @@ interface ApiService {
     @POST("/api/v1/auth/logout")
     suspend fun logout(): Response<AuthResponse>
 
+    @POST("/api/v1/auth/refresh")
+    suspend fun refreshToken(@Body request: Map<String, String>): Response<AuthResponse>
+
 //    PROFILE USERS API
     @GET("/api/v1/profile")
     suspend fun getProfile(): Response<AuthResponse>

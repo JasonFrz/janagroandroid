@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
             val currentDest = navController.currentDestination?.id
             if (user == null && currentDest != R.id.homeFragment && currentDest != R.id.loginFragment && currentDest != R.id.registerFragment && currentDest != R.id.splashFragment) {
                 // Arahkan langsung ke Home (Guest) saat logout
-                navController.navigate(R.id.homeFragment) {
+                navController.navigate(R.id.loginFragment) {
                     popUpTo(R.id.nav_graph) { inclusive = true }
                 }
             }
