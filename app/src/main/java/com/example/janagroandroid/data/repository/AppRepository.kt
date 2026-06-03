@@ -13,6 +13,7 @@ import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.ApiService
 import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.data.remote.dto.AdminStats
+import com.example.janagroandroid.data.remote.dto.AdminUserDto
 import com.example.janagroandroid.data.remote.dto.toEntity
 
 class AppRepository(
@@ -144,6 +145,20 @@ class AppRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    suspend fun getAdminUsers(search: String? = null, role: String? = null): List<AdminUserDto> {
+        return try {
+            val response = apiService.getAdminUsers(search, role)
+            if (response.isSuccessful) {
+                response.body()?.data?.users.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 

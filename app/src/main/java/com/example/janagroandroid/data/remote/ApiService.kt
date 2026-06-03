@@ -1,6 +1,7 @@
 package com.example.janagroandroid.data.remote
 
 import com.example.janagroandroid.data.remote.dto.AdminStatsResponse
+import com.example.janagroandroid.data.remote.dto.AdminUsersResponse
 import com.example.janagroandroid.data.remote.dto.AuthResponse
 import com.example.janagroandroid.data.remote.dto.HighestRatedMerchantsResponse
 import okhttp3.MultipartBody
@@ -60,4 +61,10 @@ interface ApiService {
 //    ADMIN API
     @GET("/api/v1/admin/stats")
     suspend fun getAdminStats(): Response<AdminStatsResponse>
+
+    @GET("/api/v1/admin/users")
+    suspend fun getAdminUsers(
+        @Query("search") search: String? = null,
+        @Query("role") role: String? = null
+    ): Response<AdminUsersResponse>
 }
