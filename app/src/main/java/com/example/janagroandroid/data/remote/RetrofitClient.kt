@@ -28,7 +28,7 @@ object RetrofitClient {
 
                 // Jangan kirim token untuk endpoint login dan register
                 val path = request.url.encodedPath
-                val isAuthRoute = path.contains("/login") || path.contains("/register") || path.contains("/refresh")
+                val isAuthRoute = path.contains("/login") || path.contains("/register") || path.contains("/refresh-token")
 
                 if (!isAuthRoute) {
                     sessionManager?.getToken()?.let { token ->
@@ -54,7 +54,7 @@ object RetrofitClient {
                                     .build()
                                     .create(ApiService::class.java)
 
-                                refreshService.refreshToken(mapOf("refresh_token" to refreshToken))
+                                refreshService.refreshToken(mapOf("refreshToken" to refreshToken))
                             }
 
                             if (refreshResponse.isSuccessful) {

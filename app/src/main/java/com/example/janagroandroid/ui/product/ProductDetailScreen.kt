@@ -1,6 +1,5 @@
 package com.example.janagroandroid.ui.product
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,8 +9,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 import coil.compose.AsyncImage
 import com.example.janagroandroid.R
 import com.example.janagroandroid.ui.theme.JanAgroTheme
@@ -31,7 +36,7 @@ import com.example.janagroandroid.ui.theme.JanAgroTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
-    id: Long, // kept for potential use
+    id: Long,
     name: String,
     price: Double,
     imageUrl: String,
@@ -39,38 +44,50 @@ fun ProductDetailScreen(
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit
 ) {
-    val quantities = listOf("500 g", "1 kg", "1.5 kg", "2 kg")
-    val multipliers = listOf(0.5, 1.0, 1.5, 2.0)
-    val selectedQtyIndex = remember { mutableIntStateOf(1) } // Default 1kg
-
     JanAgroTheme {
         Scaffold(
-            bottomBar = {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    color = Color.Transparent
-                ) {
-                    Button(
-                        onClick = { onAddToCartClick((multipliers[selectedQtyIndex.intValue] * 1000).toInt()) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006432))
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Add to cart", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Box(modifier = Modifier.width(1.dp).height(24.dp).background(Color.White.copy(alpha = 0.3f)))
-                            Text("Rp ${price * multipliers[selectedQtyIndex.intValue]}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "AGROJAN",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32),
+                            fontSize = 18.sp
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color(0xFF2E7D32)
+                            )
                         }
-                    }
-                }
+                    },
+                    actions = {
+                        IconButton(onClick = { /* Share */ }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Share,
+                                contentDescription = "Share",
+                                tint = Color(0xFF2E7D32)
+                            )
+                        }
+                        IconButton(onClick = { /* Cart */ }) {
+                            Icon(
+                                imageVector = Icons.Outlined.ShoppingCart,
+                                contentDescription = "Cart",
+                                tint = Color(0xFF2E7D32)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.White
+                    )
+                )
+            },
+            bottomBar = {
+                BottomActionBar(onAddToCartClick = { onAddToCartClick(1) })
             }
         ) { padding ->
             Column(
@@ -78,139 +95,396 @@ fun ProductDetailScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .background(Color.White)
+                    .background(Color(0xFFF8F8F8))
             ) {
-                // Top Action Bar
-                Row(
+                // Product Image Section
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .height(300.dp)
+                        .background(Color.White)
                 ) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                    IconButton(onClick = { /* Bookmark */ }) {
-                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Bookmark")
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.farmer)
+                    )
+                    
+                    // Carousel Indicators
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        repeat(3) { index ->
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(if (index == 0) Color(0xFF2E7D32) else Color.LightGray)
+                            )
+                        }
                     }
                 }
 
-                // Product Image
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = name,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp)
-                        .padding(horizontal = 24.dp),
-                    contentScale = ContentScale.Fit,
-                    placeholder = painterResource(id = R.drawable.farmer)
-                )
+                        .background(Color.White)
+                        .padding(16.dp)
+                ) {
+                    // Tag and Rating
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            color = Color(0xFFFFF9C4),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = "Pupuk",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFBC02D)
+                            )
+                        }
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color(0xFF757575),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = " 4.8 (120 terjual)",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                     Text(
                         text = name,
-                        fontSize = 28.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        lineHeight = 34.sp,
                         color = Color.Black
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                    // Farmer Info & Price
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.farmer),
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp).clip(CircleShape)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text("F. Crest", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
-                                    Text(" 4.2", fontSize = 12.sp, color = Color.Gray)
-                                }
-                            }
-                        }
+                    Text(
+                        text = "Rp ${String.format(Locale.GERMANY, "%,.0f", price)}",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E7D32)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Rp $price/ 1kg",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = "Surabaya, Jawa Timur",
+                            fontSize = 14.sp,
                             color = Color.Gray
                         )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    // Description
-                    Text(
-                        text = description.ifEmpty { "Grown with care by our dedicated farmers, these products are plucked at their prime for unrivaled freshness and flavor. JanAgro ensures the highest quality standards for every harvest delivered to your doorstep." },
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        lineHeight = 22.sp,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "Read more",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(top = 4.dp).clickable { }
-                    )
+                // Merchant Section
+                MerchantSection()
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    // Select Quantity
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Select Quantity", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text("Customize", color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                // Description Section
+                DescriptionSection(description)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Reviews Section
+                ReviewSection()
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun MerchantSection() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFF5F7F9))
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = R.drawable.farmer,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .weight(1f)
+            ) {
+                Text(
+                    text = "Toko Tani Makmur",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = "Online 2 jam yang lalu",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+            
+            OutlinedButton(
+                onClick = { /* Go to store */ },
+                shape = RoundedCornerShape(8.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E7D32)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF2E7D32))
+            ) {
+                Text("Kunjungi\nToko", fontSize = 12.sp, lineHeight = 14.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun DescriptionSection(description: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Deskripsi Produk",
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = description.ifEmpty { "Pupuk NPK Mutiara 16-16-16 mengandung kombinasi terbaik dari Nitrate-Nitrogen yang langsung tersedia untuk tanaman. Mempercepat pertumbuhan tunas, memperkuat..." },
+            fontSize = 14.sp,
+            color = Color.Gray,
+            lineHeight = 20.sp
+        )
+        Row(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .clickable { },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Baca Selengkapnya",
+                color = Color(0xFF2E7D32),
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            Icon(
+                imageVector = Icons.Outlined.KeyboardArrowDown,
+                contentDescription = null,
+                tint = Color(0xFF2E7D32)
+            )
+        }
+    }
+}
+
+@Composable
+fun ReviewSection() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Ulasan Pembeli",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+            Text(
+                text = "Lihat Semua",
+                color = Color(0xFF2E7D32),
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                modifier = Modifier.clickable { }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = true, label = "Semua")
+            FilterChip(selected = false, label = "5 ★")
+            FilterChip(selected = false, label = "4 ★")
+            FilterChip(selected = false, label = "Foto")
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        ReviewItem(
+            name = "Andi Pratama",
+            date = "2 hari lalu",
+            rating = 5,
+            comment = "Pupuknya bagus, pengiriman sangat cepat. Sudah langganan di toko ini untuk kebutuhan kebun saya."
+        )
+        
+        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF0F0F0))
+        
+        ReviewItem(
+            name = "Siti Aminah",
+            date = "1 minggu lalu",
+            rating = 4,
+            comment = "Packing rapih dan aman. Kualitas produk original Mutiara. Terima kasih!"
+        )
+    }
+}
+
+@Composable
+fun FilterChip(selected: Boolean, label: String) {
+    Surface(
+        color = if (selected) Color(0xFF2E7D32) else Color(0xFFF5F7F9),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.height(36.dp)
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = label,
+                color = if (selected) Color.White else Color.Gray,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+fun ReviewItem(name: String, date: String, rating: Int, comment: String) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    modifier = Modifier.size(36.dp),
+                    shape = CircleShape,
+                    color = Color(0xFFE8F5E9)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = name.first().toString(),
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32)
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        quantities.take(4).forEachIndexed { index, qty ->
-                            val isSelected = selectedQtyIndex.intValue == index
-                            Surface(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(44.dp)
-                                    .clickable { selectedQtyIndex.intValue = index },
-                                shape = RoundedCornerShape(22.dp),
-                                color = if (isSelected) Color.Black else Color(0xFFF5F7F9),
-                                border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = qty,
-                                        color = if (isSelected) Color.White else Color.Black,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(text = name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Row {
+                        repeat(5) { index ->
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = if (index < rating) Color(0xFFFFD600) else Color.LightGray,
+                                modifier = Modifier.size(14.dp)
+                            )
                         }
                     }
-                    
-                    Spacer(modifier = Modifier.height(32.dp))
                 }
+            }
+            Text(text = date, fontSize = 12.sp, color = Color.Gray)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = comment,
+            fontSize = 14.sp,
+            color = Color.Black,
+            lineHeight = 20.sp
+        )
+    }
+}
+
+@Composable
+fun BottomActionBar(onAddToCartClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .navigationBarsPadding(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.clickable { }.padding(end = 16.dp)
+            ) {
+                Icon(Icons.Outlined.Email, contentDescription = "Chat", tint = Color.Gray)
+                Text("Chat", fontSize = 10.sp, color = Color.Gray)
+            }
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.clickable { onAddToCartClick() }.padding(end = 16.dp)
+            ) {
+                Icon(Icons.Outlined.ShoppingCart, contentDescription = "Keranjang", tint = Color.Gray)
+                Text("Keranjang", fontSize = 10.sp, color = Color.Gray)
+            }
+            
+            Button(
+                onClick = { /* Buy Now */ },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20))
+            ) {
+                Text("Beli Sekarang", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }

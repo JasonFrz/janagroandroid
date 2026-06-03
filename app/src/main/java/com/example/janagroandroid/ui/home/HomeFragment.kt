@@ -67,8 +67,11 @@ class HomeFragment : Fragment() {
                         Toast.makeText(requireContext(), "Notifikasi", Toast.LENGTH_SHORT).show()
                     },
                     onCartClick = {
-                        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
-                        bottomNav.selectedItemId = R.id.cartFragment
+                        findNavController().navigate(R.id.cartFragment)
+                    },
+                    onSearchSubmit = { query ->
+                        val bundle = bundleOf("query" to query)
+                        findNavController().navigate(R.id.exploreFragment, bundle)
                     }
                 )
             }

@@ -10,6 +10,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Notifications
@@ -41,7 +44,8 @@ fun HomeScreen(
     onProfileClick: () -> Unit,
     onProductClick: (ProductEntity) -> Unit,
     onNotificationClick: () -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    onSearchSubmit: (String) -> Unit
 ) {
     JanAgroTheme {
         Scaffold(
@@ -67,7 +71,7 @@ fun HomeScreen(
                     .verticalScroll(rememberScrollState())
                     .background(Color(0xFFF5F7F9))
             ) {
-                SearchSection(onSearch = { /* Handle search */ })
+                SearchSection(onSearch = onSearchSubmit)
 
                 CategorySection()
 
@@ -206,7 +210,15 @@ fun SearchSection(onSearch: (String) -> Unit) {
                 unfocusedIndicatorColor = Color.Transparent,
             ),
             shape = RoundedCornerShape(16.dp),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    if (searchQuery.isNotEmpty()) {
+                        onSearch(searchQuery)
+                    }
+                }
+            )
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -214,14 +226,18 @@ fun SearchSection(onSearch: (String) -> Unit) {
         Surface(
             modifier = Modifier
                 .size(56.dp)
-                .clickable { /* Filter click */ },
+                .clickable { 
+                    if (searchQuery.isNotEmpty()) {
+                        onSearch(searchQuery)
+                    }
+                },
             color = Color(0xFF2E7D32),
             shape = RoundedCornerShape(16.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = Icons.Default.Menu, // Fallback to Menu if Tune/FilterList is missing
-                    contentDescription = "Filter",
+                    imageVector = Icons.Default.Search, // Changed to Search icon to trigger explore
+                    contentDescription = "Search",
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )
