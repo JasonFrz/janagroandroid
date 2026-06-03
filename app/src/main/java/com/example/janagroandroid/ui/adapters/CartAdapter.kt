@@ -6,29 +6,81 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.janagroandroid.data.local.entity.CartEntity
 import com.example.janagroandroid.databinding.ItemCartBinding
+import java.util.Locale
 
 class CartAdapter(
     private var items: List<CartEntity> = emptyList(),
-    private val onDelete: (CartEntity) -> Unit
+    private val onDelete: (Long) -> Unit,
+    private val onUpdateQty: (Long, Int) -> Unit,
+    private val onSelectionChanged: () -> Unit
 ) : RecyclerView.Adapter<CartAdapter.VH>() {
+
+    private val selectedIds = mutableSetOf<Long>()
 
     fun submitList(newItems: List<CartEntity>) {
         items = newItems
+        // By default, select all new items if it was empty or keep current selections
+        if (selectedIds.isEmpty()) {
+            selectedIds.addAll(newItems.map { it.id })
+        } else {
+            val newItemIds = newItems.map { it.id }.toSet()
+            selectedIds.retainAll { it in newItemIds }
+        }
         notifyDataSetChanged()
+        onSelectionChanged()
     }
+
+    fun getSelectedItems(): List<CartEntity> {
+        return items.filter { it.id in selectedIds }
+    }
+
+    fun selectAll(select: Boolean) {
+        if (select) {
+            selectedIds.addAll(items.map { it.id })
+        } else {
+            selectedIds.clear()
+        }
+        notifyDataSetChanged()
+        onSelectionChanged()
+    }
+
+    fun isAllSelected(): Boolean = items.isNotEmpty() && selectedIds.size == items.size
 
     inner class VH(val binding: ItemCartBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: CartEntity) {
             binding.tvName.text = item.productName
-            binding.tvQty.text = "Qty: ${item.qty}"
-            binding.tvPrice.text = "Rp ${item.price}"
+            binding.tvQty.text = item.qty.toString()
+            binding.tvVariant.text = "Varian: Standar" // Placeholder
+            binding.tvPrice.text = "Rp ${String.format(Locale.GERMANY, "%,.0f", item.price)}"
 
             Glide.with(binding.root.context)
                 .load(item.imageUrl)
+                .placeholder(com.example.janagroandroid.R.drawable.sawid)
                 .into(binding.ivProduct)
 
+            binding.cbItem.isChecked = item.id in selectedIds
+
+            binding.cbItem.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    selectedIds.add(item.id)
+                } else {
+                    selectedIds.remove(item.id)
+                }
+                onSelectionChanged()
+            }
+
             binding.btnDelete.setOnClickListener {
-                onDelete(item)
+                onDelete(item.id)
+            }
+
+            binding.btnPlus.setOnClickListener {
+                onUpdateQty(item.id, item.qty + 1)
+            }
+
+            binding.btnMinus.setOnClickListener {
+                if (item.qty > 1) {
+                    onUpdateQty(item.id, item.qty - 1)
+                }
             }
         }
     }

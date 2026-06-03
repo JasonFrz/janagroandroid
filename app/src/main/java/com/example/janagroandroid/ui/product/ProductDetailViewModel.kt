@@ -27,16 +27,7 @@ class ProductDetailViewModel(
 
     fun addToCart(product: ProductEntity) {
         viewModelScope.launch {
-            repo.addToCart(
-                CartEntity(
-                    userId = repo.currentUserId(),
-                    productId = product.id,
-                    productName = product.name,
-                    price = product.price,
-                    imageUrl = product.imageUrl,
-                    qty = 1
-                )
-            )
+            repo.addRemoteCart(product.id, 1)
         }
     }
 
@@ -48,16 +39,7 @@ class ProductDetailViewModel(
         qty: Int = 1
     ) {
         viewModelScope.launch {
-            repo.addToCart(
-                CartEntity(
-                    userId = repo.currentUserId(),
-                    productId = productId,
-                    productName = productName,
-                    price = price,
-                    imageUrl = imageUrl,
-                    qty = qty
-                )
-            )
+            repo.addRemoteCart(productId, qty)
         }
     }
 }

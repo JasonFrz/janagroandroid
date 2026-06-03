@@ -15,15 +15,15 @@ class CartViewModel(
 
     val cart: LiveData<List<CartEntity>> = repo.cart
 
-    fun delete(item: CartEntity) {
-        viewModelScope.launch { repo.deleteCart(item) }
+    fun fetchCart() {
+        viewModelScope.launch { repo.getRemoteCart() }
     }
 
-    fun deleteCart(item: CartEntity) {
-        viewModelScope.launch { repo.deleteCart(item) }
+    fun updateQuantity(id: Long, newQty: Int) {
+        viewModelScope.launch { repo.updateRemoteCart(id, newQty) }
     }
 
     fun deleteCart(id: Long) {
-        viewModelScope.launch { repo.deleteCartById(id) }
+        viewModelScope.launch { repo.removeRemoteCart(id) }
     }
 }

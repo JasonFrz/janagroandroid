@@ -1,6 +1,7 @@
 package com.example.janagroandroid.data.repository
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.switchMap
 import com.example.janagroandroid.data.local.SessionManager
 import com.example.janagroandroid.data.local.dao.CartDao
 import com.example.janagroandroid.data.local.dao.HistoryDao
@@ -33,8 +34,9 @@ class AppRepository(
     fun currentUserId(): Long = getUser.value?.id ?: 0L
     fun isLoggedIn(): Boolean = getUser.value != null
 
-    val cart: LiveData<List<CartEntity>>
-        get() = cartDao.getByUser(currentUserId())
+    val cart: LiveData<List<CartEntity>> = getUser.switchMap { user ->
+        cartDao.getByUser(user?.id ?: -1L)
+    }
 
     val sellerProducts: LiveData<List<ProductEntity>>
         get() = productDao.getSellerProducts(currentUserId())
@@ -193,6 +195,65 @@ class AppRepository(
 
     suspend fun addToCart(item: CartEntity) {
         cartDao.insert(item)
+    }
+
+    suspend fun getRemoteCart(): Boolean {
+        return try {
+            val response = apiService.getCart()
+            if (response.isSuccessful) {
+                val cartItems = response.body()?.data?.cart.orEmpty()
+                val entities = cartItems.map { it.toEntity() }
+                
+                val userId = userDao.getCurrentUserId()
+                if (userId != null) {
+                    cartDao.clearByUser(userId)
+                    entities.forEach { cartDao.insert(it) }
+                }
+                true
+            } else false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun addRemoteCart(productId: Long, quantity: Int): Boolean {
+        return try {
+            val response = apiService.addToCart(mapOf("product_id" to productId, "quantity" to quantity.toLong()))
+            if (response.isSuccessful) {
+                getRemoteCart()
+                true
+            } else false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun updateRemoteCart(id: Long, quantity: Int): Boolean {
+        return try {
+            val response = apiService.updateCartItem(id, mapOf("quantity" to quantity.toLong()))
+            if (response.isSuccessful) {
+                getRemoteCart()
+                true
+            } else false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun removeRemoteCart(id: Long): Boolean {
+        return try {
+            val response = apiService.removeCartItem(id)
+            if (response.isSuccessful) {
+                cartDao.deleteById(id)
+                true
+            } else false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     suspend fun deleteCart(item: CartEntity) {
