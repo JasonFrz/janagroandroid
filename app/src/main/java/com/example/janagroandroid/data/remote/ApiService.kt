@@ -66,8 +66,6 @@ interface ApiService {
     @GET("/api/v1/merchants/highest-rated")
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
 
-
-
 //    ADMIN API
     @GET("/api/v1/admin/stats")
     suspend fun getAdminStats(): Response<AdminStatsResponse>
@@ -77,4 +75,13 @@ interface ApiService {
         @Query("search") search: String? = null,
         @Query("role") role: String? = null
     ): Response<AdminUsersResponse>
+
+    @GET("/api/v1/admin/merchants/pending")
+    suspend fun getAllPendingMerchants(): Response<HighestRatedMerchantsResponse>
+    @PATCH("/api/v1/admin/merchants/{id}/status")
+    suspend fun updateMerchantStatus(
+        @Path("id") id: Long,
+        @Body request: Map<String, String>
+    ): Response<Unit>
+
 }

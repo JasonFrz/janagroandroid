@@ -193,6 +193,30 @@ class AppRepository(
         }
     }
 
+    suspend fun getPendingMerchants(): List<MerchantDto> {
+        return try{
+            val response = apiService.getAllPendingMerchants()
+            if(response.isSuccessful){
+                response.body()?.data?.merchants.orEmpty()
+            } else{
+                emptyList()
+            }
+        } catch (e: Exception){
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun updateMerchantStatus(id: Long, status: String): Boolean {
+        return try {
+            val response = apiService.updateMerchantStatus(id, mapOf("status" to status))
+            response.isSuccessful
+        }catch (e: Exception){
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun addToCart(item: CartEntity) {
         cartDao.insert(item)
     }

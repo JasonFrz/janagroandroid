@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.janagroandroid.data.repository.AppRepository
 import com.example.janagroandroid.ui.admin.AdminHomeViewModel
+import com.example.janagroandroid.ui.admin.AdminMerchantsViewModel
 import com.example.janagroandroid.ui.admin.AdminUsersViewModel
 import com.example.janagroandroid.ui.auth.AuthViewModel
 import com.example.janagroandroid.ui.cart.CartViewModel
@@ -36,6 +37,7 @@ class AppViewModelFactory(
             modelClass.isAssignableFrom(AddProductViewModel::class.java) -> AddProductViewModel(app, repo)
             modelClass.isAssignableFrom(AdminHomeViewModel::class.java) -> AdminHomeViewModel(app, repo)
             modelClass.isAssignableFrom(AdminUsersViewModel::class.java) -> AdminUsersViewModel(app, repo)
+            modelClass.isAssignableFrom(AdminMerchantsViewModel::class.java) -> AdminMerchantsViewModel(app, repo)
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
 
