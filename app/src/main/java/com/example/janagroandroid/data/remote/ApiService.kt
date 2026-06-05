@@ -78,10 +78,13 @@ interface ApiService {
 
     @GET("/api/v1/admin/merchants/pending")
     suspend fun getAllPendingMerchants(): Response<HighestRatedMerchantsResponse>
+
     @PATCH("/api/v1/admin/merchants/{id}/status")
     suspend fun updateMerchantStatus(
         @Path("id") id: Long,
         @Body request: Map<String, String>
     ): Response<Unit>
 
+    @GET("/api/v1/categories")
+    suspend fun getCategories(): Response<CategoryResponse>
 }

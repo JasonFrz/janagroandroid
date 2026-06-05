@@ -87,7 +87,6 @@ class MainActivity : AppCompatActivity() {
             val isCustomerMainFragment = destination.id in setOf(
                 R.id.homeFragment,
                 R.id.exploreFragment,
-                R.id.cartFragment,
                 R.id.historyFragment,
                 R.id.profileFragment
             )

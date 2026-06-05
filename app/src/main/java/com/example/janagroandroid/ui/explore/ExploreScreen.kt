@@ -3,10 +3,14 @@ package com.example.janagroandroid.ui.explore
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -16,34 +20,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.janagroandroid.data.local.entity.ProductEntity
+import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.ui.home.AllProductItem
+import com.example.janagroandroid.ui.home.CategoryChip
 import com.example.janagroandroid.ui.theme.JanAgroTheme
-
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
     initialQuery: String,
+    initialCategory: String? = null,
     products: List<ProductEntity>,
+    categories: List<CategoryDto>,
     onBackClick: () -> Unit,
     onProductClick: (ProductEntity) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf(initialQuery) }
+    var selectedCategory by remember { mutableStateOf<String?>(initialCategory) }
 
-    val filteredProducts = remember(searchQuery, products) {
-        if (searchQuery.isEmpty()) {
-            products
-        } else {
-            products.filter { 
-                it.name.contains(searchQuery, ignoreCase = true) || 
-                (it.description.contains(searchQuery, ignoreCase = true))
+    val filteredProducts = remember(searchQuery, selectedCategory, products) {
+        products.filter { product ->
+            val matchesQuery = if (searchQuery.isEmpty()) true else {
+                product.name.contains(searchQuery, ignoreCase = true) || 
+                product.description.contains(searchQuery, ignoreCase = true)
             }
+            val matchesCategory = if (selectedCategory == null) true else {
+                product.category.equals(selectedCategory, ignoreCase = true)
+            }
+            matchesQuery && matchesCategory
         }
     }
 
@@ -63,7 +71,11 @@ fun ExploreScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(onClick = onBackClick) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack, 
+                                    contentDescription = "Back",
+                                    tint = Color.Black
+                                )
                             }
                             
                             TextField(
@@ -84,21 +96,41 @@ fun ExploreScreen(
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                 keyboardActions = KeyboardActions(
-                                    onSearch = {
-                                        // Keyboard will close, result is already filtered by state
-                                    }
+                                    onSearch = { /* Search logic */ }
                                 )
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
-                        
-                        if (searchQuery.isNotEmpty()) {
-                            Text(
-                                text = "Hasil pencarian untuk \"$searchQuery\"",
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            )
+
+                        // Category Filter Row
+                        if (categories.isNotEmpty()) {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                contentPadding = PaddingValues(horizontal = 20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                item {
+                                    Box(modifier = Modifier.clickable { selectedCategory = null }) {
+                                        CategoryChip(
+                                            text = "Semua", 
+                                            isSelected = selectedCategory == null
+                                        )
+                                    }
+                                }
+                                items(categories) { category ->
+                                    val categoryName = category.name ?: ""
+                                    Box(modifier = Modifier.clickable { 
+                                        selectedCategory = if (selectedCategory == categoryName) null else categoryName
+                                    }) {
+                                        CategoryChip(
+                                            text = categoryName,
+                                            isSelected = selectedCategory == categoryName
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -111,7 +143,18 @@ fun ExploreScreen(
                     .background(Color(0xFFF5F7F9))
             ) {
                 if (filteredProducts.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.Search, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(64.dp),
+                            tint = Color.LightGray
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text("Produk tidak ditemukan", color = Color.Gray)
                     }
                 } else {

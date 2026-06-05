@@ -12,10 +12,7 @@ import com.example.janagroandroid.data.local.entity.HistoryEntity
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.ApiService
-import com.example.janagroandroid.data.remote.dto.MerchantDto
-import com.example.janagroandroid.data.remote.dto.AdminStats
-import com.example.janagroandroid.data.remote.dto.AdminUserDto
-import com.example.janagroandroid.data.remote.dto.toEntity
+import com.example.janagroandroid.data.remote.dto.*
 
 class AppRepository(
     private val userDao: UserDao,
@@ -290,6 +287,20 @@ class AppRepository(
 
     suspend fun clearCart() {
         cartDao.clearByUser(currentUserId())
+    }
+
+    suspend fun getCategories(): List<CategoryDto> {
+        return try {
+            val response = apiService.getCategories()
+            if (response.isSuccessful) {
+                response.body()?.data?.categories.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 
     suspend fun checkout(total: Double) {

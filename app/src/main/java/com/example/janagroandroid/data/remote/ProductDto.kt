@@ -7,6 +7,16 @@ data class CategoryDto(
     val name: String? = null
 )
 
+data class CategoryResponse(
+    val status: String? = null,
+    val message: String? = null,
+    val data: CategoryData? = null
+)
+
+data class CategoryData(
+    val categories: List<CategoryDto> = emptyList()
+)
+
 data class ProductDto(
     val id: Long? = null,
     val name: String? = null,

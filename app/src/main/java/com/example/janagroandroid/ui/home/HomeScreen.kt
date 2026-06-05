@@ -33,6 +33,7 @@ import coil.compose.AsyncImage
 import com.example.janagroandroid.R
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
+import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
@@ -40,8 +41,10 @@ import com.example.janagroandroid.ui.theme.JanAgroTheme
 fun HomeScreen(
     user: UserEntity?,
     products: List<ProductEntity>,
+    categories: List<CategoryDto>,
     topMerchants: List<MerchantDto> = emptyList(),
     onProfileClick: () -> Unit,
+    onCategoryClick: (String) -> Unit,
     onProductClick: (ProductEntity) -> Unit,
     onNotificationClick: () -> Unit,
     onCartClick: () -> Unit,
@@ -73,7 +76,10 @@ fun HomeScreen(
             ) {
                 SearchSection(onSearch = onSearchSubmit)
 
-                CategorySection()
+                CategorySection(
+                    categories = categories,
+                    onCategoryClick = onCategoryClick
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -236,7 +242,7 @@ fun SearchSection(onSearch: (String) -> Unit) {
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = Icons.Default.Search, // Changed to Search icon to trigger explore
+                    imageVector = Icons.Default.Search, 
                     contentDescription = "Search",
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
@@ -247,7 +253,10 @@ fun SearchSection(onSearch: (String) -> Unit) {
 }
 
 @Composable
-fun CategorySection() {
+fun CategorySection(
+    categories: List<CategoryDto>,
+    onCategoryClick: (String) -> Unit
+) {
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
         Text(
             text = "Shop By Categories",
@@ -258,24 +267,35 @@ fun CategorySection() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
+        LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CategoryChip("Fertilizer", isSelected = true)
-            CategoryChip("Seeds", isSelected = false)
-            CategoryChip("Tools", isSelected = false)
+            items(categories) { category ->
+                val name = category.name ?: ""
+                CategoryChip(
+                    text = name, 
+                    isSelected = false,
+                    onClick = { onCategoryClick(name) }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun CategoryChip(text: String, isSelected: Boolean) {
+fun CategoryChip(
+    text: String, 
+    isSelected: Boolean,
+    onClick: () -> Unit = {}
+) {
     Surface(
-        modifier = Modifier.height(40.dp),
+        modifier = Modifier
+            .height(40.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
-        border = if (isSelected) null else ButtonDefaults.outlinedButtonBorder
+        color = if (isSelected) Color(0xFF2E7D32) else Color.White,
+        border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
     ) {
         Box(
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -311,7 +331,7 @@ fun MerchantSection(
             )
             Text(
                 text = "View all",
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFF2E7D32),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable { }
             )
@@ -466,7 +486,7 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                 ) {
                     Text(
                         text = "Rp ${product.price}",
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF2E7D32),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
@@ -513,7 +533,7 @@ fun ProductSection(
             )
             Text(
                 text = "View all",
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFF2E7D32),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable { }
             )
@@ -575,7 +595,7 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                 ) {
                     Text(
                         text = "Rp ${product.price}",
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF2E7D32),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )

@@ -25,15 +25,19 @@ class ExploreFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val initialSearch = arguments?.getString("query") ?: ""
+        val initialCategory = arguments?.getString("category")
         
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val products by viewModel.products.observeAsState(emptyList())
+                val categories by viewModel.categories.observeAsState(emptyList())
 
                 ExploreScreen(
                     initialQuery = initialSearch,
+                    initialCategory = initialCategory,
                     products = products,
+                    categories = categories,
                     onBackClick = { findNavController().navigateUp() },
                     onProductClick = { product ->
                         val bundle = bundleOf(

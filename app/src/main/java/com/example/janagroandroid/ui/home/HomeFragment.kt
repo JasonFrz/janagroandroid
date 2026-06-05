@@ -33,12 +33,14 @@ class HomeFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val products by viewModel.products.observeAsState(emptyList())
+                val categories by viewModel.categories.observeAsState(emptyList())
                 val topMerchants by viewModel.topMerchants.observeAsState(emptyList())
                 val user by viewModel.currentUser.observeAsState()
 
                 HomeScreen(
                     user = user,
                     products = products,
+                    categories = categories,
                     topMerchants = topMerchants,
                     onProfileClick = {
                         if (user != null) {
@@ -47,6 +49,10 @@ class HomeFragment : Fragment() {
                         } else {
                             findNavController().navigate(R.id.loginFragment)
                         }
+                    },
+                    onCategoryClick = { categoryName ->
+                        val bundle = bundleOf("category" to categoryName)
+                        findNavController().navigate(R.id.exploreFragment, bundle)
                     },
                     onProductClick = { product ->
                         if (user != null) {
