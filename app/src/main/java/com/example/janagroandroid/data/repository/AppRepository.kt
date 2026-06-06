@@ -303,6 +303,51 @@ class AppRepository(
         }
     }
 
+    suspend fun getRemoteOrders(): List<OrderDto> {
+        return try {
+            val response = apiService.getOrders()
+            if (response.isSuccessful) {
+                response.body()?.data?.orders.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun getRemoteOrderDetail(id: Long): OrderDto? {
+        return try {
+            val response = apiService.getOrderDetail(id)
+            if (response.isSuccessful) {
+                response.body()?.data?.order
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    suspend fun buyAgain(orderId: Long): Boolean {
+        return try {
+            val order = getRemoteOrderDetail(orderId) ?: return false
+            val items = order.items ?: return false
+            
+            var allSuccess = true
+            for (item in items) {
+                val success = addRemoteCart(item.productId, item.quantity)
+                if (!success) allSuccess = false
+            }
+            allSuccess
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun checkout(total: Double) {
         historyDao.insert(
             HistoryEntity(

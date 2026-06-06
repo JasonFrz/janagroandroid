@@ -30,8 +30,8 @@ fun CartItemDto.toEntity(): CartEntity {
         userId = userId,
         productId = productId,
         productName = product?.name ?: "Unknown",
-        price = product?.price ?: 0.0,
-        imageUrl = product?.imageUrl ?: "",
+        price = product?.priceDouble ?: 0.0,
+        imageUrl = product?.firstImageUrl ?: "",
         qty = quantity
     )
 }

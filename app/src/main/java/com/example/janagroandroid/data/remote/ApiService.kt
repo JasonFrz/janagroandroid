@@ -66,7 +66,19 @@ interface ApiService {
     @GET("/api/v1/merchants/highest-rated")
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
 
-//    ADMIN API
+    @GET("/api/v1/categories")
+    suspend fun getCategories(): Response<CategoryResponse>
+
+    // ORDER API
+    @GET("/api/v1/orders")
+    suspend fun getOrders(): Response<OrderResponse>
+
+    @GET("/api/v1/orders/{id}")
+    suspend fun getOrderDetail(@Path("id") id: Long): Response<SingleOrderResponse>
+
+//    ---------------------------------------
+//    | ROUTES ADMIN API                    |
+//    ---------------------------------------
     @GET("/api/v1/admin/stats")
     suspend fun getAdminStats(): Response<AdminStatsResponse>
 
@@ -84,7 +96,4 @@ interface ApiService {
         @Path("id") id: Long,
         @Body request: Map<String, String>
     ): Response<Unit>
-
-    @GET("/api/v1/categories")
-    suspend fun getCategories(): Response<CategoryResponse>
 }
