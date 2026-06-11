@@ -13,6 +13,9 @@ import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.ApiService
 import com.example.janagroandroid.data.remote.dto.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class AppRepository(
     private val userDao: UserDao,
@@ -112,6 +115,53 @@ class AppRepository(
         } catch (e: Exception) {
             userDao.logoutAll()
             sessionManager.clear()
+            false
+        }
+    }
+
+    suspend fun refreshProfile(): Boolean {
+        return try {
+            val response = apiService.getProfile()
+            if (response.isSuccessful) {
+                val userDto = response.body()?.data?.user
+                if (userDto != null) {
+                    userDao.insert(userDto.toEntity(isLoggedIn = true))
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun updateProfile(
+        name: String? = null,
+        phone: String? = null,
+        imagePart: MultipartBody.Part? = null
+    ): Boolean {
+        return try {
+            val nameBody = name?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val phoneBody = phone?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val response = apiService.updateProfile(nameBody, phoneBody, imagePart)
+            if (response.isSuccessful) {
+                val updatedUser = response.body()?.data?.user
+                if (updatedUser != null) {
+                    userDao.insert(updatedUser.toEntity(isLoggedIn = true))
+                    true
+                } else {
+                    response.body()?.status == "success"
+                }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }

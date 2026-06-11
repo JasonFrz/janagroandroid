@@ -70,12 +70,16 @@ fun ProfileScreen(
                         .clip(CircleShape)
                         .clickable { launcher.launch("image/*") }
                 ) {
+                    // Gunakan Uri lokal jika ada, jika tidak gunakan URL dari backend, fallback ke placeholder
+                    val imageSource: Any = profileImageUri ?: user?.profilePicture ?: R.drawable.ic_user_placeholder
+                    
                     AsyncImage(
-                        model = profileImageUri ?: R.drawable.ic_user_placeholder,
+                        model = imageSource,
                         contentDescription = "Profile Picture",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
-                        placeholder = painterResource(id = R.drawable.ic_user_placeholder)
+                        placeholder = painterResource(id = R.drawable.ic_user_placeholder),
+                        error = painterResource(id = R.drawable.ic_user_placeholder)
                     )
                 }
 
@@ -108,6 +112,9 @@ fun ProfileScreen(
                 )
                 
                 InfoRow(label = "Role", value = user?.role ?: "-")
+                user?.phone?.let {
+                    InfoRow(label = "Phone", value = it)
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 

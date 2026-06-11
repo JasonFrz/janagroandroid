@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
@@ -26,14 +27,30 @@ class ProfileFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val user by viewModel.user.observeAsState()
+                val updateStatus by viewModel.profileUpdateStatus.observeAsState()
+
+                // Memberikan feedback Toast saat status update berubah
+                val currentStatus = updateStatus
+                LaunchedEffect(currentStatus) {
+                    when (currentStatus) {
+                        is ProfileViewModel.ProfileUpdateStatus.Success -> {
+                            Toast.makeText(requireContext(), "Foto profil berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                        }
+                        is ProfileViewModel.ProfileUpdateStatus.Error -> {
+                            Toast.makeText(requireContext(), currentStatus.message, Toast.LENGTH_LONG).show()
+                        }
+                        else -> {}
+                    }
+                }
 
                 ProfileScreen(
                     user = user,
                     onLogoutClick = {
                         viewModel.logout()
                     },
-                    onImageSelected = {
-                        Toast.makeText(requireContext(), "Foto profil berhasil diubah", Toast.LENGTH_SHORT).show()
+                    onImageSelected = { uri ->
+                        // Memanggil fungsi upload di ViewModel
+                        viewModel.updateProfilePicture(uri)
                     },
                     onChatListClick = {
                         findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToChatListFragment())

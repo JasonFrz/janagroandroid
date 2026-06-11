@@ -22,11 +22,11 @@ interface ApiService {
     suspend fun refreshToken(@Body request: Map<String, String>): Response<AuthResponse>
 
 //    PROFILE USERS API
-    @GET("/api/v1/profile")
+    @GET("/api/v1/users/profile")
     suspend fun getProfile(): Response<AuthResponse>
 
     @Multipart
-    @PUT("/api/v1/profile")
+    @PUT("/api/v1/users/profile")
     suspend fun updateProfile(
         @Part("name") name: RequestBody?,
         @Part("phone") phone: RequestBody?,

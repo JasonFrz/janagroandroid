@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.repository.AppRepository
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ProfileViewModel(
     app: Application,
@@ -23,6 +26,16 @@ class ProfileViewModel(
     // LiveData untuk memantau status upload gambar profil
     private val _profileUpdateStatus = MutableLiveData<ProfileUpdateStatus>()
     val profileUpdateStatus: LiveData<ProfileUpdateStatus> get() = _profileUpdateStatus
+
+    init {
+        refreshProfile()
+    }
+
+    fun refreshProfile() {
+        viewModelScope.launch {
+            repo.refreshProfile()
+        }
+    }
 
     fun logout() {
         viewModelScope.launch {
@@ -40,13 +53,43 @@ class ProfileViewModel(
         _profileUpdateStatus.value = ProfileUpdateStatus.Loading
         viewModelScope.launch {
             try {
-                // Di sini Anda akan memanggil fungsi repositori untuk mengunggah gambar
-                // ke server dan kemudian memperbarui database lokal.
-                // repo.uploadProfilePicture(imageUri)
+                val context = getApplication<Application>().applicationContext
+                val contentResolver = context.contentResolver
+                
+                // Mengambil input stream dari Uri
+                val inputStream = contentResolver.openInputStream(imageUri)
+                val byteArray = inputStream?.readBytes()
+                inputStream?.close()
 
-                // Simulasikan keberhasilan untuk saat ini
-                _profileUpdateStatus.postValue(ProfileUpdateStatus.Success)
+                if (byteArray != null) {
+                    // Membuat RequestBody dari byte array
+                    val contentType = contentResolver.getType(imageUri) ?: "image/jpeg"
+                    val requestFile = byteArray.toRequestBody(
+                        contentType.toMediaTypeOrNull(),
+                        0,
+                        byteArray.size
+                    )
+
+                    // 'profile_picture' harus sesuai dengan nama field di multer backend Anda (uploadProfile.single('profile_picture'))
+                    val body = MultipartBody.Part.createFormData(
+                        "profile_picture",
+                        "profile_${System.currentTimeMillis()}.jpg",
+                        requestFile
+                    )
+
+                    val success = repo.updateProfile(imagePart = body)
+                    if (success) {
+                        _profileUpdateStatus.postValue(ProfileUpdateStatus.Success)
+                        // Refresh data setelah berhasil update
+                        repo.refreshProfile()
+                    } else {
+                        _profileUpdateStatus.postValue(ProfileUpdateStatus.Error("Gagal memperbarui profil di server. Pastikan endpoint benar."))
+                    }
+                } else {
+                    _profileUpdateStatus.postValue(ProfileUpdateStatus.Error("Gagal membaca file gambar"))
+                }
             } catch (e: Exception) {
+                e.printStackTrace()
                 _profileUpdateStatus.postValue(ProfileUpdateStatus.Error(e.message ?: "Unknown error"))
             }
         }
