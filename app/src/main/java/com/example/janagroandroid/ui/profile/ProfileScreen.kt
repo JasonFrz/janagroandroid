@@ -34,9 +34,12 @@ fun ProfileScreen(
     user: UserEntity?,
     onLogoutClick: () -> Unit,
     onImageSelected: (Uri) -> Unit,
+    onUpdateProfile: (String, String) -> Unit,
     onChatListClick: () -> Unit = {}
 ) {
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             profileImageUri = it
@@ -70,7 +73,6 @@ fun ProfileScreen(
                         .clip(CircleShape)
                         .clickable { launcher.launch("image/*") }
                 ) {
-                    // Gunakan Uri lokal jika ada, jika tidak gunakan URL dari backend, fallback ke placeholder
                     val imageSource: Any = profileImageUri ?: user?.profilePicture ?: R.drawable.ic_user_placeholder
                     
                     AsyncImage(
@@ -102,7 +104,7 @@ fun ProfileScreen(
                 ProfileMenuItem(
                     icon = Icons.Default.Person,
                     title = "Edit Profile",
-                    onClick = { /* Handle */ }
+                    onClick = { showEditDialog = true }
                 )
 
                 ProfileMenuItem(
@@ -148,7 +150,62 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+
+        if (showEditDialog && user != null) {
+            EditProfileDialog(
+                currentName = user.name,
+                currentPhone = user.phone ?: "",
+                onDismiss = { showEditDialog = false },
+                onConfirm = { newName, newPhone ->
+                    onUpdateProfile(newName, newPhone)
+                    showEditDialog = false
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun EditProfileDialog(
+    currentName: String,
+    currentPhone: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    var phone by remember { mutableStateOf(currentPhone) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Profile") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Phone") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(name, phone) }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable

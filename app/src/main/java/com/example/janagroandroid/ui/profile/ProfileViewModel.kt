@@ -48,6 +48,24 @@ class ProfileViewModel(
         }
     }
 
+    // Fungsi untuk memperbarui nama dan nomor telepon
+    fun updateProfileInfo(name: String, phone: String) {
+        _profileUpdateStatus.value = ProfileUpdateStatus.Loading
+        viewModelScope.launch {
+            try {
+                val success = repo.updateProfile(name = name, phone = phone)
+                if (success) {
+                    _profileUpdateStatus.postValue(ProfileUpdateStatus.Success)
+                    repo.refreshProfile()
+                } else {
+                    _profileUpdateStatus.postValue(ProfileUpdateStatus.Error("Gagal memperbarui profil"))
+                }
+            } catch (e: Exception) {
+                _profileUpdateStatus.postValue(ProfileUpdateStatus.Error(e.message ?: "Unknown error"))
+            }
+        }
+    }
+
     // Fungsi untuk memperbarui foto profil
     fun updateProfilePicture(imageUri: Uri) {
         _profileUpdateStatus.value = ProfileUpdateStatus.Loading

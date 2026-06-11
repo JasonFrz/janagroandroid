@@ -34,7 +34,7 @@ class ProfileFragment : Fragment() {
                 LaunchedEffect(currentStatus) {
                     when (currentStatus) {
                         is ProfileViewModel.ProfileUpdateStatus.Success -> {
-                            Toast.makeText(requireContext(), "Foto profil berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Profil berhasil diperbarui", Toast.LENGTH_SHORT).show()
                         }
                         is ProfileViewModel.ProfileUpdateStatus.Error -> {
                             Toast.makeText(requireContext(), currentStatus.message, Toast.LENGTH_LONG).show()
@@ -51,6 +51,10 @@ class ProfileFragment : Fragment() {
                     onImageSelected = { uri ->
                         // Memanggil fungsi upload di ViewModel
                         viewModel.updateProfilePicture(uri)
+                    },
+                    onUpdateProfile = { name, phone ->
+                        // Memanggil fungsi update profil di ViewModel
+                        viewModel.updateProfileInfo(name, phone)
                     },
                     onChatListClick = {
                         findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToChatListFragment())
