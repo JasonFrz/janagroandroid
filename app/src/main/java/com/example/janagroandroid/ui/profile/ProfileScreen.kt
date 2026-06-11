@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,7 +33,8 @@ import com.example.janagroandroid.ui.theme.JanAgroTheme
 fun ProfileScreen(
     user: UserEntity?,
     onLogoutClick: () -> Unit,
-    onImageSelected: (Uri) -> Unit
+    onImageSelected: (Uri) -> Unit,
+    onChatListClick: () -> Unit = {}
 ) {
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -97,6 +99,12 @@ fun ProfileScreen(
                     icon = Icons.Default.Person,
                     title = "Edit Profile",
                     onClick = { /* Handle */ }
+                )
+
+                ProfileMenuItem(
+                    icon = Icons.Default.Email,
+                    title = "Pesan",
+                    onClick = onChatListClick
                 )
                 
                 InfoRow(label = "Role", value = user?.role ?: "-")

@@ -44,6 +44,12 @@ class ProductDetailFragment : Fragment() {
                     onAddToCartClick = { qty ->
                         viewModel.addToCart(id, initialName, initialPrice, initialImageUrl, qty)
                         findNavController().popBackStack()
+                    },
+                    onChatClick = {
+                        val action = ProductDetailFragmentDirections.actionProductDetailFragmentToChatFragment(
+                            merchantId = 2L // Mock merchant ID
+                        )
+                        findNavController().navigate(action)
                     }
                 )
             }

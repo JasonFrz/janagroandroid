@@ -11,9 +11,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
-import com.example.janagroandroid.ui.MainActivity
 
 class ProfileFragment : Fragment() {
 
@@ -34,14 +34,12 @@ class ProfileFragment : Fragment() {
                     },
                     onImageSelected = {
                         Toast.makeText(requireContext(), "Foto profil berhasil diubah", Toast.LENGTH_SHORT).show()
+                    },
+                    onChatListClick = {
+                        findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToChatListFragment())
                     }
                 )
             }
         }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // Logout handling sekarang dipusatkan di MainActivity observer
     }
 }
