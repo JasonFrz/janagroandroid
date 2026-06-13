@@ -102,7 +102,7 @@ fun ProfileScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = user?.email ?: "Silakan login untuk fitur lengkap",
+                    text = user?.email ?: "guest@example.com",
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
@@ -133,43 +133,46 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Bagian Request Become Seller (Hanya muncul jika role Customer)
-                val isCustomer = user?.role?.equals("Customer", ignoreCase = true) == true
-                if (user != null && isCustomer) {
-                    if (user.isMerchant) {
-                        // Teks merah jika sudah request (pending)
-                        Text(
-                            text = "Anda sudah mengirimkan permintaan menjadi penjual",
-                            color = Color.Red,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    } else {
-                        // Tombol pendaftaran
-                        Button(
-                            onClick = { showBecomeSellerDialog = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(imageVector = Icons.Default.Store, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
+                // Bagian Request Become Seller
+                if (user != null) {
+                    val isSeller = user.role.equals("Seller", ignoreCase = true)
+                    if (!isSeller) {
+                        if (user.isMerchant) {
+                            // User role Customer tetapi sudah request (pending)
                             Text(
-                                text = "Daftar Jadi Penjual",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
+                                text = "Anda sudah mengirimkan permintaan menjadi penjual",
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 8.dp)
                             )
+                        } else {
+                            // Tombol daftar jika belum request
+                            Button(
+                                onClick = { showBecomeSellerDialog = true },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.Store, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Daftar Jadi Penjual",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                    // Jika isSeller == true, maka seluruh blok ini tidak akan muncul (tombol hilang)
                 }
-                // Jika role sudah "Seller", bagian di atas tidak akan muncul (hilang)
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Tombol Login / Logout
                 val isGuest = user == null
@@ -181,8 +184,8 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isGuest) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
-                        contentColor = if (isGuest) Color(0xFF2E7D32) else Color.Red
+                        containerColor = if (isGuest) Color(0xFFE8F5E9) else Color(0xFFFFEBEE), // Hijau muda jika guest
+                        contentColor = if (isGuest) Color(0xFF2E7D32) else Color.Red // Teks hijau jika guest
                     ),
                     shape = RoundedCornerShape(12.dp),
                     elevation = null,

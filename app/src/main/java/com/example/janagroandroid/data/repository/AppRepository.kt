@@ -87,8 +87,6 @@ class AppRepository(
             if (response.isSuccessful) {
                 val responseBody = response.body()
                 val authData = responseBody?.data
-                
-                // Cari UserDto baik di authData.user atau di root data (jika backend tidak membungkusnya)
                 val userDto = authData?.user 
                 
                 if (userDto != null) {
@@ -190,8 +188,37 @@ class AppRepository(
         productDao.insert(product)
     }
 
+    suspend fun createRemoteProduct(
+        name: String,
+        description: String,
+        price: Double,
+        stock: Int,
+        categoryId: Int,
+        imageParts: List<MultipartBody.Part>
+    ): Boolean {
+        return try {
+            val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+            val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val stockBody = stock.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val response = apiService.createProduct(
+                nameBody,
+                descriptionBody,
+                priceBody,
+                stockBody,
+                categoryIdBody,
+                imageParts
+            )
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun refreshRemoteProducts(): Boolean {
-        // Menggunakan parameter baru: limit=10, sortBy=created_at, sortDir=DESC
         val response = apiService.getProducts(limit = 10, sortBy = "created_at", sortDir = "DESC")
         return if (response.isSuccessful) {
             val items = response.body()?.data?.products.orEmpty()

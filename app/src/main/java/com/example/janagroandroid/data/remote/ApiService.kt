@@ -62,11 +62,21 @@ interface ApiService {
     @GET("/api/v1/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
 
+    @Multipart
+    @POST("/api/v1/merchant/products")
+    suspend fun createProduct(
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("price") price: RequestBody,
+        @Part("stock") stock: RequestBody,
+        @Part("category_id") categoryId: RequestBody,
+        @Part images: List<MultipartBody.Part>
+    ): Response<AuthResponse>
+
 //    MERCHANT API
     @GET("/api/v1/merchants/highest-rated")
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
 
-    // Changed endpoint to /apply to match backend exports.apply
     @POST("/api/v1/merchants/apply")
     suspend fun requestBecomeSeller(@Body request: Map<String, String>): Response<AuthResponse>
 
