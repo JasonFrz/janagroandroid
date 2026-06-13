@@ -1,24 +1,28 @@
 package com.example.janagroandroid.data.remote.dto
 
 import com.example.janagroandroid.data.local.entity.CartEntity
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class CartResponse(
     val status: String? = null,
     val message: String? = null,
     val data: CartData? = null
 )
 
+@JsonClass(generateAdapter = true)
 data class CartData(
     val cart: List<CartItemDto> = emptyList(),
     val item: CartItemDto? = null
 )
 
+@JsonClass(generateAdapter = true)
 data class CartItemDto(
     val id: Long,
-    @SerializedName("user_id")
+    @Json(name = "user_id")
     val userId: Long,
-    @SerializedName("product_id")
+    @Json(name = "product_id")
     val productId: Long,
     val quantity: Int,
     val product: ProductDto? = null

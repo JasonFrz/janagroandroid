@@ -211,6 +211,47 @@ class AppRepository(
         }
     }
 
+    suspend fun getVouchers(): List<VoucherDto>{
+        return try {
+            val response = apiService.getVouchers()
+            if(response.isSuccessful){
+                response.body()?.data?.vouchers.orEmpty()
+            }else{
+                emptyList()
+            }
+        } catch (e: Exception){
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun createVouchers(request: VoucherRequest): Boolean {
+        return try {
+            apiService.createVoucher(request).isSuccessful
+        }catch (e: Exception){
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun updateVouchers(id: Long, request: VoucherRequest): Boolean {
+        return try {
+            apiService.updateVoucher(id,request).isSuccessful
+        }catch (e: Exception){
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun deleteVouchers(id:Long): Boolean {
+        return try {
+            apiService.deleteVoucher(id).isSuccessful
+        } catch (e: Exception){
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun getRemoteProductDetail(id: Long): ProductEntity? {
         return try {
             val response = apiService.getProductDetail(id)

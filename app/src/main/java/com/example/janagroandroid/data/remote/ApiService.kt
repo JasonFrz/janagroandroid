@@ -96,4 +96,21 @@ interface ApiService {
         @Path("id") id: Long,
         @Body request: Map<String, String>
     ): Response<Unit>
+
+    @GET("/api/v1/admin/vouchers")
+    suspend fun getVouchers(): Response<VoucherListReponse>
+
+    @POST("/api/v1/admin/vouchers")
+    suspend fun createVoucher(@Body request: VoucherRequest): Response<VoucherListReponse>
+
+    @PUT("/api/v1/admin/vouchers/{id}")
+    suspend fun updateVoucher(
+        @Path("id") id: Long,
+        @Body request: VoucherRequest
+    ): Response<Unit>
+
+    @DELETE("/api/v1/admin/vouchers/{id}")
+    suspend fun deleteVoucher(
+        @Path("id") id: Long
+    ): Response<Unit>
 }

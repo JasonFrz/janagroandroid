@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.navOptions
 import androidx.navigation.ui.setupWithNavController
 import com.example.janagroandroid.R
 import com.example.janagroandroid.di.AppGraph
@@ -45,9 +46,13 @@ class MainActivity : AppCompatActivity() {
             val currentDest = navController.currentDestination?.id
             if (user == null && currentDest != R.id.homeFragment && currentDest != R.id.loginFragment && currentDest != R.id.registerFragment && currentDest != R.id.splashFragment) {
                 // Arahkan langsung ke Home (Guest) saat logout
-                navController.navigate(R.id.loginFragment) {
-                    popUpTo(R.id.nav_graph) { inclusive = true }
-                }
+                navController.navigate(
+                    R.id.loginFragment,
+                    null,
+                    navOptions {
+                        popUpTo(R.id.nav_graph) { inclusive = true }
+                    }
+                )
             }
 
             // Reset menu only if changed to avoid losing state
