@@ -12,7 +12,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import com.example.janagroandroid.R
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
 
@@ -28,6 +30,20 @@ class ProfileFragment : Fragment() {
             setContent {
                 val user by viewModel.user.observeAsState()
                 val updateStatus by viewModel.profileUpdateStatus.observeAsState()
+                val logoutSuccess by viewModel.logoutSuccess.observeAsState(false)
+
+                // Navigasi setelah logout berhasil
+                LaunchedEffect(logoutSuccess) {
+                    if (logoutSuccess) {
+                        findNavController().navigate(
+                            R.id.loginFragment,
+                            null,
+                            NavOptions.Builder()
+                                .setPopUpTo(R.id.nav_graph, true)
+                                .build()
+                        )
+                    }
+                }
 
                 // Memberikan feedback Toast saat status update berubah
                 val currentStatus = updateStatus
@@ -35,6 +51,9 @@ class ProfileFragment : Fragment() {
                     when (currentStatus) {
                         is ProfileViewModel.ProfileUpdateStatus.Success -> {
                             Toast.makeText(requireContext(), "Profil berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                        }
+                        is ProfileViewModel.ProfileUpdateStatus.SuccessMessage -> {
+                            Toast.makeText(requireContext(), currentStatus.message, Toast.LENGTH_SHORT).show()
                         }
                         is ProfileViewModel.ProfileUpdateStatus.Error -> {
                             Toast.makeText(requireContext(), currentStatus.message, Toast.LENGTH_LONG).show()
@@ -58,6 +77,9 @@ class ProfileFragment : Fragment() {
                     },
                     onChatListClick = {
                         findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToChatListFragment())
+                    },
+                    onRequestBecomeSeller = { storeName, description ->
+                        viewModel.requestBecomeSeller(storeName, description)
                     }
                 )
             }

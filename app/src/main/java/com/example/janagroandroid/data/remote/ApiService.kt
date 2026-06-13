@@ -66,6 +66,10 @@ interface ApiService {
     @GET("/api/v1/merchants/highest-rated")
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
 
+    // Changed endpoint to /apply to match backend exports.apply
+    @POST("/api/v1/merchants/apply")
+    suspend fun requestBecomeSeller(@Body request: Map<String, String>): Response<AuthResponse>
+
     @GET("/api/v1/categories")
     suspend fun getCategories(): Response<CategoryResponse>
 

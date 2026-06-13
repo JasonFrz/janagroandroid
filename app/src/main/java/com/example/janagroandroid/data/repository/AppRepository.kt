@@ -16,6 +16,7 @@ import com.example.janagroandroid.data.remote.dto.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Response
 
 class AppRepository(
     private val userDao: UserDao,
@@ -157,6 +158,25 @@ class AppRepository(
                 } else {
                     response.body()?.status == "success"
                 }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun requestBecomeSeller(storeName: String, description: String): Boolean {
+        return try {
+            val request = mapOf(
+                "store_name" to storeName,
+                "description" to description
+            )
+            val response = apiService.requestBecomeSeller(request)
+            if (response.isSuccessful) {
+                refreshProfile()
+                true
             } else {
                 false
             }

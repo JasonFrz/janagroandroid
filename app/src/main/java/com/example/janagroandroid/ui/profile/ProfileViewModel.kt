@@ -48,6 +48,22 @@ class ProfileViewModel(
         }
     }
 
+    fun requestBecomeSeller(storeName: String, description: String) {
+        _profileUpdateStatus.value = ProfileUpdateStatus.Loading
+        viewModelScope.launch {
+            try {
+                val success = repo.requestBecomeSeller(storeName, description)
+                if (success) {
+                    _profileUpdateStatus.postValue(ProfileUpdateStatus.SuccessMessage("Permintaan menjadi seller telah dikirim"))
+                } else {
+                    _profileUpdateStatus.postValue(ProfileUpdateStatus.Error("Gagal mengirim permintaan. Pastikan endpoint benar (404)."))
+                }
+            } catch (e: Exception) {
+                _profileUpdateStatus.postValue(ProfileUpdateStatus.Error(e.message ?: "Unknown error"))
+            }
+        }
+    }
+
     // Fungsi untuk memperbarui nama dan nomor telepon
     fun updateProfileInfo(name: String, phone: String) {
         _profileUpdateStatus.value = ProfileUpdateStatus.Loading
@@ -117,6 +133,7 @@ class ProfileViewModel(
     sealed class ProfileUpdateStatus {
         object Loading : ProfileUpdateStatus()
         object Success : ProfileUpdateStatus()
+        data class SuccessMessage(val message: String) : ProfileUpdateStatus()
         data class Error(val message: String) : ProfileUpdateStatus()
     }
 }

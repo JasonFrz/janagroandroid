@@ -5,12 +5,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,10 +39,13 @@ fun ProfileScreen(
     onLogoutClick: () -> Unit,
     onImageSelected: (Uri) -> Unit,
     onUpdateProfile: (String, String) -> Unit,
-    onChatListClick: () -> Unit = {}
+    onChatListClick: () -> Unit = {},
+    onRequestBecomeSeller: (String, String) -> Unit = { _, _ -> }
 ) {
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     var showEditDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showBecomeSellerDialog by remember { mutableStateOf(false) }
     
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
@@ -62,7 +69,8 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 24.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -115,40 +123,92 @@ fun ProfileScreen(
                 
                 InfoRow(label = "Role", value = user?.role ?: "-")
                 user?.phone?.let {
-                    InfoRow(label = "Phone", value = it)
+                    if (it.isNotEmpty()) {
+                        InfoRow(label = "Phone", value = it)
+                    }
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Logout as a special Menu Item
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .clickable { onLogoutClick() },
-                    color = Color.Transparent
-                ) {
-                    Row(
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Tombol Request Become Seller (Hanya muncul jika Customer)
+                if (user?.role == "Customer") {
+                    Button(
+                        onClick = { showBecomeSellerDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = null,
-                            tint = Color.Red
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Icon(imageVector = Icons.Default.Store, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Logout",
-                            color = Color.Red,
+                            text = "Daftar Jadi Penjual",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Bold
                         )
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Tombol Logout Berwarna Merah
+                Button(
+                    onClick = { showLogoutDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFEBEE), // Merah sangat muda
+                        contentColor = Color.Red
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = null,
+                    border = null
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        tint = Color.Red
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Logout",
+                        color = Color.Red,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(32.dp))
             }
+        }
+
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Konfirmasi Logout") },
+                text = { Text("Apakah Anda yakin ingin keluar dari aplikasi?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showLogoutDialog = false
+                            onLogoutClick()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Ya, Keluar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("Batal")
+                    }
+                }
+            )
         }
 
         if (showEditDialog && user != null) {
@@ -159,6 +219,16 @@ fun ProfileScreen(
                 onConfirm = { newName, newPhone ->
                     onUpdateProfile(newName, newPhone)
                     showEditDialog = false
+                }
+            )
+        }
+
+        if (showBecomeSellerDialog) {
+            BecomeSellerDialog(
+                onDismiss = { showBecomeSellerDialog = false },
+                onConfirm = { storeName, description ->
+                    onRequestBecomeSeller(storeName, description)
+                    showBecomeSellerDialog = false
                 }
             )
         }
@@ -203,6 +273,58 @@ fun EditProfileDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun BecomeSellerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String, String) -> Unit
+) {
+    var storeName by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Daftar Jadi Penjual", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                Text(
+                    text = "Masukkan informasi toko Anda untuk mengajukan pendaftaran menjadi penjual.",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = storeName,
+                    onValueChange = { storeName = it },
+                    label = { Text("Nama Toko") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Deskripsi Toko") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(storeName, description) },
+                enabled = storeName.isNotBlank()
+            ) {
+                Text("Kirim Permintaan")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Batal")
             }
         }
     )

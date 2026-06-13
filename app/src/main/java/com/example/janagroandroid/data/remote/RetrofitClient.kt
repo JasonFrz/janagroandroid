@@ -8,10 +8,14 @@ import okhttp3.Interceptor
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-//    private const val BASE_URL = "http://10.0.2.2:3000/"
-    private const val BASE_URL = "http://192.168.1.12:3000/"
+    // Use 10.0.2.2 for Android Emulator to access host's localhost
+    private const val BASE_URL = "http://10.0.2.2:3000/"
+    // Use your machine's IP address (e.g., 192.168.x.x) if testing on a physical device
+    // private const val BASE_URL = "http://192.168.1.12:3000/"
+    
     private var apiServiceInstance: ApiService? = null
 
     private val moshi: Moshi = Moshi.Builder()
@@ -26,6 +30,9 @@ object RetrofitClient {
         }
 
         val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(logging)
             .addInterceptor(Interceptor { chain ->
                 val request = chain.request()
@@ -59,10 +66,14 @@ object RetrofitClient {
                                     .build()
                                     .create(ApiService::class.java)
 
-                                refreshService.refreshToken(mapOf("refreshToken" to refreshToken))
+                                try {
+                                    refreshService.refreshToken(mapOf("refreshToken" to refreshToken))
+                                } catch (e: Exception) {
+                                    null
+                                }
                             }
 
-                            if (refreshResponse.isSuccessful) {
+                            if (refreshResponse != null && refreshResponse.isSuccessful) {
                                 val newData = refreshResponse.body()?.data
                                 val newToken = newData?.token
                                 val newRefreshToken = newData?.refreshToken
