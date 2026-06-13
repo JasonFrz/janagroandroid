@@ -65,12 +65,13 @@ fun ProfileScreen(
                 )
             }
         ) { padding ->
+            // Menggunakan satu Column scrollable agar semua elemen bisa dijangkau
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 24.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -128,7 +129,6 @@ fun ProfileScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Tombol Request Become Seller (Hanya muncul jika Customer)
@@ -155,14 +155,14 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                // Tombol Logout Berwarna Merah
+                // Tombol Logout
                 Button(
                     onClick = { showLogoutDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFEBEE), // Merah sangat muda
+                        containerColor = Color(0xFFFFEBEE),
                         contentColor = Color.Red
                     ),
                     shape = RoundedCornerShape(12.dp),
@@ -183,7 +183,8 @@ fun ProfileScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                // Spacer tambahan agar tombol tidak tertutup Bottom Navigation Bar aplikasi
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
 
