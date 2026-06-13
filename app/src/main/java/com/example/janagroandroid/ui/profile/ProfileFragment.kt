@@ -65,14 +65,16 @@ class ProfileFragment : Fragment() {
                 ProfileScreen(
                     user = user,
                     onLogoutClick = {
-                        viewModel.logout()
+                        if (user != null) {
+                            viewModel.logout()
+                        } else {
+                            findNavController().navigate(R.id.loginFragment)
+                        }
                     },
                     onImageSelected = { uri ->
-                        // Memanggil fungsi upload di ViewModel
                         viewModel.updateProfilePicture(uri)
                     },
                     onUpdateProfile = { name, phone ->
-                        // Memanggil fungsi update profil di ViewModel
                         viewModel.updateProfileInfo(name, phone)
                     },
                     onChatListClick = {

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
@@ -65,7 +66,6 @@ fun ProfileScreen(
                 )
             }
         ) { padding ->
-            // Menggunakan satu Column scrollable agar semua elemen bisa dijangkau
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -80,7 +80,7 @@ fun ProfileScreen(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .clickable { launcher.launch("image/*") }
+                        .clickable(enabled = user != null) { launcher.launch("image/*") }
                 ) {
                     val imageSource: Any = profileImageUri ?: user?.profilePicture ?: R.drawable.ic_user_placeholder
                     
@@ -102,88 +102,102 @@ fun ProfileScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = user?.email ?: "guest@example.com",
+                    text = user?.email ?: "Silakan login untuk fitur lengkap",
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Menu Items
-                ProfileMenuItem(
-                    icon = Icons.Default.Person,
-                    title = "Edit Profile",
-                    onClick = { showEditDialog = true }
-                )
+                // Menu Items (Hanya muncul jika sudah login)
+                if (user != null) {
+                    ProfileMenuItem(
+                        icon = Icons.Default.Person,
+                        title = "Edit Profile",
+                        onClick = { showEditDialog = true }
+                    )
 
-                ProfileMenuItem(
-                    icon = Icons.Default.Email,
-                    title = "Pesan",
-                    onClick = onChatListClick
-                )
-                
-                InfoRow(label = "Role", value = user?.role ?: "-")
-                user?.phone?.let {
-                    if (it.isNotEmpty()) {
-                        InfoRow(label = "Phone", value = it)
+                    ProfileMenuItem(
+                        icon = Icons.Default.Email,
+                        title = "Pesan",
+                        onClick = onChatListClick
+                    )
+                    
+                    InfoRow(label = "Role", value = user.role)
+                    user.phone?.let {
+                        if (it.isNotEmpty()) {
+                            InfoRow(label = "Phone", value = it)
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Tombol Request Become Seller (Hanya muncul jika Customer)
-                if (user?.role == "Customer") {
-                    Button(
-                        onClick = { showBecomeSellerDialog = true },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(imageVector = Icons.Default.Store, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
+                // Bagian Request Become Seller
+                if (user != null && user.role != "Seller") {
+                    if (user.isMerchant) {
                         Text(
-                            text = "Daftar Jadi Penjual",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            text = "Anda sudah mengirimkan permintaan menjadi penjual",
+                            color = Color.Red,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
+                    } else {
+                        Button(
+                            onClick = { showBecomeSellerDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Store, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Daftar Jadi Penjual",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                // Tombol Logout
+                // Tombol Login / Logout
+                val isGuest = user == null
                 Button(
-                    onClick = { showLogoutDialog = true },
+                    onClick = {
+                        if (isGuest) onLogoutClick() else showLogoutDialog = true
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFEBEE),
-                        contentColor = Color.Red
+                        containerColor = if (isGuest) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
+                        contentColor = if (isGuest) Color(0xFF2E7D32) else Color.Red
                     ),
                     shape = RoundedCornerShape(12.dp),
                     elevation = null,
                     border = null
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        imageVector = if (isGuest) Icons.Default.Login else Icons.AutoMirrored.Filled.ExitToApp,
                         contentDescription = null,
-                        tint = Color.Red
+                        tint = if (isGuest) Color(0xFF2E7D32) else Color.Red
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Logout",
-                        color = Color.Red,
+                        text = if (isGuest) "Login" else "Logout",
+                        color = if (isGuest) Color(0xFF2E7D32) else Color.Red,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 
-                // Spacer tambahan agar tombol tidak tertutup Bottom Navigation Bar aplikasi
                 Spacer(modifier = Modifier.height(100.dp))
             }
         }
