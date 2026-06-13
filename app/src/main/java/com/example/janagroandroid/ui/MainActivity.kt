@@ -26,105 +26,89 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. Inisialisasi Navigasi
         val host = supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment
         navController = host.navController
 
-        // 2. Inisialisasi View
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         val bottomAppBar = findViewById<BottomAppBar>(R.id.bottomAppBar)
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAddMain)
 
-        // 3. Setup Navigasi
         bottomNav.setupWithNavController(navController)
 
-        // 3.1. Role-based Bottom Navigation
+        // 1. Role-based Navigation & Guest Handling
         viewModel.user.observe(this) { user ->
             val role = user?.role ?: "Customer"
             
-            // Handle Logout or Role Change
+            // Handle Forced Login for specific fragments only
             val currentDest = navController.currentDestination?.id
-            if (user == null && currentDest != R.id.homeFragment && currentDest != R.id.loginFragment && currentDest != R.id.registerFragment && currentDest != R.id.splashFragment) {
-                // Arahkan langsung ke Home (Guest) saat logout
+            val isPublicFragment = currentDest in setOf(
+                R.id.homeFragment, 
+                R.id.exploreFragment, 
+                R.id.profileFragment, 
+                R.id.loginFragment, 
+                R.id.registerFragment, 
+                R.id.splashFragment
+            )
+            
+            if (user == null && !isPublicFragment) {
                 navController.navigate(
                     R.id.loginFragment,
                     null,
-                    navOptions {
-                        popUpTo(R.id.nav_graph) { inclusive = true }
-                    }
+                    navOptions { popUpTo(R.id.nav_graph) { inclusive = true } }
                 )
             }
 
-            // Reset menu only if changed to avoid losing state
-            val currentMenuRes = if (role == "Admin") R.menu.menu_admin else R.menu.menu_customer
-            
-            // Simpan menu lama untuk perbandingan
-            val isMenuAdmin = bottomNav.menu.findItem(R.id.adminHomeFragment) != null
-            val shouldBeAdmin = role == "Admin"
-            
-            if (isMenuAdmin != shouldBeAdmin || bottomNav.menu.size() == 0) {
+            // Setup Menu
+            val isAdmin = role.equals("Admin", ignoreCase = true)
+            val currentMenuRes = if (isAdmin) R.menu.menu_admin else R.menu.menu_customer
+            if (bottomNav.menu.size() == 0 || (isAdmin && bottomNav.menu.findItem(R.id.adminHomeFragment) == null) || (!isAdmin && bottomNav.menu.findItem(R.id.adminHomeFragment) != null)) {
                 bottomNav.menu.clear()
                 bottomNav.inflateMenu(currentMenuRes)
             }
 
-            // Selalu sembunyikan FAB untuk Customer/Guest sesuai permintaan
-            // Hanya tampilkan jika role adalah "Seller" (jika ada nantinya)
-            if (role == "Admin" || role == "Customer" || user == null) {
-                fabAdd.hide()
-                bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END
-            } else {
-                // Misal untuk role lain yang butuh FAB +
-                fabAdd.show()
-                bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
-            }
+            updateFabVisibility(user, navController.currentDestination?.id)
         }
 
-        // Memastikan FAB berada di depan layer BottomNav
         fabAdd.bringToFront()
 
-        // 4. Logika Sembunyi/Muncul Bar & FAB
+        // 2. UI logic
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val user = viewModel.user.value
-            val role = user?.role ?: "Customer"
-            val isAdmin = role == "Admin"
-
-            // Tentukan di mana bar harus muncul
-            val isCustomerMainFragment = destination.id in setOf(
-                R.id.homeFragment,
-                R.id.exploreFragment,
-                R.id.historyFragment,
-                R.id.profileFragment
-            )
+            updateFabVisibility(viewModel.user.value, destination.id)
             
-            val isAdminMainFragment = destination.id in setOf(
-                R.id.adminHomeFragment,
-                R.id.adminUsersFragment,
-                R.id.adminMerchantsFragment,
-                R.id.adminVouchersFragment,
-                R.id.adminReportsFragment
+            val isMainFragment = destination.id in setOf(
+                R.id.homeFragment, R.id.exploreFragment, R.id.historyFragment, R.id.profileFragment,
+                R.id.adminHomeFragment, R.id.adminUsersFragment, R.id.adminMerchantsFragment, 
+                R.id.adminVouchersFragment, R.id.adminReportsFragment
             )
-
-            if (isCustomerMainFragment || isAdminMainFragment) {
-                bottomAppBar.visibility = View.VISIBLE
-                
-                // FAB hanya muncul untuk role tertentu (misal: Seller)
-                // Customer, Guest, dan Admin TIDAK memunculkan FAB sesuai permintaan
-                if (role == "Seller" && destination.id == R.id.homeFragment) {
-                    fabAdd.show()
-                } else {
-                    fabAdd.hide()
-                }
-
-                fabAdd.bringToFront()
-            } else {
-                bottomAppBar.visibility = View.GONE
-                fabAdd.hide()
-            }
+            bottomAppBar.visibility = if (isMainFragment) View.VISIBLE else View.GONE
         }
 
-        // 5. Listener Tombol Plus
+        // 3. FAB Click Listener
         fabAdd.setOnClickListener {
-            Toast.makeText(this, "Silakan login untuk menambah produk!", Toast.LENGTH_SHORT).show()
+            val user = viewModel.user.value
+            if (user == null) {
+                Toast.makeText(this, "Silakan login terlebih dahulu!", Toast.LENGTH_SHORT).show()
+                navController.navigate(R.id.loginFragment)
+            } else if (user.role.equals("Seller", ignoreCase = true)) {
+                navController.navigate(R.id.addProductFragment)
+            } else {
+                Toast.makeText(this, "Hanya penjual yang dapat menambah produk!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updateFabVisibility(user: com.example.janagroandroid.data.local.entity.UserEntity?, destId: Int?) {
+        val fabAdd = findViewById<FloatingActionButton>(R.id.fabAddMain)
+        val bottomAppBar = findViewById<BottomAppBar>(R.id.bottomAppBar)
+        val isSeller = user?.role?.equals("Seller", ignoreCase = true) == true
+        val isHome = destId == R.id.homeFragment
+
+        if (isSeller && isHome) {
+            fabAdd.show()
+            bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
+        } else {
+            fabAdd.hide()
+            bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END
         }
     }
 }

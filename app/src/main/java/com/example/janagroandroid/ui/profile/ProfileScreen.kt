@@ -133,9 +133,11 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Bagian Request Become Seller
-                if (user != null && user.role != "Seller") {
+                // Bagian Request Become Seller (Hanya muncul jika role Customer)
+                val isCustomer = user?.role?.equals("Customer", ignoreCase = true) == true
+                if (user != null && isCustomer) {
                     if (user.isMerchant) {
+                        // Teks merah jika sudah request (pending)
                         Text(
                             text = "Anda sudah mengirimkan permintaan menjadi penjual",
                             color = Color.Red,
@@ -144,6 +146,7 @@ fun ProfileScreen(
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     } else {
+                        // Tombol pendaftaran
                         Button(
                             onClick = { showBecomeSellerDialog = true },
                             modifier = Modifier
@@ -166,6 +169,7 @@ fun ProfileScreen(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                 }
+                // Jika role sudah "Seller", bagian di atas tidak akan muncul (hilang)
 
                 // Tombol Login / Logout
                 val isGuest = user == null
