@@ -41,7 +41,8 @@ class HomeViewModel(
         viewModelScope.launch {
             repo.refreshRemoteProducts()
             fetchCategories()
-            if (currentUser.value != null) {
+            if (repo.isLoggedIn()) {
+                repo.refreshProfile()
                 fetchTopMerchants()
             }
         }

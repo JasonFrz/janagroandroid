@@ -13,6 +13,10 @@ import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.ApiService
 import com.example.janagroandroid.data.remote.dto.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Response
 
 class AppRepository(
     private val userDao: UserDao,
@@ -83,8 +87,6 @@ class AppRepository(
             if (response.isSuccessful) {
                 val responseBody = response.body()
                 val authData = responseBody?.data
-                
-                // Cari UserDto baik di authData.user atau di root data (jika backend tidak membungkusnya)
                 val userDto = authData?.user 
                 
                 if (userDto != null) {
@@ -116,12 +118,107 @@ class AppRepository(
         }
     }
 
+    suspend fun refreshProfile(): Boolean {
+        return try {
+            val response = apiService.getProfile()
+            if (response.isSuccessful) {
+                val userDto = response.body()?.data?.user
+                if (userDto != null) {
+                    userDao.insert(userDto.toEntity(isLoggedIn = true))
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun updateProfile(
+        name: String? = null,
+        phone: String? = null,
+        imagePart: MultipartBody.Part? = null
+    ): Boolean {
+        return try {
+            val nameBody = name?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val phoneBody = phone?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val response = apiService.updateProfile(nameBody, phoneBody, imagePart)
+            if (response.isSuccessful) {
+                val updatedUser = response.body()?.data?.user
+                if (updatedUser != null) {
+                    userDao.insert(updatedUser.toEntity(isLoggedIn = true))
+                    true
+                } else {
+                    response.body()?.status == "success"
+                }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun requestBecomeSeller(storeName: String, description: String): Boolean {
+        return try {
+            val request = mapOf(
+                "store_name" to storeName,
+                "description" to description
+            )
+            val response = apiService.requestBecomeSeller(request)
+            if (response.isSuccessful) {
+                refreshProfile()
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun addProduct(product: ProductEntity) {
         productDao.insert(product)
     }
 
+    suspend fun createRemoteProduct(
+        name: String,
+        description: String,
+        price: Double,
+        stock: Int,
+        categoryId: Int,
+        imageParts: List<MultipartBody.Part>
+    ): Boolean {
+        return try {
+            val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+            val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val stockBody = stock.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val response = apiService.createProduct(
+                nameBody,
+                descriptionBody,
+                priceBody,
+                stockBody,
+                categoryIdBody,
+                imageParts
+            )
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun refreshRemoteProducts(): Boolean {
-        // Menggunakan parameter baru: limit=10, sortBy=created_at, sortDir=DESC
         val response = apiService.getProducts(limit = 10, sortBy = "created_at", sortDir = "DESC")
         return if (response.isSuccessful) {
             val items = response.body()?.data?.products.orEmpty()
@@ -158,6 +255,47 @@ class AppRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
+        }
+    }
+
+    suspend fun getVouchers(): List<VoucherDto>{
+        return try {
+            val response = apiService.getVouchers()
+            if(response.isSuccessful){
+                response.body()?.data?.vouchers.orEmpty()
+            }else{
+                emptyList()
+            }
+        } catch (e: Exception){
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun createVouchers(request: VoucherRequest): Boolean {
+        return try {
+            apiService.createVoucher(request).isSuccessful
+        }catch (e: Exception){
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun updateVouchers(id: Long, request: VoucherRequest): Boolean {
+        return try {
+            apiService.updateVoucher(id,request).isSuccessful
+        }catch (e: Exception){
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun deleteVouchers(id:Long): Boolean {
+        return try {
+            apiService.deleteVoucher(id).isSuccessful
+        } catch (e: Exception){
+            e.printStackTrace()
+            false
         }
     }
 

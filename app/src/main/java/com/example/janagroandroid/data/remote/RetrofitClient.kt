@@ -1,17 +1,26 @@
 package com.example.janagroandroid.data.remote
 
 import com.example.janagroandroid.data.local.SessionManager
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Interceptor
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
+    // Use 10.0.2.2 for Android Emulator to access host's localhost
     private const val BASE_URL = "http://10.0.2.2:3000/"
-//    private const val BASE_URL = "http://10.86.175.129:3000/"
+    // Use your machine's IP address (e.g., 192.168.x.x) if testing on a physical device
+    // private const val BASE_URL = "http://192.168.1.12:3000/"
+    
     private var apiServiceInstance: ApiService? = null
+
+    private val moshi: Moshi = Moshi.Builder()
+        .add(FlexibleStringListAdapter)
+        .build()
 
     fun getApiService(sessionManager: SessionManager? = null): ApiService {
         if (apiServiceInstance != null) return apiServiceInstance!!
@@ -21,6 +30,9 @@ object RetrofitClient {
         }
 
         val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(logging)
             .addInterceptor(Interceptor { chain ->
                 val request = chain.request()
@@ -50,14 +62,18 @@ object RetrofitClient {
                                 // Create a separate instance for refresh to avoid interceptor loop
                                 val refreshService = Retrofit.Builder()
                                     .baseUrl(BASE_URL)
-                                    .addConverterFactory(GsonConverterFactory.create())
+                                    .addConverterFactory(MoshiConverterFactory.create(moshi))
                                     .build()
                                     .create(ApiService::class.java)
 
-                                refreshService.refreshToken(mapOf("refreshToken" to refreshToken))
+                                try {
+                                    refreshService.refreshToken(mapOf("refreshToken" to refreshToken))
+                                } catch (e: Exception) {
+                                    null
+                                }
                             }
 
-                            if (refreshResponse.isSuccessful) {
+                            if (refreshResponse != null && refreshResponse.isSuccessful) {
                                 val newData = refreshResponse.body()?.data
                                 val newToken = newData?.token
                                 val newRefreshToken = newData?.refreshToken
@@ -89,7 +105,7 @@ object RetrofitClient {
         apiServiceInstance = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(ApiService::class.java)
 

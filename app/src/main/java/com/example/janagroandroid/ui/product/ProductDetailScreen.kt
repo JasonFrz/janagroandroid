@@ -42,7 +42,8 @@ fun ProductDetailScreen(
     imageUrl: String,
     description: String,
     onBackClick: () -> Unit,
-    onAddToCartClick: (Int) -> Unit
+    onAddToCartClick: (Int) -> Unit,
+    onChatClick: () -> Unit = {}
 ) {
     JanAgroTheme {
         Scaffold(
@@ -87,7 +88,10 @@ fun ProductDetailScreen(
                 )
             },
             bottomBar = {
-                BottomActionBar(onAddToCartClick = { onAddToCartClick(1) })
+                BottomActionBar(
+                    onAddToCartClick = { onAddToCartClick(1) },
+                    onChatClick = onChatClick
+                )
             }
         ) { padding ->
             Column(
@@ -455,7 +459,7 @@ fun ReviewItem(name: String, date: String, rating: Int, comment: String) {
 }
 
 @Composable
-fun BottomActionBar(onAddToCartClick: () -> Unit) {
+fun BottomActionBar(onAddToCartClick: () -> Unit, onChatClick: () -> Unit = {}) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 8.dp,
@@ -469,7 +473,7 @@ fun BottomActionBar(onAddToCartClick: () -> Unit) {
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable { }.padding(end = 16.dp)
+                modifier = Modifier.clickable { onChatClick() }.padding(end = 16.dp)
             ) {
                 Icon(Icons.Outlined.Email, contentDescription = "Chat", tint = Color.Gray)
                 Text("Chat", fontSize = 10.sp, color = Color.Gray)

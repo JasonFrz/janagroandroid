@@ -5,15 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
+import com.example.janagroandroid.R
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
-import com.example.janagroandroid.ui.MainActivity
 
 class ProfileFragment : Fragment() {
 
@@ -26,22 +29,62 @@ class ProfileFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val user by viewModel.user.observeAsState()
+                val updateStatus by viewModel.profileUpdateStatus.observeAsState()
+                val logoutSuccess by viewModel.logoutSuccess.observeAsState(false)
+
+                // Navigasi setelah logout berhasil
+                LaunchedEffect(logoutSuccess) {
+                    if (logoutSuccess) {
+                        findNavController().navigate(
+                            R.id.loginFragment,
+                            null,
+                            NavOptions.Builder()
+                                .setPopUpTo(R.id.nav_graph, true)
+                                .build()
+                        )
+                    }
+                }
+
+                // Memberikan feedback Toast saat status update berubah
+                val currentStatus = updateStatus
+                LaunchedEffect(currentStatus) {
+                    when (currentStatus) {
+                        is ProfileViewModel.ProfileUpdateStatus.Success -> {
+                            Toast.makeText(requireContext(), "Profil berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                        }
+                        is ProfileViewModel.ProfileUpdateStatus.SuccessMessage -> {
+                            Toast.makeText(requireContext(), currentStatus.message, Toast.LENGTH_SHORT).show()
+                        }
+                        is ProfileViewModel.ProfileUpdateStatus.Error -> {
+                            Toast.makeText(requireContext(), currentStatus.message, Toast.LENGTH_LONG).show()
+                        }
+                        else -> {}
+                    }
+                }
 
                 ProfileScreen(
                     user = user,
                     onLogoutClick = {
-                        viewModel.logout()
+                        if (user != null) {
+                            viewModel.logout()
+                        } else {
+                            findNavController().navigate(R.id.loginFragment)
+                        }
                     },
-                    onImageSelected = {
-                        Toast.makeText(requireContext(), "Foto profil berhasil diubah", Toast.LENGTH_SHORT).show()
+                    onImageSelected = { uri ->
+                        viewModel.updateProfilePicture(uri)
+                    },
+                    onUpdateProfile = { name, phone ->
+                        viewModel.updateProfileInfo(name, phone)
+                    },
+                    onChatListClick = {
+                        findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToChatListFragment())
+                    },
+                    onRequestBecomeSeller = { storeName, description ->
+                        viewModel.requestBecomeSeller(storeName, description)
                     }
                 )
             }
         }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // Logout handling sekarang dipusatkan di MainActivity observer
     }
 }

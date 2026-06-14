@@ -119,40 +119,6 @@
                 android:text="Female" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <TextView
-            android:id="@+id/tvRoleLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Register as"
-            android:textColor="#757575"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toggleGender" />
-
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggleRole"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:singleSelection="true"
-            app:selectionRequired="true"
-            app:layout_constraintTop_toBottomOf="@id/tvRoleLabel">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCustomer"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Customer" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnFarmer"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Farmer" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilPassReg"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -161,7 +127,7 @@
             android:layout_marginTop="16dp"
             android:hint="Password"
             app:passwordToggleEnabled="true"
-            app:layout_constraintTop_toBottomOf="@id/toggleRole">
+            app:layout_constraintTop_toBottomOf="@id/toggleGender">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPassReg"
                 android:layout_width="match_parent"

@@ -22,11 +22,11 @@ interface ApiService {
     suspend fun refreshToken(@Body request: Map<String, String>): Response<AuthResponse>
 
 //    PROFILE USERS API
-    @GET("/api/v1/profile")
+    @GET("/api/v1/users/profile")
     suspend fun getProfile(): Response<AuthResponse>
 
     @Multipart
-    @PUT("/api/v1/profile")
+    @PUT("/api/v1/users/profile")
     suspend fun updateProfile(
         @Part("name") name: RequestBody?,
         @Part("phone") phone: RequestBody?,
@@ -62,9 +62,23 @@ interface ApiService {
     @GET("/api/v1/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
 
+    @Multipart
+    @POST("/api/v1/merchant/products")
+    suspend fun createProduct(
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("price") price: RequestBody,
+        @Part("stock") stock: RequestBody,
+        @Part("category_id") categoryId: RequestBody,
+        @Part images: List<MultipartBody.Part>
+    ): Response<AuthResponse>
+
 //    MERCHANT API
     @GET("/api/v1/merchants/highest-rated")
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
+
+    @POST("/api/v1/merchants/apply")
+    suspend fun requestBecomeSeller(@Body request: Map<String, String>): Response<AuthResponse>
 
     @GET("/api/v1/categories")
     suspend fun getCategories(): Response<CategoryResponse>
@@ -95,5 +109,22 @@ interface ApiService {
     suspend fun updateMerchantStatus(
         @Path("id") id: Long,
         @Body request: Map<String, String>
+    ): Response<Unit>
+
+    @GET("/api/v1/admin/vouchers")
+    suspend fun getVouchers(): Response<VoucherListReponse>
+
+    @POST("/api/v1/admin/vouchers")
+    suspend fun createVoucher(@Body request: VoucherRequest): Response<VoucherListReponse>
+
+    @PUT("/api/v1/admin/vouchers/{id}")
+    suspend fun updateVoucher(
+        @Path("id") id: Long,
+        @Body request: VoucherRequest
+    ): Response<Unit>
+
+    @DELETE("/api/v1/admin/vouchers/{id}")
+    suspend fun deleteVoucher(
+        @Path("id") id: Long
     ): Response<Unit>
 }
