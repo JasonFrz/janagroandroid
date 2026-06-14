@@ -10,10 +10,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
@@ -282,6 +282,10 @@ fun MerchantSection() {
 
 @Composable
 fun DescriptionSection(description: String) {
+    var isExpanded by remember { mutableStateOf(false) }
+    val displayDescription = description.ifEmpty { "Tidak ada deskripsi produk!" }
+    val showReadMore = displayDescription.length > 100
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -295,28 +299,31 @@ fun DescriptionSection(description: String) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = description.ifEmpty { "Pupuk NPK Mutiara 16-16-16 mengandung kombinasi terbaik dari Nitrate-Nitrogen yang langsung tersedia untuk tanaman. Mempercepat pertumbuhan tunas, memperkuat..." },
+            text = if (isExpanded || !showReadMore) displayDescription else "${displayDescription.take(100)}...",
             fontSize = 14.sp,
             color = Color.Gray,
             lineHeight = 20.sp
         )
-        Row(
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .clickable { },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Baca Selengkapnya",
-                color = Color(0xFF2E7D32),
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-            Icon(
-                imageVector = Icons.Outlined.KeyboardArrowDown,
-                contentDescription = null,
-                tint = Color(0xFF2E7D32)
-            )
+        
+        if (showReadMore) {
+            Row(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .clickable { isExpanded = !isExpanded },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (isExpanded) "Sembunyikan" else "Baca Selengkapnya",
+                    color = Color(0xFF2E7D32),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Icon(
+                    imageVector = if (isExpanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = Color(0xFF2E7D32)
+                )
+            }
         }
     }
 }

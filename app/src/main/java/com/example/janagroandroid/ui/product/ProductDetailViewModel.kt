@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.janagroandroid.data.local.entity.CartEntity
 import com.example.janagroandroid.data.local.entity.ProductEntity
+import com.example.janagroandroid.data.remote.dto.ReviewDto
 import com.example.janagroandroid.data.repository.AppRepository
 import kotlinx.coroutines.launch
 
@@ -18,10 +19,16 @@ class ProductDetailViewModel(
     private val _product = MutableLiveData<ProductEntity?>()
     val product: LiveData<ProductEntity?> = _product
 
+    private val _reviews = MutableLiveData<List<ReviewDto>>()
+    val reviews: LiveData<List<ReviewDto>> = _reviews
+
     fun fetchProductDetail(id: Long) {
         viewModelScope.launch {
             val result = repo.getRemoteProductDetail(id)
             _product.postValue(result)
+            
+            val reviewList = repo.getProductReviews(id)
+            _reviews.postValue(reviewList)
         }
     }
 
