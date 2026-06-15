@@ -45,7 +45,9 @@ class ExploreFragment : Fragment() {
                             "name" to product.name,
                             "price" to product.price.toFloat(),
                             "imageUrl" to product.imageUrl,
-                            "description" to product.description
+                            "description" to product.description,
+                            "merchantName" to product.merchant_name,
+                            "category" to product.category
                         )
                         findNavController().navigate(R.id.productDetailFragment, bundle)
                     }

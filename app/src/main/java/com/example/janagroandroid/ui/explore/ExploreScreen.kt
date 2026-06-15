@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +27,7 @@ import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.ui.home.AllProductItem
 import com.example.janagroandroid.ui.home.CategoryChip
 import com.example.janagroandroid.ui.theme.JanAgroTheme
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +40,7 @@ fun ExploreScreen(
     onProductClick: (ProductEntity) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf(initialQuery) }
-    var selectedCategory by remember { mutableStateOf<String?>(initialCategory) }
+    var selectedCategory by remember { mutableStateOf<String?>(if (initialCategory == "All") null else initialCategory) }
 
     val filteredProducts = remember(searchQuery, selectedCategory, products) {
         products.filter { product ->
@@ -48,7 +48,7 @@ fun ExploreScreen(
                 product.name.contains(searchQuery, ignoreCase = true) || 
                 product.description.contains(searchQuery, ignoreCase = true)
             }
-            val matchesCategory = if (selectedCategory == null) true else {
+            val matchesCategory = if (selectedCategory == null || selectedCategory == "All") true else {
                 product.category.equals(selectedCategory, ignoreCase = true)
             }
             matchesQuery && matchesCategory
@@ -103,33 +103,29 @@ fun ExploreScreen(
                         }
 
                         // Category Filter Row
-                        if (categories.isNotEmpty()) {
-                            LazyRow(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                contentPadding = PaddingValues(horizontal = 20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                item {
-                                    Box(modifier = Modifier.clickable { selectedCategory = null }) {
-                                        CategoryChip(
-                                            text = "Semua", 
-                                            isSelected = selectedCategory == null
-                                        )
-                                    }
-                                }
-                                items(categories) { category ->
-                                    val categoryName = category.name ?: ""
-                                    Box(modifier = Modifier.clickable { 
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item {
+                                CategoryChip(
+                                    text = "Semua", 
+                                    isSelected = selectedCategory == null || selectedCategory == "All",
+                                    onClick = { selectedCategory = null }
+                                )
+                            }
+                            items(categories) { category ->
+                                val categoryName = category.name ?: ""
+                                CategoryChip(
+                                    text = categoryName,
+                                    isSelected = selectedCategory == categoryName,
+                                    onClick = { 
                                         selectedCategory = if (selectedCategory == categoryName) null else categoryName
-                                    }) {
-                                        CategoryChip(
-                                            text = categoryName,
-                                            isSelected = selectedCategory == categoryName
-                                        )
                                     }
-                                }
+                                )
                             }
                         }
                     }

@@ -26,6 +26,7 @@ class ProductDetailFragment : Fragment() {
         val initialPrice = arguments?.getFloat("price")?.toDouble() ?: 0.0
         val initialImageUrl = arguments?.getString("imageUrl").orEmpty()
         val initialDescription = arguments?.getString("description").orEmpty()
+        val initialMerchantName = arguments?.getString("merchantName") ?: "Agrojan Store"
 
         viewModel.fetchProductDetail(id)
 
@@ -40,6 +41,7 @@ class ProductDetailFragment : Fragment() {
                     price = productDetail?.price ?: initialPrice,
                     imageUrl = productDetail?.imageUrl ?: initialImageUrl,
                     description = productDetail?.description ?: initialDescription,
+                    merchantName = productDetail?.merchant_name ?: initialMerchantName,
                     onBackClick = { findNavController().popBackStack() },
                     onAddToCartClick = { qty ->
                         viewModel.addToCart(id, initialName, initialPrice, initialImageUrl, qty)
