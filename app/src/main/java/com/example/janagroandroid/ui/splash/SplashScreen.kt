@@ -57,7 +57,7 @@ fun SplashScreen(onNext: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground), // Replace with actual logo
+                    painter = painterResource(id = R.drawable.logo),
                     contentDescription = null,
                     modifier = Modifier
                         .size(120.dp)
@@ -81,7 +81,7 @@ fun SplashScreen(onNext: () -> Unit) {
 
         if (sawidAlpha.value > 0) {
             Image(
-                painter = painterResource(id = R.drawable.farmer), // Replace with actual sawid image if needed
+                painter = painterResource(id = R.drawable.sawid),
                 contentDescription = null,
                 modifier = Modifier
                     .scale(sawidScale.value)
