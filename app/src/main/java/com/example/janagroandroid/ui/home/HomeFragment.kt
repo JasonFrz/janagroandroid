@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
@@ -13,14 +12,11 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
-import com.example.janagroandroid.ui.auth.AuthViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
@@ -34,6 +30,7 @@ class HomeFragment : Fragment() {
             setContent {
                 val products by viewModel.products.observeAsState(emptyList())
                 val categories by viewModel.categories.observeAsState(emptyList())
+                val selectedCategory by viewModel.selectedCategory.observeAsState()
                 val topMerchants by viewModel.topMerchants.observeAsState(emptyList())
                 val user by viewModel.currentUser.observeAsState()
 
@@ -41,6 +38,7 @@ class HomeFragment : Fragment() {
                     user = user,
                     products = products,
                     categories = categories,
+                    selectedCategory = selectedCategory,
                     topMerchants = topMerchants,
                     onProfileClick = {
                         if (user != null) {
@@ -51,8 +49,7 @@ class HomeFragment : Fragment() {
                         }
                     },
                     onCategoryClick = { categoryName ->
-                        val bundle = bundleOf("category" to categoryName)
-                        findNavController().navigate(R.id.exploreFragment, bundle)
+                        viewModel.selectCategory(categoryName)
                     },
                     onProductClick = { product ->
                         if (user != null) {

@@ -5,9 +5,9 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class MerchantDto(
-    val id: Long,
+    val id: Long? = null,
     @Json(name = "user_id")
-    val userId: Long,
+    val userId: Long? = null,
     @Json(name = "store_name")
     val storeName: String? = null,
     val description: String? = null,

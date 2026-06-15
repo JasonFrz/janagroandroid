@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
@@ -41,6 +43,7 @@ fun HomeScreen(
     user: UserEntity?,
     products: List<ProductEntity>,
     categories: List<CategoryDto>,
+    selectedCategory: String? = null,
     topMerchants: List<MerchantDto> = emptyList(),
     onProfileClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
@@ -77,28 +80,32 @@ fun HomeScreen(
 
                 CategorySection(
                     categories = categories,
+                    selectedCategory = selectedCategory,
                     onCategoryClick = onCategoryClick
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                ProductSection(
-                    title = "Recently Listed",
-                    products = products,
-                    onProductClick = onProductClick
-                )
-
-                if (user != null && topMerchants.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    MerchantSection(
-                        title = "Top Rated Merchants",
-                        merchants = topMerchants
+                if (selectedCategory == null) {
+                    ProductSection(
+                        title = "Recently Listed",
+                        products = products.take(6),
+                        onProductClick = onProductClick
                     )
+
+                    if (user != null && topMerchants.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        MerchantSection(
+                            title = "Top Rated Merchants",
+                            merchants = topMerchants
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
                 AllProductsSection(
-                    title = "All Products",
+                    title = if (selectedCategory == null) "All Products" else "Products in $selectedCategory",
                     products = products,
                     onProductClick = onProductClick
                 )
@@ -256,6 +263,7 @@ fun SearchSection(onSearch: (String) -> Unit) {
 @Composable
 fun CategorySection(
     categories: List<CategoryDto>,
+    selectedCategory: String?,
     onCategoryClick: (String) -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
@@ -272,11 +280,18 @@ fun CategorySection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            item {
+                CategoryChip(
+                    text = "All",
+                    isSelected = selectedCategory == null,
+                    onClick = { onCategoryClick("All") }
+                )
+            }
             items(categories) { category ->
                 val name = category.name ?: ""
                 CategoryChip(
                     text = name, 
-                    isSelected = false,
+                    isSelected = selectedCategory == name,
                     onClick = { onCategoryClick(name) }
                 )
             }
@@ -467,7 +482,7 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                 placeholder = painterResource(id = R.drawable.farmer)
             )
             
-            Column(modifier = Modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Text(
                     text = product.name,
                     fontWeight = FontWeight.Bold,
@@ -475,8 +490,28 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                     maxLines = 2,
                     minLines = 2,
                     lineHeight = 18.sp,
-                    color = Color.Black
+                    color = Color.Black,
+                    overflow = TextOverflow.Ellipsis
                 )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.Storefront,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = product.merchant_name.ifBlank { "Agrojan Store" },
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
@@ -486,7 +521,7 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Rp ${product.price}",
+                        text = "Rp ${String.format(Locale.US, "%,.0f", product.price)}",
                         color = Color(0xFF2E7D32),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
@@ -575,7 +610,7 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                 placeholder = painterResource(id = R.drawable.farmer)
             )
             
-            Column(modifier = Modifier.padding(start = 12.dp, end = 0.dp, bottom = 0.dp)) {
+            Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)) {
                 Text(
                     text = product.name,
                     fontWeight = FontWeight.Bold,
@@ -584,10 +619,29 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                     minLines = 2,
                     lineHeight = 18.sp,
                     color = Color.Black,
-                    modifier = Modifier.padding(end = 12.dp)
+                    overflow = TextOverflow.Ellipsis
                 )
                 
                 Spacer(modifier = Modifier.height(4.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.Storefront,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = product.merchant_name.ifBlank { "Agrojan Store" },
+                        fontSize = 11.sp,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -595,23 +649,23 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Rp ${product.price}",
+                        text = "Rp ${String.format(Locale.US, "%,.0f", product.price)}",
                         color = Color(0xFF2E7D32),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
                     
                     Surface(
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(36.dp),
                         color = Color(0xFF006432),
-                        shape = RoundedCornerShape(topStart = 12.dp)
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Add",
                                 tint = Color.White,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }

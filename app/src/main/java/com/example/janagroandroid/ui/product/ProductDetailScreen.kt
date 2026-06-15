@@ -41,6 +41,8 @@ fun ProductDetailScreen(
     price: Double,
     imageUrl: String,
     description: String,
+    merchantName: String = "",
+    category: String = "",
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
     onChatClick: () -> Unit = {}
@@ -112,26 +114,9 @@ fun ProductDetailScreen(
                         model = imageUrl,
                         contentDescription = name,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
+                        contentScale = ContentScale.Fit,
                         placeholder = painterResource(id = R.drawable.farmer)
                     )
-                    
-                    // Carousel Indicators
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        repeat(3) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(if (index == 0) Color(0xFF2E7D32) else Color.LightGray)
-                            )
-                        }
-                    }
                 }
 
                 Column(
@@ -151,7 +136,7 @@ fun ProductDetailScreen(
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(
-                                text = "Pupuk",
+                                text = category.ifBlank { "Produk" },
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
@@ -186,7 +171,7 @@ fun ProductDetailScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Rp ${String.format(Locale.GERMANY, "%,.0f", price)}",
+                        text = "Rp ${String.format(Locale.US, "%,.0f", price)}",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32)
@@ -213,7 +198,7 @@ fun ProductDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Merchant Section
-                MerchantSection()
+                MerchantSection(merchantName.ifBlank { "Agrojan Store" })
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -232,7 +217,7 @@ fun ProductDetailScreen(
 }
 
 @Composable
-fun MerchantSection() {
+fun MerchantSection(merchantName: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color.White
@@ -261,12 +246,14 @@ fun MerchantSection() {
                     .weight(1f)
             ) {
                 Text(
-                    text = "Toko Tani Makmur",
+                    text = merchantName,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Online 2 jam yang lalu",
+                    text = "Online baru saja",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -278,7 +265,7 @@ fun MerchantSection() {
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E7D32)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF2E7D32))
             ) {
-                Text("Kunjungi\nToko", fontSize = 12.sp, lineHeight = 14.sp)
+                Text("Kunjungi\nToko", fontSize = 12.sp, lineHeight = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
     }

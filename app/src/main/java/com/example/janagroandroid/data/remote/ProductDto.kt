@@ -35,6 +35,7 @@ data class ProductDto(
     val images: List<String> = emptyList(),
     val description: String? = null,
     val category: CategoryDto? = null,
+    val merchant: MerchantDto? = null,
     @Json(name = "created_at")
     val createdAt: String? = null,
     @Json(name = "updated_at")
@@ -48,6 +49,7 @@ fun ProductDto.toEntity(merchantId: Long = 0): ProductEntity {
     return ProductEntity(
         id = id ?: 0,
         merchant_id = this.merchantId ?: merchantId,
+        merchant_name = merchant?.storeName ?: merchant?.owner?.name ?: "",
         name = name ?: "",
         price = priceDouble,
         stock = stock ?: 0,

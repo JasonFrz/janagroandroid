@@ -115,8 +115,8 @@ class AdminMerchantsFragment : Fragment() {
                                 items(merchants) { merchant ->
                                     MerchantCard(
                                         merchant = merchant,
-                                        onApprove = { viewModel.updateStatus(merchant.id, "Approved") },
-                                        onReject = { viewModel.updateStatus(merchant.id, "Rejected") }
+                                        onApprove = { merchant.id?.let { viewModel.updateStatus(it, "Approved") } },
+                                        onReject = { merchant.id?.let { viewModel.updateStatus(it, "Rejected") } }
                                     )
 
                                 }
@@ -162,12 +162,14 @@ class AdminMerchantsFragment : Fragment() {
                 ) {
                     OutlinedButton(
                         onClick = onReject,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        enabled = merchant.id != null
                     ) { Text("Tolak") }
 
                     Button(
                         onClick = onApprove,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        enabled = merchant.id != null
                     ) { Text("Setujui") }
                 }
             }

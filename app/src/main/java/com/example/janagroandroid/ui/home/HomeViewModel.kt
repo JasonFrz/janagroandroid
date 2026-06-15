@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
@@ -17,7 +18,20 @@ class HomeViewModel(
     private val repo: AppRepository
 ) : AndroidViewModel(app) {
 
-    val products: LiveData<List<ProductEntity>> = repo.products
+    private val _allProducts = repo.products
+    private val _selectedCategory = MutableLiveData<String?>(null)
+    val selectedCategory: LiveData<String?> = _selectedCategory
+
+    val products = MediatorLiveData<List<ProductEntity>>().apply {
+        addSource(_allProducts) { value = filterProducts(it, _selectedCategory.value) }
+        addSource(_selectedCategory) { value = filterProducts(_allProducts.value, it) }
+    }
+
+    private fun filterProducts(list: List<ProductEntity>?, category: String?): List<ProductEntity> {
+        if (list == null) return emptyList()
+        if (category == null || category == "All") return list
+        return list.filter { it.category.equals(category, ignoreCase = true) }
+    }
 
     private val _categories = MutableLiveData<List<CategoryDto>>()
     val categories: LiveData<List<CategoryDto>> = _categories
@@ -35,6 +49,14 @@ class HomeViewModel(
             }
         }
         fetchCategories()
+    }
+
+    fun selectCategory(category: String) {
+        if (_selectedCategory.value == category) {
+            _selectedCategory.value = null
+        } else {
+            _selectedCategory.value = category
+        }
     }
 
     fun refreshRemote() {
