@@ -1,28 +1,32 @@
 package com.example.janagroandroid.data.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class ReviewResponse(
     val status: String? = null,
     val message: String? = null,
     val data: ReviewData? = null
 )
 
+@JsonClass(generateAdapter = true)
 data class ReviewData(
     val reviews: List<ReviewDto> = emptyList()
 )
 
+@JsonClass(generateAdapter = true)
 data class ReviewDto(
     val id: Long,
-    @SerializedName("user_id")
+    @Json(name = "user_id")
     val userId: Long,
-    @SerializedName("product_id")
+    @Json(name = "product_id")
     val productId: Long,
-    @SerializedName("order_id")
+    @Json(name = "order_id")
     val orderId: Long,
     val rating: Int,
     val comment: String?,
-    @SerializedName("created_at")
+    @Json(name = "created_at")
     val createdAt: String,
     val user: UserDto? = null
 )

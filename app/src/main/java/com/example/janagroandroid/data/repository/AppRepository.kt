@@ -314,6 +314,20 @@ class AppRepository(
         }
     }
 
+    suspend fun getProductReviews(id: Long): List<ReviewDto> {
+        return try {
+            val response = apiService.getProductReviews(id)
+            if (response.isSuccessful) {
+                response.body()?.data?.reviews.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     suspend fun getHighestRatedMerchants(limit: Int = 6): List<MerchantDto> {
         return try {
             val response = apiService.getHighestRatedMerchants(limit)

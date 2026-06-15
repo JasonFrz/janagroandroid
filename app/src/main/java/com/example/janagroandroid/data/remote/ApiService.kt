@@ -62,6 +62,9 @@ interface ApiService {
     @GET("/api/v1/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
 
+    @GET("/api/v1/products/{id}/reviews")
+    suspend fun getProductReviews(@Path("id") id: Long): Response<ReviewResponse>
+
     @Multipart
     @POST("/api/v1/merchant/products")
     suspend fun createProduct(
