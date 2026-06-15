@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.janagroandroid.R
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.databinding.ItemProductBinding
 
@@ -23,8 +24,16 @@ class ProductAdapter(
             binding.tvPrice.text = "Rp ${item.price}"
             binding.tvStock.text = "Stok: ${item.stock}"
 
+            val imageSource = if (item.imageUrl.isNullOrEmpty()) {
+                R.drawable.farmer
+            } else {
+                item.imageUrl
+            }
+
             Glide.with(binding.root.context)
-                .load(item.imageUrl)
+                .load(imageSource)
+                .placeholder(R.drawable.farmer)
+                .error(R.drawable.farmer)
                 .into(binding.ivProduct)
 
             binding.root.setOnClickListener { onClick(item) }

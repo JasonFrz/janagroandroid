@@ -130,7 +130,7 @@ fun HomeHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = user?.profilePicture ?: R.drawable.farmer,
+            model = if (user?.profilePicture.isNullOrEmpty()) R.drawable.farmer else user?.profilePicture,
             contentDescription = "Profile",
             modifier = Modifier
                 .size(48.dp)
@@ -380,13 +380,14 @@ fun MerchantItem(merchant: MerchantDto) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = merchant.owner?.profilePicture,
+                model = if (merchant.owner?.profilePicture.isNullOrEmpty()) R.drawable.farmer else merchant.owner?.profilePicture,
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.farmer)
+                placeholder = painterResource(id = R.drawable.farmer),
+                error = painterResource(id = R.drawable.farmer)
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -472,14 +473,15 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
     ) {
         Column {
             AsyncImage(
-                model = product.imageUrl,
+                model = if (product.imageUrl.isNullOrEmpty()) R.drawable.farmer else product.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
                     .padding(8.dp),
                 contentScale = ContentScale.Fit,
-                placeholder = painterResource(id = R.drawable.farmer)
+                placeholder = painterResource(id = R.drawable.farmer),
+                error = painterResource(id = R.drawable.farmer)
             )
             
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
@@ -600,14 +602,15 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
     ) {
         Column {
             AsyncImage(
-                model = product.imageUrl,
+                model = if (product.imageUrl.isNullOrEmpty()) R.drawable.farmer else product.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(130.dp)
                     .padding(8.dp),
                 contentScale = ContentScale.Fit,
-                placeholder = painterResource(id = R.drawable.farmer)
+                placeholder = painterResource(id = R.drawable.farmer),
+                error = painterResource(id = R.drawable.farmer)
             )
             
             Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)) {

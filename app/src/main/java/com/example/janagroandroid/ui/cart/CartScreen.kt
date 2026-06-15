@@ -120,11 +120,11 @@ fun CartScreen(
                     onCheckoutClick = { onCheckoutClick(totalPayment) }
                 )
             }
-        ) { padding ->
+        ) { paddingValues ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(paddingValues)
                     .background(Color(0xFFF8F5F2))
             ) {
                 items(cartItems) { item ->
@@ -209,30 +209,6 @@ fun CartItem(
                 )
             }
 
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp, vertical = 4.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Icon(
-//                    painter = painterResource(id = android.R.drawable.ic_dialog_info),
-//                    contentDescription = null,
-//                    tint = primaryColor,
-//                    modifier = Modifier.size(16.dp)
-//                )
-//                Text(
-//                    text = buildAnnotatedString {
-//                        append("Kamu telah menikmati ")
-//                        withStyle(style = SpanStyle(color = primaryColor, fontWeight = FontWeight.Bold)) {
-//                            append("Gratis Ongkir!")
-//                        }
-//                    },
-//                    fontSize = 12.sp,
-//                    modifier = Modifier.padding(start = 8.dp)
-//                )
-//            }
-            
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = Color(0xFFF2F2F2))
 
             Row(
@@ -246,13 +222,14 @@ fun CartItem(
                 )
 
                 AsyncImage(
-                    model = item.imageUrl,
+                    model = if (item.imageUrl.isNullOrEmpty()) R.drawable.farmer else item.imageUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(4.dp)),
                     contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.sawid)
+                    placeholder = painterResource(id = R.drawable.farmer),
+                    error = painterResource(id = R.drawable.farmer)
                 )
 
                 Column(
@@ -333,35 +310,6 @@ fun CartItem(
             }
             
             HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = Color(0xFFF2F2F2))
-            
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable { }
-//                    .padding(16.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Icon(
-//                    painter = painterResource(id = android.R.drawable.ic_menu_edit),
-//                    contentDescription = null,
-//                    tint = primaryColor,
-//                    modifier = Modifier.size(16.dp)
-//                )
-//                Text(
-//                    "Tambahkan kode Voucher Toko",
-//                    fontSize = 13.sp,
-//                    color = Color.Gray,
-//                    modifier = Modifier
-//                        .padding(start = 8.dp)
-//                        .weight(1f)
-//                )
-//                Icon(
-//                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-//                    contentDescription = null,
-//                    tint = Color.LightGray,
-//                    modifier = Modifier.size(20.dp)
-//                )
-//            }
         }
     }
 }
@@ -395,12 +343,14 @@ fun RecommendationSection(primaryColor: Color, onProductClick: (Long) -> Unit) {
                 ) {
                     Column {
                         AsyncImage(
-                            model = R.drawable.sawid,
+                            model = R.drawable.farmer,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(140.dp),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = R.drawable.farmer),
+                            error = painterResource(id = R.drawable.farmer)
                         )
                         Column(modifier = Modifier.padding(8.dp)) {
                             Text(

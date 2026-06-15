@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.janagroandroid.R
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.databinding.ItemRecommendationBinding
 import java.util.Locale
@@ -23,9 +24,16 @@ class RecommendationAdapter(
             binding.tvName.text = item.name
             binding.tvPrice.text = "Rp ${String.format(Locale.GERMANY, "%,.0f", item.price)}"
 
+            val imageSource = if (item.imageUrl.isNullOrEmpty()) {
+                R.drawable.farmer
+            } else {
+                item.imageUrl
+            }
+
             Glide.with(binding.root.context)
-                .load(item.imageUrl)
-                .placeholder(com.example.janagroandroid.R.drawable.sawid)
+                .load(imageSource)
+                .placeholder(R.drawable.farmer)
+                .error(R.drawable.farmer)
                 .into(binding.ivProduct)
 
             binding.root.setOnClickListener { onClick(item) }

@@ -286,14 +286,15 @@ fun OrderItem(
 
             Row(verticalAlignment = Alignment.Top) {
                 AsyncImage(
-                    model = firstItem?.product?.firstImageUrl,
+                    model = if (firstItem?.product?.firstImageUrl.isNullOrEmpty()) R.drawable.farmer else firstItem?.product?.firstImageUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(Color(0xFFF5F5F5)),
                     contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.sawid)
+                    placeholder = painterResource(id = R.drawable.farmer),
+                    error = painterResource(id = R.drawable.farmer)
                 )
 
                 Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {

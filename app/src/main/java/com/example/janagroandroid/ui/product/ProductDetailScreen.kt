@@ -111,11 +111,12 @@ fun ProductDetailScreen(
                         .background(Color.White)
                 ) {
                     AsyncImage(
-                        model = imageUrl,
+                        model = if (imageUrl.isNullOrEmpty()) R.drawable.farmer else imageUrl,
                         contentDescription = name,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit,
-                        placeholder = painterResource(id = R.drawable.farmer)
+                        placeholder = painterResource(id = R.drawable.farmer),
+                        error = painterResource(id = R.drawable.farmer)
                     )
                 }
 
@@ -237,7 +238,9 @@ fun MerchantSection(merchantName: String) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.farmer),
+                error = painterResource(id = R.drawable.farmer)
             )
             
             Column(
