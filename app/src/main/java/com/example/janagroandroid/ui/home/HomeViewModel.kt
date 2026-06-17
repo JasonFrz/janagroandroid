@@ -27,10 +27,19 @@ class HomeViewModel(
         addSource(_selectedCategory) { value = filterProducts(_allProducts.value, it) }
     }
 
+    // Recently listed products: top 4 newest products
+    val recentlyListed = MediatorLiveData<List<ProductEntity>>().apply {
+        addSource(_allProducts) { list ->
+            value = list?.sortedByDescending { it.createdAt }?.take(4) ?: emptyList()
+        }
+    }
+
     private fun filterProducts(list: List<ProductEntity>?, category: String?): List<ProductEntity> {
         if (list == null) return emptyList()
-        if (category == null || category == "All") return list
-        return list.filter { it.category.equals(category, ignoreCase = true) }
+        // If "All" or null, return all products sorted by newest for the main list too or as default
+        val sortedList = list.sortedByDescending { it.createdAt }
+        if (category == null || category == "All") return sortedList
+        return sortedList.filter { it.category.equals(category, ignoreCase = true) }
     }
 
     private val _categories = MutableLiveData<List<CategoryDto>>()

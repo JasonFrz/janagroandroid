@@ -29,6 +29,7 @@ class HomeFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val products by viewModel.products.observeAsState(emptyList())
+                val recentlyListed by viewModel.recentlyListed.observeAsState(emptyList())
                 val categories by viewModel.categories.observeAsState(emptyList())
                 val selectedCategory by viewModel.selectedCategory.observeAsState()
                 val topMerchants by viewModel.topMerchants.observeAsState(emptyList())
@@ -37,6 +38,7 @@ class HomeFragment : Fragment() {
                 HomeScreen(
                     user = user,
                     products = products,
+                    recentlyListed = recentlyListed,
                     categories = categories,
                     selectedCategory = selectedCategory,
                     topMerchants = topMerchants,
@@ -76,6 +78,11 @@ class HomeFragment : Fragment() {
                     },
                     onSearchSubmit = { query ->
                         val bundle = bundleOf("query" to query)
+                        findNavController().navigate(R.id.exploreFragment, bundle)
+                    },
+                    onViewAllRecentlyListed = {
+                        // Navigate to Explore with "All" to show all products sorted by newest
+                        val bundle = bundleOf("category" to "All")
                         findNavController().navigate(R.id.exploreFragment, bundle)
                     }
                 )

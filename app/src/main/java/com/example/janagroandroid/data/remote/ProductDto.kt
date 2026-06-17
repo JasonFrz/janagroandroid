@@ -55,6 +55,7 @@ fun ProductDto.toEntity(merchantId: Long = 0): ProductEntity {
         stock = stock ?: 0,
         imageUrl = firstImageUrl ?: "",
         description = description ?: "",
-        category = category?.name ?: ""
+        category = category?.name ?: "",
+        createdAt = createdAt ?: ""
     )
 }

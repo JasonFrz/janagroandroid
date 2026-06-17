@@ -42,6 +42,7 @@ import com.example.janagroandroid.ui.theme.JanAgroTheme
 fun HomeScreen(
     user: UserEntity?,
     products: List<ProductEntity>,
+    recentlyListed: List<ProductEntity>,
     categories: List<CategoryDto>,
     selectedCategory: String? = null,
     topMerchants: List<MerchantDto> = emptyList(),
@@ -50,7 +51,8 @@ fun HomeScreen(
     onProductClick: (ProductEntity) -> Unit,
     onNotificationClick: () -> Unit,
     onCartClick: () -> Unit,
-    onSearchSubmit: (String) -> Unit
+    onSearchSubmit: (String) -> Unit,
+    onViewAllRecentlyListed: () -> Unit
 ) {
     JanAgroTheme {
         Scaffold(
@@ -89,8 +91,9 @@ fun HomeScreen(
                 if (selectedCategory == null) {
                     ProductSection(
                         title = "Recently Listed",
-                        products = products.take(6),
-                        onProductClick = onProductClick
+                        products = recentlyListed.take(4),
+                        onProductClick = onProductClick,
+                        onViewAllClick = onViewAllRecentlyListed
                     )
 
                     if (user != null && topMerchants.isNotEmpty()) {
@@ -553,7 +556,8 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
 fun ProductSection(
     title: String,
     products: List<ProductEntity>,
-    onProductClick: (ProductEntity) -> Unit
+    onProductClick: (ProductEntity) -> Unit,
+    onViewAllClick: () -> Unit = {}
 ) {
     Column {
         Row(
@@ -573,7 +577,7 @@ fun ProductSection(
                 text = "View all",
                 color = Color(0xFF2E7D32),
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { }
+                modifier = Modifier.clickable { onViewAllClick() }
             )
         }
 
