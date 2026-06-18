@@ -149,8 +149,8 @@ class AdminMerchantsFragment : Fragment() {
                 merchant.owner?.let {
                     Text(text = "Pemilik: ${it.name}", fontSize = 13.sp, color = Color.Gray)
                 }
-                if (!merchant.address.isNullOrBlank()) {
-                    Text(text = merchant.address, fontSize = 13.sp, color = Color.Gray)
+                if (!merchant.city.isNullOrBlank()) {
+                    Text(text = merchant.city, fontSize = 13.sp, color = Color.Gray)
                 }
                 if (!merchant.description.isNullOrBlank()) {
                     Text(text = merchant.description, fontSize = 13.sp)

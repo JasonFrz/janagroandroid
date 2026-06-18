@@ -11,8 +11,13 @@ data class MerchantDto(
     @Json(name = "store_name")
     val storeName: String? = null,
     val description: String? = null,
-    val address: String? = null,
+    val city: String? = null,
+    val profile_picture: String? = null,
     val status: String? = null,
+    @Json(name = "created_at")
+    val createdAt: String? = null,
+    @Json(name = "updated_at")
+    val updatedAt: String? = null,
     @Json(name = "average_rating")
     val averageRating: Double = 0.0,
     @Json(name = "review_count")

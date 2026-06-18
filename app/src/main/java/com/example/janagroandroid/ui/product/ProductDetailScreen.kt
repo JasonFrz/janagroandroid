@@ -2,6 +2,7 @@ package com.example.janagroandroid.ui.product
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import java.util.Locale
 import coil.compose.AsyncImage
 import com.example.janagroandroid.R
+import com.example.janagroandroid.data.remote.dto.ReviewDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,11 +44,16 @@ fun ProductDetailScreen(
     imageUrl: String,
     description: String,
     merchantName: String = "",
+    merchantAddress: String = "",
     category: String = "",
+    reviews: List<ReviewDto> = emptyList(),
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
     onChatClick: () -> Unit = {}
 ) {
+    val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
+    val totalSold = (reviews.size * 3) + 7 // Mock sold count based on reviews
+
     JanAgroTheme {
         Scaffold(
             topBar = {
@@ -69,13 +76,13 @@ fun ProductDetailScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { /* Share */ }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Share,
-                                contentDescription = "Share",
-                                tint = Color(0xFF2E7D32)
-                            )
-                        }
+//                        IconButton(onClick = { /* Share */ }) {
+//                            Icon(
+//                                imageVector = Icons.Outlined.Share,
+//                                contentDescription = "Share",
+//                                tint = Color(0xFF2E7D32)
+//                            )
+//                        }
                         IconButton(onClick = { /* Cart */ }) {
                             Icon(
                                 imageVector = Icons.Outlined.ShoppingCart,
@@ -149,11 +156,11 @@ fun ProductDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.Star,
                                 contentDescription = null,
-                                tint = Color(0xFF757575),
+                                tint = if (avgRating > 0) Color(0xFFFFB300) else Color(0xFF757575),
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = " 4.8 (120 terjual)",
+                                text = " ${String.format(Locale.US, "%.1f", avgRating)} ($totalSold terjual)",
                                 fontSize = 12.sp,
                                 color = Color.Gray
                             )
@@ -189,7 +196,7 @@ fun ProductDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Surabaya, Jawa Timur",
+                            text = merchantAddress.ifBlank { "Surabaya, Jawa Timur" },
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
@@ -209,7 +216,7 @@ fun ProductDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Reviews Section
-                ReviewSection()
+                ReviewSection(reviews)
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -323,7 +330,23 @@ fun DescriptionSection(description: String) {
 }
 
 @Composable
-fun ReviewSection() {
+fun ReviewSection(reviews: List<ReviewDto>) {
+    var selectedFilter by remember { mutableStateOf("Semua") }
+    val filterOptions = listOf("Semua", "5 ★", "4 ★", "3 ★")
+
+    val filteredReviews = remember(selectedFilter, reviews) {
+        if (selectedFilter == "Semua") {
+            reviews
+        } else {
+            val rating = selectedFilter.split(" ").firstOrNull()?.toIntOrNull()
+            if (rating != null) {
+                reviews.filter { it.rating == rating }
+            } else {
+                reviews
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,39 +374,54 @@ fun ReviewSection() {
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = true, label = "Semua")
-            FilterChip(selected = false, label = "5 ★")
-            FilterChip(selected = false, label = "4 ★")
-            FilterChip(selected = false, label = "Foto")
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            filterOptions.forEach { option ->
+                FilterChip(
+                    selected = selectedFilter == option,
+                    label = option,
+                    onClick = { selectedFilter = option }
+                )
+            }
         }
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        ReviewItem(
-            name = "Andi Pratama",
-            date = "2 hari lalu",
-            rating = 5,
-            comment = "Pupuknya bagus, pengiriman sangat cepat. Sudah langganan di toko ini untuk kebutuhan kebun saya."
-        )
-        
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF0F0F0))
-        
-        ReviewItem(
-            name = "Siti Aminah",
-            date = "1 minggu lalu",
-            rating = 4,
-            comment = "Packing rapih dan aman. Kualitas produk original Mutiara. Terima kasih!"
-        )
+        if (filteredReviews.isEmpty()) {
+            Text(
+                text = if (selectedFilter == "Semua") "Belum ada ulasan untuk produk ini." else "Tidak ada ulasan dengan rating ini.",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            val itemsToShow = filteredReviews.take(3)
+            itemsToShow.forEachIndexed { index, review ->
+                ReviewItem(
+                    name = review.user?.name ?: "User #${review.userId}",
+                    date = review.createdAt.split("T").firstOrNull() ?: "",
+                    rating = review.rating,
+                    comment = review.comment ?: "Tidak ada komentar"
+                )
+                
+                if (index < itemsToShow.size - 1) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF0F0F0))
+                }
+            }
+        }
     }
 }
 
 @Composable
-fun FilterChip(selected: Boolean, label: String) {
+fun FilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
     Surface(
         color = if (selected) Color(0xFF2E7D32) else Color(0xFFF5F7F9),
         shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.height(36.dp)
+        modifier = Modifier
+            .height(36.dp)
+            .clickable { onClick() }
     ) {
         Box(
             modifier = Modifier.padding(horizontal = 16.dp),

@@ -62,6 +62,7 @@ class HomeFragment : Fragment() {
                                 "imageUrl" to product.imageUrl,
                                 "description" to product.description,
                                 "merchantName" to product.merchant_name,
+                                "merchantCity" to product.merchant_city,
                                 "category" to product.category
                             )
                             findNavController().navigate(R.id.productDetailFragment, bundle)

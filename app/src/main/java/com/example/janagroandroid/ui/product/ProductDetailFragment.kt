@@ -27,6 +27,7 @@ class ProductDetailFragment : Fragment() {
         val initialImageUrl = arguments?.getString("imageUrl").orEmpty()
         val initialDescription = arguments?.getString("description").orEmpty()
         val initialMerchantName = arguments?.getString("merchantName") ?: "Agrojan Store"
+        val initialMerchantCity = arguments?.getString("merchantCity") ?: "Surabaya, Jawa Timur"
 
         viewModel.fetchProductDetail(id)
 
@@ -34,6 +35,7 @@ class ProductDetailFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val productDetail by viewModel.product.observeAsState()
+                val reviews by viewModel.reviews.observeAsState(emptyList())
                 
                 ProductDetailScreen(
                     id = id,
@@ -42,16 +44,16 @@ class ProductDetailFragment : Fragment() {
                     imageUrl = productDetail?.imageUrl ?: initialImageUrl,
                     description = productDetail?.description ?: initialDescription,
                     merchantName = productDetail?.merchant_name ?: initialMerchantName,
+                    merchantAddress = productDetail?.merchant_city ?: initialMerchantCity,
+                    category = productDetail?.category ?: "",
+                    reviews = reviews,
                     onBackClick = { findNavController().popBackStack() },
                     onAddToCartClick = { qty ->
                         viewModel.addToCart(id, initialName, initialPrice, initialImageUrl, qty)
                         findNavController().popBackStack()
                     },
                     onChatClick = {
-                        val action = ProductDetailFragmentDirections.actionProductDetailFragmentToChatFragment(
-                            merchantId = 2L // Mock merchant ID
-                        )
-                        findNavController().navigate(action)
+                        // findNavController().navigate(...)
                     }
                 )
             }
