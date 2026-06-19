@@ -61,6 +61,7 @@ class HomeFragment : Fragment() {
                                 "price" to product.price.toFloat(),
                                 "imageUrl" to product.imageUrl,
                                 "description" to product.description,
+                                "merchantId" to product.merchant_id,
                                 "merchantName" to product.merchant_name,
                                 "merchantCity" to product.merchant_city,
                                 "category" to product.category

@@ -79,9 +79,11 @@
         <argument android:name="price" app:argType="float"/>
         <argument android:name="imageUrl" app:argType="string"/>
         <argument android:name="description" app:argType="string" app:nullable="true"/>
+        <argument android:name="merchantId" app:argType="long" android:defaultValue="0L"/>
         <argument android:name="merchantName" app:argType="string" app:nullable="true" android:defaultValue="Agrojan Store"/>
         <argument android:name="merchantCity" app:argType="string" app:nullable="true" android:defaultValue="Surabaya, Jawa Timur"/>
         <action android:id="@+id/action_productDetailFragment_to_chatFragment" app:destination="@id/chatFragment"/>
+        <action android:id="@+id/action_productDetailFragment_to_merchantDetailFragment" app:destination="@id/merchantDetailFragment"/>
     </fragment>
 
     <fragment
@@ -176,5 +178,13 @@
         android:id="@+id/addProductFragment"
         android:name="com.example.janagroandroid.ui.seller.AddProductFragment"
         android:label="Add Product"/>
+
+    <fragment
+        android:id="@+id/merchantDetailFragment"
+        android:name="com.example.janagroandroid.ui.merchant.MerchantDetailFragment"
+        android:label="Store Detail">
+        <argument android:name="merchantId" app:argType="long"/>
+        <action android:id="@+id/action_merchantDetailFragment_to_productDetailFragment" app:destination="@id/productDetailFragment"/>
+    </fragment>
 
 </navigation>

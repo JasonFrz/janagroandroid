@@ -22,7 +22,8 @@ data class MerchantDto(
     val averageRating: Double = 0.0,
     @Json(name = "review_count")
     val reviewCount: Int = 0,
-    val owner: MerchantOwner? = null
+    val owner: MerchantOwner? = null,
+    val products: List<ProductDto>? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -43,4 +44,16 @@ data class HighestRatedMerchantsResponse(
 @JsonClass(generateAdapter = true)
 data class HighestRatedMerchantsData(
     val merchants: List<MerchantDto> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class MerchantDetailResponse(
+    val status: String? = null,
+    val message: String? = null,
+    val data: MerchantDetailData? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class MerchantDetailData(
+    val merchant: MerchantDto? = null
 )

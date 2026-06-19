@@ -43,13 +43,15 @@ fun ProductDetailScreen(
     price: Double,
     imageUrl: String,
     description: String,
+    merchantId: Long = 0L,
     merchantName: String = "",
     merchantAddress: String = "",
     category: String = "",
     reviews: List<ReviewDto> = emptyList(),
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
-    onChatClick: () -> Unit = {}
+    onChatClick: () -> Unit = {},
+    onMerchantClick: (Long) -> Unit = {}
 ) {
     val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
     val totalSold = (reviews.size * 3) + 7 // Mock sold count based on reviews
@@ -206,7 +208,10 @@ fun ProductDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Merchant Section
-                MerchantSection(merchantName.ifBlank { "Agrojan Store" })
+                ProductMerchantSection(
+                    merchantName = merchantName.ifBlank { "Agrojan Store" },
+                    onVisitStoreClick = { onMerchantClick(merchantId) }
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -225,7 +230,7 @@ fun ProductDetailScreen(
 }
 
 @Composable
-fun MerchantSection(merchantName: String) {
+fun ProductMerchantSection(merchantName: String, onVisitStoreClick: () -> Unit = {}) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color.White
@@ -270,7 +275,7 @@ fun MerchantSection(merchantName: String) {
             }
             
             OutlinedButton(
-                onClick = { /* Go to store */ },
+                onClick = onVisitStoreClick,
                 shape = RoundedCornerShape(8.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E7D32)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF2E7D32))

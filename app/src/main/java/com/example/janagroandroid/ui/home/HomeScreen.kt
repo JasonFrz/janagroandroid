@@ -98,7 +98,7 @@ fun HomeScreen(
 
                     if (user != null && topMerchants.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(24.dp))
-                        MerchantSection(
+                        HomeMerchantSection(
                             title = "Top Rated Merchants",
                             merchants = topMerchants
                         )
@@ -290,7 +290,10 @@ fun CategorySection(
                     onClick = { onCategoryClick("All") }
                 )
             }
-            items(categories) { category ->
+            items(
+                items = categories,
+                key = { it.id ?: 0 }
+            ) { category ->
                 val name = category.name ?: ""
                 CategoryChip(
                     text = name, 
@@ -330,7 +333,7 @@ fun CategoryChip(
 }
 
 @Composable
-fun MerchantSection(
+fun HomeMerchantSection(
     title: String,
     merchants: List<MerchantDto>
 ) {
@@ -362,7 +365,10 @@ fun MerchantSection(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(merchants) { merchant ->
+            items(
+                items = merchants,
+                key = { it.id ?: 0L }
+            ) { merchant ->
                 MerchantItem(merchant = merchant)
             }
         }
@@ -587,7 +593,10 @@ fun ProductSection(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(products) { product ->
+            items(
+                items = products,
+                key = { it.id }
+            ) { product ->
                 ProductItem(product = product, onClick = { onProductClick(product) })
             }
         }

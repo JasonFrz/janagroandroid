@@ -39,8 +39,9 @@ class AppRepository(
         cartDao.getByUser(user?.id ?: -1L)
     }
 
-    val sellerProducts: LiveData<List<ProductEntity>>
-        get() = productDao.getSellerProducts(currentUserId())
+    val sellerProducts: LiveData<List<ProductEntity>> = getUser.switchMap { user ->
+        productDao.getSellerProducts(user?.id ?: -1L)
+    }
 
     suspend fun login(email: String, password: String): Boolean {
         return try {
@@ -230,6 +231,20 @@ class AppRepository(
         }
     }
 
+    suspend fun getProductsByMerchant(merchantId: Long): List<ProductDto> {
+        return try {
+            val response = apiService.getProducts(merchantId = merchantId, limit = 50)
+            if (response.isSuccessful) {
+                response.body()?.data?.products.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     suspend fun getAdminStats(): AdminStats? {
         return try {
             val response = apiService.getAdminStats()
@@ -339,6 +354,20 @@ class AppRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
+        }
+    }
+
+    suspend fun getRemoteMerchantDetail(id: Long): MerchantDto? {
+        return try {
+            val response = apiService.getMerchantDetail(id)
+            if (response.isSuccessful) {
+                response.body()?.data?.merchant
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 

@@ -26,6 +26,7 @@ class ProductDetailFragment : Fragment() {
         val initialPrice = arguments?.getFloat("price")?.toDouble() ?: 0.0
         val initialImageUrl = arguments?.getString("imageUrl").orEmpty()
         val initialDescription = arguments?.getString("description").orEmpty()
+        val initialMerchantId = arguments?.getLong("merchantId") ?: 0L
         val initialMerchantName = arguments?.getString("merchantName") ?: "Agrojan Store"
         val initialMerchantCity = arguments?.getString("merchantCity") ?: "Surabaya, Jawa Timur"
 
@@ -43,6 +44,7 @@ class ProductDetailFragment : Fragment() {
                     price = productDetail?.price ?: initialPrice,
                     imageUrl = productDetail?.imageUrl ?: initialImageUrl,
                     description = productDetail?.description ?: initialDescription,
+                    merchantId = productDetail?.merchant_id ?: initialMerchantId,
                     merchantName = productDetail?.merchant_name ?: initialMerchantName,
                     merchantAddress = productDetail?.merchant_city ?: initialMerchantCity,
                     category = productDetail?.category ?: "",
@@ -51,6 +53,12 @@ class ProductDetailFragment : Fragment() {
                     onAddToCartClick = { qty ->
                         viewModel.addToCart(id, initialName, initialPrice, initialImageUrl, qty)
                         findNavController().popBackStack()
+                    },
+                    onMerchantClick = { mId ->
+                        if (mId != 0L) {
+                            val bundle = Bundle().apply { putLong("merchantId", mId) }
+                            findNavController().navigate(com.example.janagroandroid.R.id.action_productDetailFragment_to_merchantDetailFragment, bundle)
+                        }
                     },
                     onChatClick = {
                         // findNavController().navigate(...)

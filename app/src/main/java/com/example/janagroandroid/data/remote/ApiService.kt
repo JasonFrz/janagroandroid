@@ -51,6 +51,7 @@ interface ApiService {
     suspend fun getProducts(
         @Query("search") search: String? = null,
         @Query("category_id") categoryId: Int? = null,
+        @Query("merchant_id") merchantId: Long? = null,
         @Query("minPrice") minPrice: Double? = null,
         @Query("maxPrice") maxPrice: Double? = null,
         @Query("page") page: Int? = 1,
@@ -77,6 +78,9 @@ interface ApiService {
     ): Response<AuthResponse>
 
 //    MERCHANT API
+    @GET("/api/v1/merchants/{id}")
+    suspend fun getMerchantDetail(@Path("id") id: Long): Response<MerchantDetailResponse>
+
     @GET("/api/v1/merchants/highest-rated")
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
 
