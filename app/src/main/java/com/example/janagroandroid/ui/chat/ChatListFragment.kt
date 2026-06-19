@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.example.janagroandroid.R
 import com.example.janagroandroid.data.remote.dto.ChatRoomDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 import java.text.SimpleDateFormat
@@ -46,8 +45,8 @@ class ChatListFragment : Fragment() {
                         onBackClick = { findNavController().navigateUp() },
                         onChatClick = { chatRoom ->
                             val action = ChatListFragmentDirections.actionChatListFragmentToChatFragment(
-                                roomId = chatRoom.id,
-                                merchantId = -1L // In real app, pass merchant ID if needed
+                                partnerId = chatRoom.partnerId,
+                                partnerName = chatRoom.participantName
                             )
                             findNavController().navigate(action)
                         }
@@ -65,9 +64,9 @@ class ChatListFragment : Fragment() {
     ) {
         // Mock data
         val chatRooms = listOf(
-            ChatRoomDto(1, "JanAgro Merchant", "Bisa kak, kalau order sebelum jam 3 sore.", System.currentTimeMillis(), unreadCount = 1),
-            ChatRoomDto(2, "Toko Berkah Tani", "Sama-sama kak, ditunggu orderannya.", System.currentTimeMillis() - 86400000, unreadCount = 0),
-            ChatRoomDto(3, "Pupuk Organik Jaya", "Baik kak, akan kami proses.", System.currentTimeMillis() - 172800000, unreadCount = 0)
+            ChatRoomDto(1, "JanAgro Merchant", "Bisa kak, kalau order sebelum jam 3 sore.", System.currentTimeMillis(), unreadCount = 1, partnerId = 101L),
+            ChatRoomDto(2, "Toko Berkah Tani", "Sama-sama kak, ditunggu orderannya.", System.currentTimeMillis() - 86400000, unreadCount = 0, partnerId = 102L),
+            ChatRoomDto(3, "Pupuk Organik Jaya", "Baik kak, akan kami proses.", System.currentTimeMillis() - 172800000, unreadCount = 0, partnerId = 103L)
         )
 
         Scaffold(

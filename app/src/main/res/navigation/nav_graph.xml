@@ -137,8 +137,8 @@
         android:id="@+id/chatFragment"
         android:name="com.example.janagroandroid.ui.chat.ChatFragment"
         android:label="Chat Detail">
-        <argument android:name="roomId" app:argType="long" android:defaultValue="-1L"/>
-        <argument android:name="merchantId" app:argType="long" android:defaultValue="-1L"/>
+        <argument android:name="partnerId" app:argType="long"/>
+        <argument android:name="partnerName" app:argType="string"/>
     </fragment>
 
     <!-- Admin Fragments -->

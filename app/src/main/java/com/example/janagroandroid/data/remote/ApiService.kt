@@ -97,6 +97,10 @@ interface ApiService {
     @GET("/api/v1/orders/{id}")
     suspend fun getOrderDetail(@Path("id") id: Long): Response<SingleOrderResponse>
 
+    // CHAT API
+    @GET("/api/v1/chats/conversation/{partnerId}")
+    suspend fun getConversation(@Path("partnerId") partnerId: Long): Response<ConversationResponse>
+
 //    ---------------------------------------
 //    | ROUTES ADMIN API                    |
 //    ---------------------------------------

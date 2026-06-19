@@ -8,9 +8,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,18 +23,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import com.example.janagroandroid.data.local.SessionManager
+import com.example.janagroandroid.data.remote.RetrofitClient
+import com.example.janagroandroid.data.remote.SocketManager
 import com.example.janagroandroid.data.remote.dto.ChatMessageDto
+import com.example.janagroandroid.data.remote.dto.MessageStatus
+import com.example.janagroandroid.ui.AppViewModelFactory
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 import java.text.SimpleDateFormat
 import java.util.*
 
 class ChatFragment : Fragment() {
+
+    private val args: ChatFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +55,21 @@ class ChatFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 JanAgroTheme {
+                    val context = LocalContext.current
+                    val sessionManager = remember { SessionManager(context) }
+                    val socketManager = remember { SocketManager(sessionManager) }
+                    val viewModel: ChatViewModel = viewModel(
+                        factory = AppViewModelFactory(
+                            apiService = RetrofitClient.getApiService(sessionManager),
+                            socketManager = socketManager,
+                            sessionManager = sessionManager,
+                            partnerId = args.partnerId
+                        )
+                    )
+
                     ChatScreen(
+                        viewModel = viewModel,
+                        partnerName = args.partnerName,
                         onBackClick = { findNavController().navigateUp() }
                     )
                 }
@@ -51,25 +79,29 @@ class ChatFragment : Fragment() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun ChatScreen(onBackClick: () -> Unit) {
-        // Mock data for UI preview/testing
-        val messages = remember {
-            mutableStateListOf(
-                ChatMessageDto(1, 1, 2, "Halo, apakah produk ini ready?", System.currentTimeMillis() - 3600000),
-                ChatMessageDto(2, 2, 1, "Halo! Iya kak, produknya ready stok ya.", System.currentTimeMillis() - 3500000),
-                ChatMessageDto(3, 1, 2, "Bisa kirim hari ini?", System.currentTimeMillis() - 3400000),
-                ChatMessageDto(4, 2, 1, "Bisa kak, kalau order sebelum jam 3 sore.", System.currentTimeMillis() - 3300000)
-            )
-        }
+    fun ChatScreen(
+        viewModel: ChatViewModel,
+        partnerName: String,
+        onBackClick: () -> Unit
+    ) {
+        val messages by viewModel.messages.collectAsState()
+        val currentUserId by viewModel.currentUserId.collectAsState()
         var inputText by remember { mutableStateOf("") }
-        val currentUserId = 1L // Mock current user ID
+        val listState = rememberLazyListState()
+
+        // Auto scroll to bottom when new message arrives
+        LaunchedEffect(messages.size) {
+            if (messages.isNotEmpty()) {
+                listState.animateScrollToItem(messages.size - 1)
+            }
+        }
 
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = {
                         Column {
-                            Text("JanAgro Merchant", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(partnerName, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             Text("Online", fontSize = 12.sp, color = Color.Gray)
                         }
                     },
@@ -85,27 +117,18 @@ class ChatFragment : Fragment() {
                     text = inputText,
                     onTextChange = { inputText = it },
                     onSendClick = {
-                        if (inputText.isNotBlank()) {
-                            messages.add(
-                                ChatMessageDto(
-                                    id = messages.size.toLong() + 1,
-                                    senderId = currentUserId,
-                                    receiverId = 2,
-                                    message = inputText
-                                )
-                            )
-                            inputText = ""
-                        }
+                        viewModel.sendMessage(inputText)
+                        inputText = ""
                     }
                 )
             }
         ) { padding ->
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(horizontal = 16.dp),
-                reverseLayout = false,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
@@ -122,7 +145,7 @@ class ChatFragment : Fragment() {
     @Composable
     fun MessageBubble(message: ChatMessageDto, isMine: Boolean) {
         val alignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
-        val bgColor = if (isMine) MaterialTheme.colorScheme.primary else Color(0xFFE0E0E0)
+        val bgColor = if (isMine) MaterialTheme.colorScheme.primary else Color(0xFFF0F0F0)
         val textColor = if (isMine) Color.White else Color.Black
         val shape = if (isMine) {
             RoundedCornerShape(16.dp, 16.dp, 0.dp, 16.dp)
@@ -139,13 +162,60 @@ class ChatFragment : Fragment() {
                     .padding(12.dp)
             ) {
                 Text(text = message.message, color = textColor, fontSize = 15.sp)
-                Text(
-                    text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(message.timestamp)),
-                    color = textColor.copy(alpha = 0.7f),
-                    fontSize = 10.sp,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                
+                Row(
+                    modifier = Modifier.align(Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val time = if (message.createdAt != null) {
+                         // Simple ISO parsing or assume formatted from server
+                         message.createdAt.substringAfter("T").substringBeforeLast(":")
+                    } else {
+                        SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                    }
+                    
+                    Text(
+                        text = time,
+                        color = textColor.copy(alpha = 0.7f),
+                        fontSize = 10.sp
+                    )
+                    
+                    if (isMine) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        MessageStatusIcon(status = message.status)
+                    }
+                }
             }
+        }
+    }
+
+    @Composable
+    fun MessageStatusIcon(status: MessageStatus) {
+        when (status) {
+            MessageStatus.SENDING -> Icon(
+                Icons.Default.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(12.dp),
+                tint = Color.White.copy(alpha = 0.7f)
+            )
+            MessageStatus.SENT -> Icon(
+                Icons.Default.Check,
+                contentDescription = null,
+                modifier = Modifier.size(12.dp),
+                tint = Color.White.copy(alpha = 0.7f)
+            )
+            MessageStatus.DELIVERED -> Icon(
+                Icons.Default.DoneAll,
+                contentDescription = null,
+                modifier = Modifier.size(12.dp),
+                tint = Color.White.copy(alpha = 0.7f)
+            )
+            MessageStatus.READ -> Icon(
+                Icons.Default.DoneAll,
+                contentDescription = null,
+                modifier = Modifier.size(12.dp),
+                tint = Color(0xFF00B0FF) // WhatsApp Blue
+            )
         }
     }
 
@@ -175,7 +245,8 @@ class ChatFragment : Fragment() {
                     onClick = onSendClick,
                     enabled = text.isNotBlank(),
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
                     )
                 ) {
                     Icon(Icons.Default.Send, contentDescription = "Send")

@@ -9,6 +9,8 @@ class SessionManager(context: Context) {
     companion object {
         private const val USER_TOKEN = "user_token"
         private const val REFRESH_TOKEN = "refresh_token"
+        private const val USER_ID = "user_id"
+        private const val USER_ROLE = "user_role"
     }
 
     fun saveToken(token: String) {
@@ -27,7 +29,23 @@ class SessionManager(context: Context) {
         return prefs.getString(REFRESH_TOKEN, null)
     }
 
+    fun saveUserId(id: Long) {
+        prefs.edit().putLong(USER_ID, id).apply()
+    }
+
+    fun getUserId(): Long {
+        return prefs.getLong(USER_ID, -1)
+    }
+
+    fun saveUserRole(role: String) {
+        prefs.edit().putString(USER_ROLE, role).apply()
+    }
+
+    fun getUserRole(): String? {
+        return prefs.getString(USER_ROLE, null)
+    }
+
     fun clear() {
-        prefs.edit().remove(USER_TOKEN).remove(REFRESH_TOKEN).apply()
+        prefs.edit().clear().apply()
     }
 }

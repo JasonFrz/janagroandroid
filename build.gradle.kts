@@ -3,14 +3,7 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
-}
-
-buildscript{
-    repositories {
-        google()
-    }
-    dependencies{
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.7")
-    }
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.navigation.safeargs) apply false
+    alias(libs.plugins.kotlin.parcelize) apply false
 }

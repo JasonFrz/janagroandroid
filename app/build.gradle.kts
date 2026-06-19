@@ -1,23 +1,22 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
-    id("androidx.navigation.safeargs.kotlin")
-    id("org.jetbrains.kotlin.plugin.parcelize")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.navigation.safeargs)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
     namespace = "com.example.janagroandroid"
-
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.janagroandroid"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -36,6 +35,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
     buildFeatures {
         viewBinding = true
         compose = true
@@ -43,7 +46,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -86,15 +88,18 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.9.8")
     implementation("androidx.navigation:navigation-ui-ktx:2.9.8")
 
+    // Networking
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
     implementation("com.squareup.moshi:moshi:1.15.1")
     ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.1")
 
+    // Image Loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
     ksp("com.github.bumptech.glide:ksp:4.16.0")
-
     implementation("io.coil-kt:coil:2.4.0")
+
+    // Socket.io
+    implementation("io.socket:socket.io-client:2.1.0")
 }
