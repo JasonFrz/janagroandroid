@@ -63,7 +63,6 @@ class SocketManager(private val sessionManager: SessionManager) {
             put("message", message)
         }
         
-        // Pass the callback inside the parentheses and use Ack for SAM conversion
         mSocket?.emit("sendMessage", data, Ack { args ->
             val response = if (args != null && args.isNotEmpty()) args[0] as? JSONObject else null
             Log.d(TAG, "Send Message Response: $response")
@@ -75,5 +74,21 @@ class SocketManager(private val sessionManager: SessionManager) {
             put("partnerId", partnerId)
         }
         mSocket?.emit("joinConversation", data)
+    }
+
+    fun markAsDelivered(messageId: Long) {
+        if (messageId == 0L) return
+        val data = JSONObject().apply {
+            put("messageId", messageId)
+        }
+        mSocket?.emit("messageDelivered", data)
+    }
+
+    fun markAsRead(messageId: Long) {
+        if (messageId == 0L) return
+        val data = JSONObject().apply {
+            put("messageId", messageId)
+        }
+        mSocket?.emit("messageRead", data)
     }
 }
