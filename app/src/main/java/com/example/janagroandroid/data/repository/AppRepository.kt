@@ -491,16 +491,30 @@ class AppRepository(
         }
     }
 
-    suspend fun addRemoteCart(productId: Long, quantity: Int): Boolean {
+    suspend fun addRemoteCart(productId: Long, quantity: Int): Pair<Boolean, String?> {
         return try {
             val response = apiService.addToCart(mapOf("product_id" to productId, "quantity" to quantity.toLong()))
             if (response.isSuccessful) {
                 getRemoteCart()
-                true
-            } else false
+                Pair(true, null)
+            } else {
+                val errorMsg = try {
+                    val errBody = response.errorBody()?.string()
+                    // Try to extract message from JSON body e.g. {"status":"fail","message":"..."}
+                    errBody?.let {
+                        val msgStart = it.indexOf("\"message\":\"")
+                        if (msgStart >= 0) {
+                            val start = msgStart + 11
+                            val end = it.indexOf("\"", start)
+                            if (end > start) it.substring(start, end) else null
+                        } else null
+                    }
+                } catch (e: Exception) { null }
+                Pair(false, errorMsg)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            Pair(false, e.message)
         }
     }
 
@@ -517,11 +531,27 @@ class AppRepository(
         }
     }
 
-    suspend fun removeRemoteCart(id: Long): Boolean {
+    suspend fun removeCartItem(id: Long): Boolean {
         return try {
             val response = apiService.removeCartItem(id)
             if (response.isSuccessful) {
                 cartDao.deleteById(id)
+                true
+            } else false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun removeAllRemoteCart(): Boolean {
+        return try {
+            val response = apiService.removeAllCartItems()
+            if (response.isSuccessful) {
+                val userId = currentUserId()
+                if (userId != null) {
+                    cartDao.clearByUser(userId)
+                }
                 true
             } else false
         } catch (e: Exception) {
@@ -539,7 +569,11 @@ class AppRepository(
     }
 
     suspend fun clearCart() {
-        cartDao.clearByUser(currentUserId())
+        val userId = currentUserId()
+        if (userId != null) {
+            cartDao.clearByUser(userId)
+            removeAllRemoteCart()
+        }
     }
 
     suspend fun getCategories(): List<CategoryDto> {
@@ -588,10 +622,10 @@ class AppRepository(
         return try {
             val order = getRemoteOrderDetail(orderId) ?: return false
             val items = order.items ?: return false
-            
+
             var allSuccess = true
             for (item in items) {
-                val success = addRemoteCart(item.productId, item.quantity)
+                val (success, _) = addRemoteCart(item.productId, item.quantity)
                 if (!success) allSuccess = false
             }
             allSuccess

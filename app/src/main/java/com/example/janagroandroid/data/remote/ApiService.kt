@@ -42,11 +42,14 @@ interface ApiService {
     @POST("/api/v1/cart")
     suspend fun addToCart(@Body request: Map<String, Long>): Response<CartResponse>
 
-    @PATCH("/api/v1/cart/{id}")
+    @PUT("/api/v1/cart/{id}")
     suspend fun updateCartItem(@Path("id") id: Long, @Body request: Map<String, Long>): Response<CartResponse>
 
     @DELETE("/api/v1/cart/{id}")
     suspend fun removeCartItem(@Path("id") id: Long): Response<CartResponse>
+
+    @DELETE("/api/v1/cart")
+    suspend fun removeAllCartItems(): Response<CartResponse>
 
 //    PRODUCT API
     @GET("/api/v1/products")

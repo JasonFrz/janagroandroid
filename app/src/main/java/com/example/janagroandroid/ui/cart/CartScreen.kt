@@ -38,11 +38,14 @@ fun CartScreen(
     cartItems: List<CartEntity>,
     onBackClick: () -> Unit,
     onDeleteClick: (Long) -> Unit,
+    onDeleteAllClick: () -> Unit,
     onUpdateQty: (Long, Int) -> Unit,
     onCheckoutClick: (Double) -> Unit,
-    onProductClick: (Long) -> Unit
+    onProductClick: (Long) -> Unit,
+    onMerchantClick: (Long) -> Unit
 ) {
     var selectedIds by remember { mutableStateOf(setOf<Long>()) }
+    var showClearDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(cartItems) {
         if (selectedIds.isEmpty() && cartItems.isNotEmpty()) {
@@ -88,12 +91,13 @@ fun CartScreen(
                         },
                         actions = {
                             Text(
-                                "Delete",
+                                "Hapus Semua",
                                 modifier = Modifier
                                     .padding(end = 16.dp)
-                                    .clickable { },
-                                color = Color.Gray,
-                                fontSize = 16.sp
+                                    .clickable { if (cartItems.isNotEmpty()) showClearDialog = true },
+                                color = if (cartItems.isNotEmpty()) primaryGreen else Color.Gray,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
                             )
                             Icon(
                                 Icons.Default.Email,
@@ -136,7 +140,8 @@ fun CartScreen(
                             selectedIds = if (isChecked) selectedIds + item.id else selectedIds - item.id
                         },
                         onDelete = { onDeleteClick(item.id) },
-                        onUpdateQty = { qty -> onUpdateQty(item.id, qty) }
+                        onUpdateQty = { qty -> onUpdateQty(item.id, qty) },
+                        onMerchantClick = { onMerchantClick(item.merchantId) }
                     )
                 }
 
@@ -149,6 +154,27 @@ fun CartScreen(
                 }
             }
         }
+        
+        if (showClearDialog) {
+            AlertDialog(
+                onDismissRequest = { showClearDialog = false },
+                title = { Text("Hapus Semua?") },
+                text = { Text("Apakah Anda yakin ingin menghapus semua item dari keranjang?") },
+                confirmButton = {
+                    TextButton(onClick = { 
+                        showClearDialog = false
+                        onDeleteAllClick()
+                    }) {
+                        Text("Hapus", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearDialog = false }) {
+                        Text("Batal")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -159,7 +185,8 @@ fun CartItem(
     primaryColor: Color,
     onSelectionChange: (Boolean) -> Unit,
     onDelete: () -> Unit,
-    onUpdateQty: (Int) -> Unit
+    onUpdateQty: (Int) -> Unit,
+    onMerchantClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -195,10 +222,10 @@ fun CartItem(
                 }
                 
                 Text(
-                    "Agrojan Official Store",
+                    item.merchantName.ifEmpty { "Toko Tani Makmur" },
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).clickable { onMerchantClick() }
                 )
                 
                 Text(

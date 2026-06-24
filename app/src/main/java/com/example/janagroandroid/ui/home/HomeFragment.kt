@@ -25,6 +25,19 @@ class HomeFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+
+        // Observe add-to-cart result for Toast feedback
+        viewModel.addToCartResult.observe(viewLifecycleOwner) { result ->
+            result ?: return@observe
+            val msg = if (result.isSuccess) {
+                result.getOrNull() ?: "Produk ditambahkan ke keranjang"
+            } else {
+                result.exceptionOrNull()?.message ?: "Gagal menambahkan ke keranjang"
+            }
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+            viewModel.clearAddToCartResult()
+        }
+
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
@@ -35,6 +48,9 @@ class HomeFragment : Fragment() {
                 val topMerchants by viewModel.topMerchants.observeAsState(emptyList())
                 val activeVouchers by viewModel.activeVouchers.observeAsState(emptyList())
                 val user by viewModel.currentUser.observeAsState()
+                val cartItems by viewModel.cart.observeAsState(emptyList())
+                // Total item count across all distinct products in cart
+                val cartCount = cartItems.sumOf { it.qty }
 
                 HomeScreen(
                     user = user,
@@ -44,6 +60,7 @@ class HomeFragment : Fragment() {
                     selectedCategory = selectedCategory,
                     topMerchants = topMerchants,
                     activeVouchers = activeVouchers,
+                    cartCount = cartCount,
                     onProfileClick = {
                         if (user != null) {
                             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
@@ -75,6 +92,14 @@ class HomeFragment : Fragment() {
                             findNavController().navigate(R.id.loginFragment)
                         }
                     },
+                    onAddToCartClick = { product ->
+                        if (user != null) {
+                            viewModel.addToCart(product.id)
+                        } else {
+                            Toast.makeText(requireContext(), "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
+                            findNavController().navigate(R.id.loginFragment)
+                        }
+                    },
                     onVoucherClick = { voucher ->
                         val bundle = bundleOf(
                             "voucherId" to voucher.id,
@@ -98,7 +123,6 @@ class HomeFragment : Fragment() {
                         findNavController().navigate(R.id.exploreFragment, bundle)
                     },
                     onViewAllRecentlyListed = {
-                        // Navigate to Explore with "All" to show all products sorted by newest
                         val bundle = bundleOf("category" to "All")
                         findNavController().navigate(R.id.exploreFragment, bundle)
                     }

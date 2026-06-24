@@ -36,6 +36,8 @@ fun CartItemDto.toEntity(): CartEntity {
         productName = product?.name ?: "Unknown",
         price = product?.priceDouble ?: 0.0,
         imageUrl = product?.firstImageUrl ?: "",
-        qty = quantity
+        qty = quantity,
+        merchantId = product?.merchant?.id ?: 0L,
+        merchantName = product?.merchant?.storeName ?: ""
     )
 }

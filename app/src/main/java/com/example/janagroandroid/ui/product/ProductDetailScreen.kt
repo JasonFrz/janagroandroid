@@ -51,6 +51,7 @@ fun ProductDetailScreen(
     reviews: List<ReviewDto> = emptyList(),
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
+    onCartClick: () -> Unit = {},
     onChatClick: (Long, String) -> Unit = { _, _ -> },
     onMerchantClick: (Long) -> Unit = {}
 ) {
@@ -79,7 +80,7 @@ fun ProductDetailScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { /* Cart */ }) {
+                        IconButton(onClick = onCartClick) {
                             Icon(
                                 imageVector = Icons.Outlined.ShoppingCart,
                                 contentDescription = "Cart",

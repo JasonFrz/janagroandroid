@@ -24,6 +24,10 @@ class CartViewModel(
     }
 
     fun deleteCart(id: Long) {
-        viewModelScope.launch { repo.removeRemoteCart(id) }
+        viewModelScope.launch { repo.removeCartItem(id) }
+    }
+
+    fun deleteAllCart() {
+        viewModelScope.launch { repo.removeAllRemoteCart() }
     }
 }

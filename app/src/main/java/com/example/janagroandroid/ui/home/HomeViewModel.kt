@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.janagroandroid.data.local.entity.CartEntity
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.dto.CategoryDto
@@ -37,7 +38,6 @@ class HomeViewModel(
 
     private fun filterProducts(list: List<ProductEntity>?, category: String?): List<ProductEntity> {
         if (list == null) return emptyList()
-        // If "All" or null, return all products sorted by newest for the main list too or as default
         val sortedList = list.sortedByDescending { it.createdAt }
         if (category == null || category == "All") return sortedList
         return sortedList.filter { it.category.equals(category, ignoreCase = true) }
@@ -46,14 +46,20 @@ class HomeViewModel(
     private val _categories = MutableLiveData<List<CategoryDto>>()
     val categories: LiveData<List<CategoryDto>> = _categories
 
-    // Asumsi repo punya variabel untuk mendapatkan user yang sedang aktif
     val currentUser: LiveData<UserEntity?> = repo.getUser
+
+    /** Cart items LiveData — wired to local DB, reflects remote cart after sync */
+    val cart: LiveData<List<CartEntity>> = repo.cart
 
     private val _topMerchants = MutableLiveData<List<MerchantDto>>()
     val topMerchants: LiveData<List<MerchantDto>> = _topMerchants
 
     private val _activeVouchers = MutableLiveData<List<VoucherDto>>()
     val activeVouchers: LiveData<List<VoucherDto>> = _activeVouchers
+
+    /** One-shot result for add-to-cart feedback (null = idle) */
+    private val _addToCartResult = MutableLiveData<Result<String>?>()
+    val addToCartResult: LiveData<Result<String>?> = _addToCartResult
 
     init {
         currentUser.observeForever { user ->
@@ -80,6 +86,7 @@ class HomeViewModel(
             fetchActiveVouchers()
             if (repo.isLoggedIn()) {
                 repo.refreshProfile()
+                repo.getRemoteCart()
             }
         }
     }
@@ -103,5 +110,20 @@ class HomeViewModel(
             val result = repo.getHighestRatedMerchants(6)
             _topMerchants.postValue(result)
         }
+    }
+
+    fun addToCart(productId: Long, qty: Int = 1) {
+        viewModelScope.launch {
+            val (success, errorMsg) = repo.addRemoteCart(productId, qty)
+            if (success) {
+                _addToCartResult.postValue(Result.success("Produk ditambahkan ke keranjang"))
+            } else {
+                _addToCartResult.postValue(Result.failure(Exception(errorMsg ?: "Gagal menambahkan ke keranjang")))
+            }
+        }
+    }
+
+    fun clearAddToCartResult() {
+        _addToCartResult.value = null
     }
 }

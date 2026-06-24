@@ -36,6 +36,7 @@ class CartFragment : Fragment() {
                     cartItems = cartItems,
                     onBackClick = { findNavController().navigateUp() },
                     onDeleteClick = { id -> viewModel.deleteCart(id) },
+                    onDeleteAllClick = { viewModel.deleteAllCart() },
                     onUpdateQty = { id, qty -> viewModel.updateQuantity(id, qty) },
                     onCheckoutClick = { total ->
                         findNavController().navigate(
@@ -44,7 +45,15 @@ class CartFragment : Fragment() {
                         )
                     },
                     onProductClick = { id ->
-                        // Navigasi ke detail produk jika ID tersedia (saat ini dummy 0L)
+                        // Navigasi ke detail produk jika ID tersedia
+                    },
+                    onMerchantClick = { mId ->
+                        if (mId != 0L) {
+                            findNavController().navigate(
+                                R.id.merchantDetailFragment,
+                                bundleOf("merchantId" to mId)
+                            )
+                        }
                     }
                 )
             }

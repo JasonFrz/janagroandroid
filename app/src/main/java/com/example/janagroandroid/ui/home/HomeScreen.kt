@@ -48,9 +48,11 @@ fun HomeScreen(
     selectedCategory: String? = null,
     topMerchants: List<MerchantDto> = emptyList(),
     activeVouchers: List<VoucherDto> = emptyList(),
+    cartCount: Int = 0,
     onProfileClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
     onProductClick: (ProductEntity) -> Unit,
+    onAddToCartClick: (ProductEntity) -> Unit = {},
     onVoucherClick: (VoucherDto) -> Unit,
     onNotificationClick: () -> Unit,
     onCartClick: () -> Unit,
@@ -66,7 +68,8 @@ fun HomeScreen(
                     modifier = Modifier.statusBarsPadding()
                 ) {
                     HomeHeader(
-                        user = user, 
+                        user = user,
+                        cartCount = cartCount,
                         onProfileClick = onProfileClick,
                         onNotificationClick = onNotificationClick,
                         onCartClick = onCartClick
@@ -104,6 +107,7 @@ fun HomeScreen(
                         title = "Recently Listed",
                         products = recentlyListed.take(4),
                         onProductClick = onProductClick,
+                        onAddToCartClick = onAddToCartClick,
                         onViewAllClick = onViewAllRecentlyListed
                     )
 
@@ -121,7 +125,8 @@ fun HomeScreen(
                 AllProductsSection(
                     title = if (selectedCategory == null) "All Products" else "Products in $selectedCategory",
                     products = products,
-                    onProductClick = onProductClick
+                    onProductClick = onProductClick,
+                    onAddToCartClick = onAddToCartClick
                 )
 
                 Spacer(modifier = Modifier.height(80.dp))
@@ -133,6 +138,7 @@ fun HomeScreen(
 @Composable
 fun HomeHeader(
     user: UserEntity?,
+    cartCount: Int = 0,
     onProfileClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onCartClick: () -> Unit
@@ -190,22 +196,29 @@ fun HomeHeader(
             ) {}
         }
 
-        // Cart Icon with Badge
+        // Cart Icon with Badge — only shown when cartCount > 0
         Box {
             IconButton(onClick = onCartClick) {
                 Icon(Icons.Outlined.ShoppingCart, contentDescription = "Cart", modifier = Modifier.size(28.dp))
             }
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 4.dp, end = 4.dp)
-                    .size(18.dp),
-                color = Color(0xFF006432),
-                shape = CircleShape,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("3", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            if (cartCount > 0) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 4.dp, end = 4.dp)
+                        .size(18.dp),
+                    color = Color(0xFF006432),
+                    shape = CircleShape,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (cartCount > 99) "99+" else cartCount.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
@@ -551,7 +564,8 @@ fun MerchantItem(merchant: MerchantDto) {
 fun AllProductsSection(
     title: String,
     products: List<ProductEntity>,
-    onProductClick: (ProductEntity) -> Unit
+    onProductClick: (ProductEntity) -> Unit,
+    onAddToCartClick: (ProductEntity) -> Unit = {}
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         Row(
@@ -577,7 +591,11 @@ fun AllProductsSection(
             ) {
                 rowItems.forEach { product ->
                     Box(modifier = Modifier.weight(1f)) {
-                        AllProductItem(product = product, onClick = { onProductClick(product) })
+                        AllProductItem(
+                            product = product,
+                            onClick = { onProductClick(product) },
+                            onAddToCartClick = { onAddToCartClick(product) }
+                        )
                     }
                 }
                 if (rowItems.size < 2) {
@@ -590,7 +608,11 @@ fun AllProductsSection(
 }
 
 @Composable
-fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
+fun AllProductItem(
+    product: ProductEntity,
+    onClick: () -> Unit,
+    onAddToCartClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -611,7 +633,7 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                 placeholder = painterResource(id = R.drawable.farmer),
                 error = painterResource(id = R.drawable.farmer)
             )
-            
+
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Text(
                     text = product.name,
@@ -623,7 +645,7 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                     color = Color.Black,
                     overflow = TextOverflow.Ellipsis
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -642,9 +664,9 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -656,16 +678,18 @@ fun AllProductItem(product: ProductEntity, onClick: () -> Unit) {
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
-                    
+
                     Surface(
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable { onAddToCartClick() },
                         color = Color(0xFF006432),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Add",
+                                contentDescription = "Tambah ke keranjang",
                                 tint = Color.White,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -682,6 +706,7 @@ fun ProductSection(
     title: String,
     products: List<ProductEntity>,
     onProductClick: (ProductEntity) -> Unit,
+    onAddToCartClick: (ProductEntity) -> Unit = {},
     onViewAllClick: () -> Unit = {}
 ) {
     Column {
@@ -716,14 +741,22 @@ fun ProductSection(
                 items = products,
                 key = { it.id }
             ) { product ->
-                ProductItem(product = product, onClick = { onProductClick(product) })
+                ProductItem(
+                    product = product,
+                    onClick = { onProductClick(product) },
+                    onAddToCartClick = { onAddToCartClick(product) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
+fun ProductItem(
+    product: ProductEntity,
+    onClick: () -> Unit,
+    onAddToCartClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .width(160.dp)
@@ -744,7 +777,7 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                 placeholder = painterResource(id = R.drawable.farmer),
                 error = painterResource(id = R.drawable.farmer)
             )
-            
+
             Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)) {
                 Text(
                     text = product.name,
@@ -756,7 +789,7 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                     color = Color.Black,
                     overflow = TextOverflow.Ellipsis
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -775,9 +808,9 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -789,16 +822,18 @@ fun ProductItem(product: ProductEntity, onClick: () -> Unit) {
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
-                    
+
                     Surface(
-                        modifier = Modifier.size(36.dp),
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clickable { onAddToCartClick() },
                         color = Color(0xFF006432),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Add",
+                                contentDescription = "Tambah ke keranjang",
                                 tint = Color.White,
                                 modifier = Modifier.size(18.dp)
                             )

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
@@ -35,12 +36,24 @@ class ProductDetailFragment : Fragment() {
 
         viewModel.fetchProductDetail(id)
 
+        // Observe add-to-cart result and show Toast
+        viewModel.addToCartResult.observe(viewLifecycleOwner) { result ->
+            result ?: return@observe
+            val msg = if (result.isSuccess) {
+                result.getOrNull() ?: "Produk ditambahkan ke keranjang"
+            } else {
+                result.exceptionOrNull()?.message ?: "Gagal menambahkan ke keranjang"
+            }
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+            viewModel.clearAddToCartResult()
+        }
+
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val productDetail by viewModel.product.observeAsState()
                 val reviews by viewModel.reviews.observeAsState(emptyList())
-                
+
                 ProductDetailScreen(
                     id = id,
                     name = productDetail?.name ?: initialName,
@@ -55,7 +68,10 @@ class ProductDetailFragment : Fragment() {
                     reviews = reviews,
                     onBackClick = { findNavController().popBackStack() },
                     onAddToCartClick = { qty ->
-                        viewModel.addToCart(id, initialName, initialPrice, initialImageUrl, qty)
+                        viewModel.addToCart(id, qty)
+                    },
+                    onCartClick = {
+                        findNavController().navigate(R.id.cartFragment)
                     },
                     onMerchantClick = { mId ->
                         if (mId != 0L) {
@@ -71,7 +87,7 @@ class ProductDetailFragment : Fragment() {
                             )
                             findNavController().navigate(R.id.action_productDetailFragment_to_chatFragment, bundle)
                         } else {
-                            android.widget.Toast.makeText(requireContext(), "ID Penjual tidak ditemukan", android.widget.Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "ID Penjual tidak ditemukan", Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
@@ -79,3 +95,4 @@ class ProductDetailFragment : Fragment() {
         }
     }
 }
+
