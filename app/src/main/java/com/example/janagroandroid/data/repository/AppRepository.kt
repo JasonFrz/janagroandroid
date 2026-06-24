@@ -277,7 +277,21 @@ class AppRepository(
         return try {
             val response = apiService.getVouchers()
             if(response.isSuccessful){
-                response.body()?.data?.vouchers.orEmpty()
+                response.body()?.data.orEmpty()
+            }else{
+                emptyList()
+            }
+        } catch (e: Exception){
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun getActiveVouchers(): List<VoucherDto>{
+        return try {
+            val response = apiService.getActiveVouchers()
+            if(response.isSuccessful){
+                response.body()?.data.orEmpty()
             }else{
                 emptyList()
             }

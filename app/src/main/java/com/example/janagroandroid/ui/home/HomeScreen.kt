@@ -36,6 +36,7 @@ import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.data.remote.dto.MerchantDto
+import com.example.janagroandroid.data.remote.dto.VoucherDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
 @Composable
@@ -46,9 +47,11 @@ fun HomeScreen(
     categories: List<CategoryDto>,
     selectedCategory: String? = null,
     topMerchants: List<MerchantDto> = emptyList(),
+    activeVouchers: List<VoucherDto> = emptyList(),
     onProfileClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
     onProductClick: (ProductEntity) -> Unit,
+    onVoucherClick: (VoucherDto) -> Unit,
     onNotificationClick: () -> Unit,
     onCartClick: () -> Unit,
     onSearchSubmit: (String) -> Unit,
@@ -85,6 +88,14 @@ fun HomeScreen(
                     selectedCategory = selectedCategory,
                     onCategoryClick = onCategoryClick
                 )
+
+                if (selectedCategory == null && activeVouchers.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    HomeVoucherSection(
+                        vouchers = activeVouchers,
+                        onVoucherClick = onVoucherClick
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -328,6 +339,114 @@ fun CategoryChip(
                 color = if (isSelected) Color.White else Color.Black,
                 fontWeight = FontWeight.Medium
             )
+        }
+    }
+}
+
+@Composable
+fun HomeVoucherSection(
+    vouchers: List<VoucherDto>,
+    onVoucherClick: (VoucherDto) -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Promo Terbatas",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(vouchers) { voucher ->
+                HomeVoucherItem(
+                    voucher = voucher,
+                    onClick = { onVoucherClick(voucher) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeVoucherItem(
+    voucher: VoucherDto,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(280.dp)
+            .height(160.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background Image
+            AsyncImage(
+                model = R.drawable.sawid, // Menggunakan sawid.png sebagai background default voucher
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            // Dark Overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                Surface(
+                    color = Color(0xFFE6E696), // Light yellowish color from image
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "PROMO TERBATAS",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF5D5D2D)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = voucher.code,
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = voucher.description ?: "Gunakan voucher ini sekarang!",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

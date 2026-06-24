@@ -187,4 +187,17 @@
         <action android:id="@+id/action_merchantDetailFragment_to_productDetailFragment" app:destination="@id/productDetailFragment"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/voucherDetailFragment"
+        android:name="com.example.janagroandroid.ui.voucher.VoucherDetailFragment"
+        android:label="Voucher Detail">
+        <argument android:name="voucherId" app:argType="long"/>
+        <argument android:name="code" app:argType="string"/>
+        <argument android:name="description" app:argType="string" app:nullable="true"/>
+        <argument android:name="discountValue" app:argType="string"/>
+        <argument android:name="discountType" app:argType="string"/>
+        <argument android:name="minPurchase" app:argType="string"/>
+        <argument android:name="endDate" app:argType="string" app:nullable="true"/>
+    </fragment>
+
 </navigation>

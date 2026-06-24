@@ -33,6 +33,7 @@ class HomeFragment : Fragment() {
                 val categories by viewModel.categories.observeAsState(emptyList())
                 val selectedCategory by viewModel.selectedCategory.observeAsState()
                 val topMerchants by viewModel.topMerchants.observeAsState(emptyList())
+                val activeVouchers by viewModel.activeVouchers.observeAsState(emptyList())
                 val user by viewModel.currentUser.observeAsState()
 
                 HomeScreen(
@@ -42,6 +43,7 @@ class HomeFragment : Fragment() {
                     categories = categories,
                     selectedCategory = selectedCategory,
                     topMerchants = topMerchants,
+                    activeVouchers = activeVouchers,
                     onProfileClick = {
                         if (user != null) {
                             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
@@ -71,6 +73,18 @@ class HomeFragment : Fragment() {
                             Toast.makeText(requireContext(), "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
                             findNavController().navigate(R.id.loginFragment)
                         }
+                    },
+                    onVoucherClick = { voucher ->
+                        val bundle = bundleOf(
+                            "voucherId" to voucher.id,
+                            "code" to voucher.code,
+                            "description" to voucher.description,
+                            "discountValue" to voucher.discountValue,
+                            "discountType" to voucher.discountType,
+                            "minPurchase" to voucher.minPurchase,
+                            "endDate" to voucher.endDate
+                        )
+                        findNavController().navigate(R.id.voucherDetailFragment, bundle)
                     },
                     onNotificationClick = {
                         Toast.makeText(requireContext(), "Notifikasi", Toast.LENGTH_SHORT).show()

@@ -33,12 +33,7 @@ data class VoucherDto(
 data class VoucherListReponse(
     val status: String? = null,
     val message: String? = null,
-    val data: VoucherListData? = null
-)
-
-@JsonClass(generateAdapter = true)
-data class VoucherListData(
-    val vouchers: List<VoucherDto> = emptyList()
+    val data: List<VoucherDto>? = null
 )
 
 @JsonClass(generateAdapter = true)

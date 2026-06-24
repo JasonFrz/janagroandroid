@@ -10,6 +10,7 @@ import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.data.remote.dto.MerchantDto
+import com.example.janagroandroid.data.remote.dto.VoucherDto
 import com.example.janagroandroid.data.repository.AppRepository
 import kotlinx.coroutines.launch
 
@@ -51,6 +52,9 @@ class HomeViewModel(
     private val _topMerchants = MutableLiveData<List<MerchantDto>>()
     val topMerchants: LiveData<List<MerchantDto>> = _topMerchants
 
+    private val _activeVouchers = MutableLiveData<List<VoucherDto>>()
+    val activeVouchers: LiveData<List<VoucherDto>> = _activeVouchers
+
     init {
         currentUser.observeForever { user ->
             if (user == null) {
@@ -61,7 +65,7 @@ class HomeViewModel(
     }
 
     fun selectCategory(category: String) {
-        if (_selectedCategory.value == category) {
+        if (category == "All" || _selectedCategory.value == category) {
             _selectedCategory.value = null
         } else {
             _selectedCategory.value = category
@@ -72,10 +76,18 @@ class HomeViewModel(
         viewModelScope.launch {
             repo.refreshRemoteProducts()
             fetchCategories()
+            fetchTopMerchants()
+            fetchActiveVouchers()
             if (repo.isLoggedIn()) {
                 repo.refreshProfile()
-                fetchTopMerchants()
             }
+        }
+    }
+
+    fun fetchActiveVouchers() {
+        viewModelScope.launch {
+            val result = repo.getActiveVouchers()
+            _activeVouchers.postValue(result)
         }
     }
 
