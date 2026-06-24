@@ -20,7 +20,12 @@ import com.example.janagroandroid.ui.home.HomeViewModel
 class ExploreFragment : Fragment() {
 
     private val viewModel: HomeViewModel by viewModels {
-        AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
+        val sessionManager = com.example.janagroandroid.data.local.SessionManager(requireContext())
+        AppViewModelFactory(
+            app = requireActivity().application, 
+            repo = AppGraph.repository(requireContext()),
+            socketManager = com.example.janagroandroid.data.remote.SocketManager(sessionManager)
+        )
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
