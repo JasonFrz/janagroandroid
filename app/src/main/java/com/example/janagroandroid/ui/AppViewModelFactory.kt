@@ -21,6 +21,7 @@ import com.example.janagroandroid.ui.merchant.MerchantDetailViewModel
 import com.example.janagroandroid.ui.profile.ProfileViewModel
 import com.example.janagroandroid.ui.product.ProductDetailViewModel
 import com.example.janagroandroid.ui.seller.AddProductViewModel
+import com.example.janagroandroid.ui.seller.ManageProductsViewModel
 import com.example.janagroandroid.ui.seller.SellerDashboardViewModel
 import com.example.janagroandroid.ui.splash.SplashViewModel
 
@@ -44,6 +45,7 @@ class AppViewModelFactory(
             modelClass.isAssignableFrom(HistoryViewModel::class.java) -> HistoryViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(ProfileViewModel::class.java) -> ProfileViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(SellerDashboardViewModel::class.java) -> SellerDashboardViewModel(app!!, repo!!)
+            modelClass.isAssignableFrom(ManageProductsViewModel::class.java) -> ManageProductsViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(AddProductViewModel::class.java) -> AddProductViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(AdminHomeViewModel::class.java) -> AdminHomeViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(AdminUsersViewModel::class.java) -> AdminUsersViewModel(app!!, repo!!)

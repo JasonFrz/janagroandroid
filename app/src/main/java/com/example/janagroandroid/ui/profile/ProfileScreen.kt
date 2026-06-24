@@ -41,7 +41,8 @@ fun ProfileScreen(
     onImageSelected: (Uri) -> Unit,
     onUpdateProfile: (String, String) -> Unit,
     onChatListClick: () -> Unit = {},
-    onRequestBecomeSeller: (String, String) -> Unit = { _, _ -> }
+    onRequestBecomeSeller: (String, String) -> Unit = { _, _ -> },
+    onManageProductsClick: () -> Unit = {}
 ) {
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -122,6 +123,14 @@ fun ProfileScreen(
                         title = "Pesan",
                         onClick = onChatListClick
                     )
+
+                    if (user.role.equals("Seller", ignoreCase = true)) {
+                        ProfileMenuItem(
+                            icon = Icons.Default.Store,
+                            title = "Manage Produk",
+                            onClick = onManageProductsClick
+                        )
+                    }
                     
                     InfoRow(label = "Role", value = user.role)
                     user.phone?.let {

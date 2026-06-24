@@ -117,6 +117,11 @@
     </fragment>
 
     <fragment
+        android:id="@+id/manageProductsFragment"
+        android:name="com.example.janagroandroid.ui.seller.ManageProductsFragment"
+        android:label="Manage Produk" />
+
+    <fragment
         android:id="@+id/exploreFragment"
         android:name="com.example.janagroandroid.ui.explore.ExploreFragment"
         android:label="Explore">

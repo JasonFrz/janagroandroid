@@ -27,6 +27,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     }
 
     private var selectedImageUris = mutableListOf<Uri>()
+    private var editingProductId: Long = 0L
 
     private val pickImagesLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         if (uris.isNotEmpty()) {
@@ -55,6 +56,23 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
         setupCategoryDropdown()
         setupStockCounter()
 
+        val productId = arguments?.getLong("productId", 0L) ?: 0L
+        val productName = arguments?.getString("productName")
+        val productDescription = arguments?.getString("productDescription")
+        val productPrice = arguments?.getDouble("productPrice")
+        val productStock = arguments?.getInt("productStock")
+        val productCategory = arguments?.getString("productCategory")
+        if (productId > 0) {
+            editingProductId = productId
+            binding.toolbar.title = "Edit Produk"
+            binding.btnSave.text = "Simpan Perubahan"
+            productName?.let { binding.etName.setText(it) }
+            productDescription?.let { binding.etDescription.setText(it) }
+            productPrice?.let { binding.etPrice.setText(it.toString()) }
+            productStock?.let { binding.etStock.setText(it.toString()) }
+            productCategory?.let { binding.spinnerCategory.setText(it, false) }
+        }
+
         binding.btnSelectImages.setOnClickListener {
             if (selectedImageUris.size >= 5) {
                 Toast.makeText(requireContext(), "Sudah mencapai batas 5 foto", Toast.LENGTH_SHORT).show()
@@ -77,7 +95,8 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
                     price = price,
                     stock = stock,
                     categoryName = category,
-                    imageUris = selectedImageUris
+                    imageUris = selectedImageUris,
+                    productId = editingProductId
                 )
             }
         }
@@ -144,7 +163,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
             Toast.makeText(requireContext(), "Deskripsi wajib diisi", Toast.LENGTH_SHORT).show()
             return false
         }
-        if (selectedImageUris.isEmpty()) {
+        if (selectedImageUris.isEmpty() && editingProductId == 0L) {
             Toast.makeText(requireContext(), "Pilih minimal 1 foto", Toast.LENGTH_SHORT).show()
             return false
         }
@@ -154,16 +173,18 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     private fun observeViewModel() {
         viewModel.status.observe(viewLifecycleOwner) { success ->
             if (success == true) {
-                Toast.makeText(requireContext(), "Produk berhasil diposting!", Toast.LENGTH_SHORT).show()
+                val message = if (editingProductId > 0) "Produk berhasil diperbarui!" else "Produk berhasil diposting!"
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                 findNavController().navigateUp()
             } else if (success == false) {
-                Toast.makeText(requireContext(), "Gagal memposting produk.", Toast.LENGTH_LONG).show()
+                val message = if (editingProductId > 0) "Gagal memperbarui produk." else "Gagal memposting produk."
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
             }
         }
 
         viewModel.loading.observe(viewLifecycleOwner) { isLoading ->
             binding.btnSave.isEnabled = !isLoading
-            binding.btnSave.text = if (isLoading) "Memproses..." else "Publish Produk"
+            binding.btnSave.text = if (isLoading) "Memproses..." else if (editingProductId > 0) "Simpan Perubahan" else "Publish Produk"
         }
     }
 

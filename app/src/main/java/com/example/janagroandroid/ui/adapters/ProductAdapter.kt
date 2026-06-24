@@ -1,6 +1,7 @@
 package com.example.janagroandroid.ui.adapters
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -10,7 +11,10 @@ import com.example.janagroandroid.databinding.ItemProductBinding
 
 class ProductAdapter(
     private var items: List<ProductEntity> = emptyList(),
-    private val onClick: (ProductEntity) -> Unit
+    private val onClick: (ProductEntity) -> Unit,
+    private val onEdit: (ProductEntity) -> Unit = {},
+    private val onDelete: (ProductEntity) -> Unit = {},
+    private val showActions: Boolean = false
 ) : RecyclerView.Adapter<ProductAdapter.VH>() {
 
     fun submitList(newItems: List<ProductEntity>) {
@@ -34,9 +38,14 @@ class ProductAdapter(
                 .load(imageSource)
                 .placeholder(R.drawable.farmer)
                 .error(R.drawable.farmer)
+                .centerCrop()
                 .into(binding.ivProduct)
 
             binding.root.setOnClickListener { onClick(item) }
+            binding.btnEdit.visibility = if (showActions) View.VISIBLE else View.GONE
+            binding.btnDelete.visibility = if (showActions) View.VISIBLE else View.GONE
+            binding.btnEdit.setOnClickListener { onEdit(item) }
+            binding.btnDelete.setOnClickListener { onDelete(item) }
         }
     }
 

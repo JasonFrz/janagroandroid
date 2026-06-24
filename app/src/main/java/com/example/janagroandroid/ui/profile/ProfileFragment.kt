@@ -82,6 +82,9 @@ class ProfileFragment : Fragment() {
                     },
                     onRequestBecomeSeller = { storeName, description ->
                         viewModel.requestBecomeSeller(storeName, description)
+                    },
+                    onManageProductsClick = {
+                        findNavController().navigate(R.id.manageProductsFragment)
                     }
                 )
             }

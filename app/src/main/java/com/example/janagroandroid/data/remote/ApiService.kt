@@ -74,6 +74,21 @@ interface ApiService {
         @Part images: List<MultipartBody.Part>
     ): Response<SingleProductResponse>
 
+    @Multipart
+    @PUT("/api/v1/merchant/products/{id}")
+    suspend fun updateProduct(
+        @Path("id") id: Long,
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("price") price: RequestBody,
+        @Part("stock") stock: RequestBody,
+        @Part("category_id") categoryId: RequestBody,
+        @Part images: List<MultipartBody.Part>
+    ): Response<SingleProductResponse>
+
+    @DELETE("/api/v1/merchant/products/{id}")
+    suspend fun deleteProduct(@Path("id") id: Long): Response<Void>
+
     @GET("/api/v1/products/{id}/reviews")
     suspend fun getProductReviews(@Path("id") id: Long): Response<ReviewResponse>
 

@@ -29,7 +29,8 @@ class AddProductViewModel(
         price: Double,
         stock: Int,
         categoryName: String,
-        imageUris: List<Uri>
+        imageUris: List<Uri>,
+        productId: Long = 0L
     ) {
         viewModelScope.launch {
             _loading.value = true
@@ -46,14 +47,26 @@ class AddProductViewModel(
                     prepareFilePart(uri)
                 }
 
-                val success = repo.createRemoteProduct(
-                    name = name,
-                    description = description,
-                    price = price,
-                    stock = stock,
-                    categoryId = categoryId,
-                    imageParts = imageParts
-                )
+                val success = if (productId > 0) {
+                    repo.updateRemoteProduct(
+                        productId = productId,
+                        name = name,
+                        description = description,
+                        price = price,
+                        stock = stock,
+                        categoryId = categoryId,
+                        imageParts = imageParts
+                    )
+                } else {
+                    repo.createRemoteProduct(
+                        name = name,
+                        description = description,
+                        price = price,
+                        stock = stock,
+                        categoryId = categoryId,
+                        imageParts = imageParts
+                    )
+                }
                 _status.postValue(success)
             } catch (e: Exception) {
                 e.printStackTrace()

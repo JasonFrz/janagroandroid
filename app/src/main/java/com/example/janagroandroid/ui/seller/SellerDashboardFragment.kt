@@ -26,7 +26,7 @@ class SellerDashboardFragment : Fragment(R.layout.fragment_seller_dashboard) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentSellerDashboardBinding.bind(view)
 
-        adapter = ProductAdapter(emptyList()) { }
+        adapter = ProductAdapter(emptyList(), onClick = { })
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
 

@@ -219,6 +219,47 @@ class AppRepository(
         }
     }
 
+    suspend fun updateRemoteProduct(
+        productId: Long,
+        name: String,
+        description: String,
+        price: Double,
+        stock: Int,
+        categoryId: Int,
+        imageParts: List<MultipartBody.Part>
+    ): Boolean {
+        return try {
+            val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+            val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val stockBody = stock.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val categoryIdBody = categoryId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val response = apiService.updateProduct(
+                productId,
+                nameBody,
+                descriptionBody,
+                priceBody,
+                stockBody,
+                categoryIdBody,
+                imageParts
+            )
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun deleteRemoteProduct(productId: Long): Boolean {
+        return try {
+            apiService.deleteProduct(productId).isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun refreshRemoteProducts(): Boolean {
         val response = apiService.getProducts(limit = 10, sortBy = "created_at", sortDir = "DESC")
         return if (response.isSuccessful) {
@@ -236,6 +277,23 @@ class AppRepository(
             val response = apiService.getProducts(merchantId = merchantId, limit = 50)
             if (response.isSuccessful) {
                 response.body()?.data?.products.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun getCurrentSellerProducts(): List<ProductEntity> {
+        return try {
+            val currentUser = userDao.getCurrentUserSync()
+            val response = apiService.getProducts(limit = 100)
+            if (response.isSuccessful) {
+                response.body()?.data?.products.orEmpty()
+                    .filter { it.merchant?.userId == currentUser?.id }
+                    .map { it.toEntity(merchantId = currentUser?.id ?: 0L) }
             } else {
                 emptyList()
             }
