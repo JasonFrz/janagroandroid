@@ -67,7 +67,7 @@ interface ApiService {
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
 
     @Multipart
-    @POST("/api/v1/products")
+    @POST("/api/v1/merchant/products")
     suspend fun createProduct(
         @Part("name") name: RequestBody,
         @Part("description") description: RequestBody,
@@ -149,4 +149,11 @@ interface ApiService {
     // CHAT API
     @GET("/api/v1/chats/conversation/{partnerId}")
     suspend fun getConversation(@Path("partnerId") partnerId: Long): Response<ConversationResponse>
+
+    // NOTIFICATION API
+    @GET("/api/v1/notifications")
+    suspend fun getNotifications(): Response<NotificationResponse>
+
+    @PUT("/api/v1/notifications/read")
+    suspend fun readNotifications(): Response<AuthResponse>
 }

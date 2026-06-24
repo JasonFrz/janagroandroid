@@ -13,11 +13,13 @@ import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.data.remote.dto.VoucherDto
 import com.example.janagroandroid.data.repository.AppRepository
+import com.example.janagroandroid.data.remote.SocketManager
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
     app: Application,
-    private val repo: AppRepository
+    private val repo: AppRepository,
+    private val socketManager: SocketManager
 ) : AndroidViewModel(app) {
 
     private val _allProducts = repo.products
@@ -65,9 +67,27 @@ class HomeViewModel(
         currentUser.observeForever { user ->
             if (user == null) {
                 _topMerchants.postValue(emptyList())
+                socketManager.disconnect()
+            } else {
+                setupSocket()
             }
         }
         fetchCategories()
+    }
+
+    private fun setupSocket() {
+        socketManager.connect()
+        val socket = socketManager.getSocket()
+        socket?.off("notification:new")
+        socket?.on("notification:new") {
+            // Automatically fetch notifications when a new one arrives
+            fetchNotifications()
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        socketManager.disconnect()
     }
 
     fun selectCategory(category: String) {
@@ -87,6 +107,7 @@ class HomeViewModel(
             if (repo.isLoggedIn()) {
                 repo.refreshProfile()
                 repo.getRemoteCart()
+                fetchNotifications()
             }
         }
     }
@@ -125,5 +146,30 @@ class HomeViewModel(
 
     fun clearAddToCartResult() {
         _addToCartResult.value = null
+    }
+
+    private val _notifications = MutableLiveData<List<com.example.janagroandroid.data.remote.dto.NotificationDto>>()
+    val notifications: LiveData<List<com.example.janagroandroid.data.remote.dto.NotificationDto>> = _notifications
+
+    fun fetchNotifications() {
+        viewModelScope.launch {
+            if (repo.isLoggedIn()) {
+                val result = repo.getNotifications()
+                _notifications.postValue(result)
+            } else {
+                _notifications.postValue(emptyList())
+            }
+        }
+    }
+
+    fun markNotificationsAsRead() {
+        viewModelScope.launch {
+            if (repo.isLoggedIn()) {
+                val success = repo.readNotifications()
+                if (success) {
+                    fetchNotifications()
+                }
+            }
+        }
     }
 }

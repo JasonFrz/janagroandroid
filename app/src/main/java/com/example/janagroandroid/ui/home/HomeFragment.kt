@@ -21,7 +21,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class HomeFragment : Fragment() {
 
     private val viewModel: HomeViewModel by viewModels {
-        AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
+        val sessionManager = com.example.janagroandroid.data.local.SessionManager(requireContext())
+        AppViewModelFactory(
+            app = requireActivity().application, 
+            repo = AppGraph.repository(requireContext()),
+            socketManager = com.example.janagroandroid.data.remote.SocketManager(sessionManager)
+        )
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -52,6 +57,8 @@ class HomeFragment : Fragment() {
                 // Total item count across all distinct products in cart
                 val cartCount = cartItems.sumOf { it.qty }
 
+                val notifications by viewModel.notifications.observeAsState(emptyList())
+
                 HomeScreen(
                     user = user,
                     products = products,
@@ -61,6 +68,7 @@ class HomeFragment : Fragment() {
                     topMerchants = topMerchants,
                     activeVouchers = activeVouchers,
                     cartCount = cartCount,
+                    notifications = notifications,
                     onProfileClick = {
                         if (user != null) {
                             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
@@ -113,7 +121,7 @@ class HomeFragment : Fragment() {
                         findNavController().navigate(R.id.voucherDetailFragment, bundle)
                     },
                     onNotificationClick = {
-                        Toast.makeText(requireContext(), "Notifikasi", Toast.LENGTH_SHORT).show()
+                        viewModel.markNotificationsAsRead()
                     },
                     onCartClick = {
                         findNavController().navigate(R.id.cartFragment)

@@ -646,4 +646,27 @@ class AppRepository(
         )
         clearCart()
     }
+
+    suspend fun getNotifications(): List<NotificationDto> {
+        return try {
+            val response = apiService.getNotifications()
+            if (response.isSuccessful) {
+                response.body()?.data?.notifications.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun readNotifications(): Boolean {
+        return try {
+            apiService.readNotifications().isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 }

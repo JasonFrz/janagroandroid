@@ -36,6 +36,7 @@ import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.data.remote.dto.MerchantDto
+import com.example.janagroandroid.data.remote.dto.NotificationDto
 import com.example.janagroandroid.data.remote.dto.VoucherDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
@@ -49,6 +50,7 @@ fun HomeScreen(
     topMerchants: List<MerchantDto> = emptyList(),
     activeVouchers: List<VoucherDto> = emptyList(),
     cartCount: Int = 0,
+    notifications: List<NotificationDto> = emptyList(),
     onProfileClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
     onProductClick: (ProductEntity) -> Unit,
@@ -70,6 +72,7 @@ fun HomeScreen(
                     HomeHeader(
                         user = user,
                         cartCount = cartCount,
+                        notifications = notifications,
                         onProfileClick = onProfileClick,
                         onNotificationClick = onNotificationClick,
                         onCartClick = onCartClick
@@ -139,10 +142,14 @@ fun HomeScreen(
 fun HomeHeader(
     user: UserEntity?,
     cartCount: Int = 0,
+    notifications: List<NotificationDto> = emptyList(),
     onProfileClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onCartClick: () -> Unit
 ) {
+    val unreadCount = notifications.count { !it.isRead }
+    var isNotificationDropdownExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -182,18 +189,89 @@ fun HomeHeader(
 
         // Notification Icon with Badge
         Box {
-            IconButton(onClick = onNotificationClick) {
+            IconButton(onClick = { 
+                isNotificationDropdownExpanded = !isNotificationDropdownExpanded
+                if (unreadCount > 0) {
+                    onNotificationClick()
+                }
+            }) {
                 Icon(Icons.Outlined.Notifications, contentDescription = "Notifications", modifier = Modifier.size(28.dp))
             }
-            Surface(
+            if (unreadCount > 0) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 4.dp, end = 4.dp)
+                        .size(18.dp),
+                    color = Color.Red,
+                    shape = CircleShape,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            
+            // Notification Dropdown Popup
+            DropdownMenu(
+                expanded = isNotificationDropdownExpanded,
+                onDismissRequest = { isNotificationDropdownExpanded = false },
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 8.dp)
-                    .size(10.dp),
-                color = Color.Red,
-                shape = CircleShape,
-                border = androidx.compose.foundation.BorderStroke(2.dp, Color.White)
-            ) {}
+                    .width(300.dp)
+                    .heightIn(max = 400.dp)
+                    .background(Color.White)
+            ) {
+                if (notifications.isEmpty()) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "Tidak ada notifikasi",
+                                color = Color.Gray,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        },
+                        onClick = { isNotificationDropdownExpanded = false }
+                    )
+                } else {
+                    notifications.take(20).forEach { notification ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = if (notification.type == "LOW_STOCK") Icons.Default.Warning else Icons.Default.ShoppingBag,
+                                        contentDescription = null,
+                                        tint = if (notification.type == "LOW_STOCK") Color(0xFFE53935) else Color(0xFF006432),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = notification.title,
+                                            fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 14.sp,
+                                            color = Color.Black
+                                        )
+                                        Text(
+                                            text = notification.message,
+                                            fontSize = 12.sp,
+                                            color = Color.DarkGray
+                                        )
+                                    }
+                                }
+                            },
+                            onClick = { isNotificationDropdownExpanded = false }
+                        )
+                        Divider(color = Color(0xFFEEEEEE))
+                    }
+                }
+            }
         }
 
         // Cart Icon with Badge — only shown when cartCount > 0
