@@ -8,7 +8,6 @@ import retrofit2.http.*
 
 interface ApiService {
 
-//    AUTH API
     @POST("/api/v1/auth/login")
     suspend fun login(@Body request: Map<String, String>): Response<AuthResponse>
 
@@ -26,12 +25,15 @@ interface ApiService {
     suspend fun getProfile(): Response<AuthResponse>
 
     @Multipart
-    @PUT("/api/v1/users/profile")
+    @PATCH("/api/v1/users/profile")
     suspend fun updateProfile(
         @Part("name") name: RequestBody?,
         @Part("phone") phone: RequestBody?,
-        @Part profile_picture: MultipartBody.Part?
+        @Part image: MultipartBody.Part?
     ): Response<AuthResponse>
+
+    @POST("/api/v1/merchants/request")
+    suspend fun requestBecomeSeller(@Body request: Map<String, String>): Response<AuthResponse>
 
 //    CART API
     @GET("/api/v1/cart")
@@ -40,7 +42,7 @@ interface ApiService {
     @POST("/api/v1/cart")
     suspend fun addToCart(@Body request: Map<String, Long>): Response<CartResponse>
 
-    @PUT("/api/v1/cart/{id}")
+    @PATCH("/api/v1/cart/{id}")
     suspend fun updateCartItem(@Path("id") id: Long, @Body request: Map<String, Long>): Response<CartResponse>
 
     @DELETE("/api/v1/cart/{id}")
@@ -50,24 +52,19 @@ interface ApiService {
     @GET("/api/v1/products")
     suspend fun getProducts(
         @Query("search") search: String? = null,
-        @Query("category_id") categoryId: Int? = null,
+        @Query("category_id") categoryId: Long? = null,
         @Query("merchant_id") merchantId: Long? = null,
-        @Query("minPrice") minPrice: Double? = null,
-        @Query("maxPrice") maxPrice: Double? = null,
         @Query("page") page: Int? = 1,
         @Query("limit") limit: Int? = 10,
-        @Query("sortBy") sortBy: String? = "created_at",
-        @Query("sortDir") sortDir: String? = "DESC"
+        @Query("sortBy") sortBy: String? = null,
+        @Query("sortDir") sortDir: String? = null
     ): Response<RemoteProductResponse>
 
     @GET("/api/v1/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
 
-    @GET("/api/v1/products/{id}/reviews")
-    suspend fun getProductReviews(@Path("id") id: Long): Response<ReviewResponse>
-
     @Multipart
-    @POST("/api/v1/merchant/products")
+    @POST("/api/v1/products")
     suspend fun createProduct(
         @Part("name") name: RequestBody,
         @Part("description") description: RequestBody,
@@ -75,22 +72,29 @@ interface ApiService {
         @Part("stock") stock: RequestBody,
         @Part("category_id") categoryId: RequestBody,
         @Part images: List<MultipartBody.Part>
-    ): Response<AuthResponse>
+    ): Response<SingleProductResponse>
+
+    @GET("/api/v1/products/{id}/reviews")
+    suspend fun getProductReviews(@Path("id") id: Long): Response<ReviewResponse>
+
+//    CATEGORY API
+    @GET("/api/v1/categories")
+    suspend fun getCategories(): Response<CategoryResponse>
 
 //    MERCHANT API
     @GET("/api/v1/merchants/{id}")
     suspend fun getMerchantDetail(@Path("id") id: Long): Response<MerchantDetailResponse>
 
     @GET("/api/v1/merchants/highest-rated")
-    suspend fun getHighestRatedMerchants(@Query("limit") limit: Int = 6): Response<HighestRatedMerchantsResponse>
+    suspend fun getHighestRatedMerchants(@Query("limit") limit: Int): Response<HighestRatedMerchantsResponse>
 
-    @POST("/api/v1/merchants/apply")
-    suspend fun requestBecomeSeller(@Body request: Map<String, String>): Response<AuthResponse>
+    @GET("/api/v1/merchants/pending")
+    suspend fun getAllPendingMerchants(): Response<HighestRatedMerchantsResponse>
 
-    @GET("/api/v1/categories")
-    suspend fun getCategories(): Response<CategoryResponse>
+    @PATCH("/api/v1/merchants/{id}/status")
+    suspend fun updateMerchantStatus(@Path("id") id: Long, @Body request: Map<String, String>): Response<AuthResponse>
 
-    // ORDER API
+//    ORDER API
     @GET("/api/v1/orders")
     suspend fun getOrders(): Response<OrderResponse>
 
@@ -101,45 +105,30 @@ interface ApiService {
     @GET("/api/v1/vouchers/active")
     suspend fun getActiveVouchers(): Response<VoucherListReponse>
 
-    // CHAT API
-    @GET("/api/v1/chats/conversation/{partnerId}")
-    suspend fun getConversation(@Path("partnerId") partnerId: Long): Response<ConversationResponse>
-
-//    ---------------------------------------
-//    | ROUTES ADMIN API                    |
-//    ---------------------------------------
+//    ADMIN API
     @GET("/api/v1/admin/stats")
     suspend fun getAdminStats(): Response<AdminStatsResponse>
 
     @GET("/api/v1/admin/users")
     suspend fun getAdminUsers(
-        @Query("search") search: String? = null,
-        @Query("role") role: String? = null
+        @Query("search") search: String?,
+        @Query("role") role: String?
     ): Response<AdminUsersResponse>
 
-    @GET("/api/v1/admin/merchants/pending")
-    suspend fun getAllPendingMerchants(): Response<HighestRatedMerchantsResponse>
-
-    @PATCH("/api/v1/admin/merchants/{id}/status")
-    suspend fun updateMerchantStatus(
-        @Path("id") id: Long,
-        @Body request: Map<String, String>
-    ): Response<Unit>
-
-    @GET("/api/v1/admin/vouchers")
+//    VOUCHER API
+    @GET("/api/v1/vouchers")
     suspend fun getVouchers(): Response<VoucherListReponse>
 
-    @POST("/api/v1/admin/vouchers")
-    suspend fun createVoucher(@Body request: VoucherRequest): Response<VoucherListReponse>
+    @POST("/api/v1/vouchers")
+    suspend fun createVoucher(@Body request: VoucherRequest): Response<AuthResponse>
 
-    @PUT("/api/v1/admin/vouchers/{id}")
-    suspend fun updateVoucher(
-        @Path("id") id: Long,
-        @Body request: VoucherRequest
-    ): Response<Unit>
+    @PATCH("/api/v1/vouchers/{id}")
+    suspend fun updateVoucher(@Path("id") id: Long, @Body request: VoucherRequest): Response<AuthResponse>
 
-    @DELETE("/api/v1/admin/vouchers/{id}")
-    suspend fun deleteVoucher(
-        @Path("id") id: Long
-    ): Response<Unit>
+    @DELETE("/api/v1/vouchers/{id}")
+    suspend fun deleteVoucher(@Path("id") id: Long): Response<AuthResponse>
+
+    // CHAT API
+    @GET("/api/v1/chats/conversation/{partnerId}")
+    suspend fun getConversation(@Path("partnerId") partnerId: Long): Response<ConversationResponse>
 }

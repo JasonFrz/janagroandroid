@@ -44,13 +44,14 @@ fun ProductDetailScreen(
     imageUrl: String,
     description: String,
     merchantId: Long = 0L,
+    merchantUserId: Long = 0L,
     merchantName: String = "",
     merchantAddress: String = "",
     category: String = "",
     reviews: List<ReviewDto> = emptyList(),
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
-    onChatClick: () -> Unit = {},
+    onChatClick: (Long, String) -> Unit = { _, _ -> },
     onMerchantClick: (Long) -> Unit = {}
 ) {
     val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
@@ -78,13 +79,6 @@ fun ProductDetailScreen(
                         }
                     },
                     actions = {
-//                        IconButton(onClick = { /* Share */ }) {
-//                            Icon(
-//                                imageVector = Icons.Outlined.Share,
-//                                contentDescription = "Share",
-//                                tint = Color(0xFF2E7D32)
-//                            )
-//                        }
                         IconButton(onClick = { /* Cart */ }) {
                             Icon(
                                 imageVector = Icons.Outlined.ShoppingCart,
@@ -101,7 +95,12 @@ fun ProductDetailScreen(
             bottomBar = {
                 BottomActionBar(
                     onAddToCartClick = { onAddToCartClick(1) },
-                    onChatClick = onChatClick
+                    onChatClick = {
+                        // Gunakan merchantUserId jika ada, jika tidak gunakan merchantId sebagai fallback
+                        // Backend resolveChatUser mendukung merchantId untuk mencari owner
+                        val finalPartnerId = if (merchantUserId != 0L) merchantUserId else merchantId
+                        onChatClick(finalPartnerId, merchantName)
+                    }
                 )
             }
         ) { padding ->

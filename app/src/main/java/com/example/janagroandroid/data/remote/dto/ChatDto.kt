@@ -9,22 +9,32 @@ data class ChatMessageDto(
     @Json(name = "message") val message: String,
     @Json(name = "is_read") val isRead: Boolean = false,
     @Json(name = "created_at") val createdAt: String? = null,
-    // Client-side state
+    @Json(name = "status") val statusStr: String? = null,
+    // Client-side mapping
     val status: MessageStatus = MessageStatus.SENT
-)
+) {
+    fun getEffectiveStatus(): MessageStatus {
+        return when (statusStr?.lowercase()) {
+            "read" -> MessageStatus.READ
+            "delivered" -> MessageStatus.DELIVERED
+            "sent" -> MessageStatus.SENT
+            else -> if (isRead) MessageStatus.READ else status
+        }
+    }
+}
 
 enum class MessageStatus {
     SENDING, SENT, DELIVERED, READ
 }
 
 data class ConversationResponse(
-    val statusCode: Int,
-    val message: String,
-    val data: ConversationData
+    val status: String? = null,
+    val message: String? = null,
+    val data: ConversationData? = null
 )
 
 data class ConversationData(
-    val messages: List<ChatMessageDto>
+    val messages: List<ChatMessageDto> = emptyList()
 )
 
 data class ChatRoomDto(

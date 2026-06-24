@@ -39,8 +39,14 @@ class ChatViewModel(
                 val response = apiService.getConversation(partnerId)
                 if (response.isSuccessful) {
                     val history = response.body()?.data?.messages ?: emptyList()
-                    _messages.value = history.map { 
-                        it.copy(status = if (it.isRead) MessageStatus.READ else MessageStatus.SENT)
+                    val mappedHistory = history.map { 
+                        it.copy(status = it.getEffectiveStatus())
+                    }
+                    _messages.value = mappedHistory
+                    
+                    // Mark incoming unread messages as read
+                    history.filter { it.senderId == partnerId && !it.isRead }.forEach {
+                        socketManager.markAsRead(it.id ?: 0L)
                     }
                 }
             } catch (e: Exception) {
@@ -64,10 +70,34 @@ class ChatViewModel(
                 message = data.optString("message"),
                 isRead = data.optBoolean("is_read"),
                 createdAt = data.optString("created_at"),
-                status = if (data.optBoolean("is_read")) MessageStatus.READ else MessageStatus.SENT
-            )
+                statusStr = data.optString("status")
+            ).let { it.copy(status = it.getEffectiveStatus()) }
+            
+            // Auto mark as delivered if I am the receiver
+            if (newMessage.receiverId == _currentUserId.value) {
+                socketManager.markAsDelivered(newMessage.id ?: 0L)
+                // Also mark as read since the chat is open
+                socketManager.markAsRead(newMessage.id ?: 0L)
+            }
             
             _messages.value = _messages.value + newMessage
+        }
+
+        socket?.on("chat:status") { args ->
+            val data = args.getOrNull(0) as? JSONObject ?: return@on
+            val msgId = data.optLong("id")
+            val statusStr = data.optString("status")
+            
+            _messages.value = _messages.value.map { 
+                if (it.id == msgId) {
+                    val newStatus = when (statusStr) {
+                        "delivered" -> MessageStatus.DELIVERED
+                        "read" -> MessageStatus.READ
+                        else -> it.status
+                    }
+                    it.copy(status = newStatus)
+                } else it
+            }
         }
     }
 
@@ -89,5 +119,6 @@ class ChatViewModel(
     override fun onCleared() {
         super.onCleared()
         socketManager.getSocket()?.off("chat:message")
+        socketManager.getSocket()?.off("chat:status")
     }
 }

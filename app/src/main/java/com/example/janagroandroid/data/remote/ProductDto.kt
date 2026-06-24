@@ -48,7 +48,8 @@ data class ProductDto(
 fun ProductDto.toEntity(merchantId: Long = 0): ProductEntity {
     return ProductEntity(
         id = id ?: 0,
-        merchant_id = this.merchantId ?: merchant?.id ?: merchant?.userId ?: merchantId,
+        merchant_id = this.merchantId ?: merchant?.id ?: merchantId,
+        merchantUserId = merchant?.userId ?: merchant?.owner?.id ?: 0L,
         merchant_name = merchant?.storeName ?: merchant?.owner?.name ?: "",
         merchant_city = merchant?.city ?: "",
         name = name ?: "",
