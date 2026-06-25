@@ -3,6 +3,7 @@ package com.example.janagroandroid.data.remote.dto
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class ChatMessageDto(
     @Json(name = "id") val id: Long? = null,
     @Json(name = "sender_id") val senderId: Long,
@@ -11,8 +12,8 @@ data class ChatMessageDto(
     @Json(name = "is_read") val isRead: Boolean = false,
     @Json(name = "created_at") val createdAt: String? = null,
     @Json(name = "status") val statusStr: String? = null,
-    // Client-side mapping
-    val status: MessageStatus = MessageStatus.SENT
+    // Client-side mapping (bukan dari JSON server)
+    @Transient val status: MessageStatus = MessageStatus.SENT
 ) {
     fun getEffectiveStatus(): MessageStatus {
         return when (statusStr?.lowercase()) {
@@ -28,12 +29,14 @@ enum class MessageStatus {
     SENDING, SENT, DELIVERED, READ
 }
 
+@JsonClass(generateAdapter = true)
 data class ConversationResponse(
     val status: String? = null,
     val message: String? = null,
     val data: ConversationData? = null
 )
 
+@JsonClass(generateAdapter = true)
 data class ConversationData(
     val messages: List<ChatMessageDto> = emptyList()
 )

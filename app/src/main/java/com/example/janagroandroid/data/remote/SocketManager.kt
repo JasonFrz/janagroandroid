@@ -14,7 +14,9 @@ class SocketManager(private val sessionManager: SessionManager) {
 
     companion object {
         private const val TAG = "SocketManager"
+//        private const val SOCKET_URL = "http://10.36.186.213:3000"
         private const val SOCKET_URL = "http://10.0.2.2:3000"
+        // Emulator: gunakan "http://10.0.2.2:3000"
     }
 
     fun connect() {

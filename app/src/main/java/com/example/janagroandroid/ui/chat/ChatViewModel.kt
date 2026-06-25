@@ -72,15 +72,30 @@ class ChatViewModel(
                 createdAt = data.optString("created_at"),
                 statusStr = data.optString("status")
             ).let { it.copy(status = it.getEffectiveStatus()) }
-            
-            // Auto mark as delivered if I am the receiver
-            if (newMessage.receiverId == _currentUserId.value) {
-                socketManager.markAsDelivered(newMessage.id ?: 0L)
-                // Also mark as read since the chat is open
-                socketManager.markAsRead(newMessage.id ?: 0L)
+
+            val current = _messages.value
+
+            // Dedup: jika pesan dengan id ini sudah ada, abaikan
+            if (newMessage.id != null && newMessage.id != 0L && current.any { it.id == newMessage.id }) {
+                return@on
             }
-            
-            _messages.value = _messages.value + newMessage
+
+            if (newMessage.senderId == _currentUserId.value) {
+                // Echo pesan yang SAYA kirim: ganti pesan sementara (id null, teks sama)
+                val tempIndex = current.indexOfFirst {
+                    it.id == null && it.senderId == _currentUserId.value && it.message == newMessage.message
+                }
+                _messages.value = if (tempIndex != -1) {
+                    current.toMutableList().also { it[tempIndex] = newMessage }
+                } else {
+                    current + newMessage
+                }
+            } else {
+                // Pesan masuk dari lawan chat: tandai delivered + read (chat sedang terbuka)
+                socketManager.markAsDelivered(newMessage.id ?: 0L)
+                socketManager.markAsRead(newMessage.id ?: 0L)
+                _messages.value = current + newMessage
+            }
         }
 
         socket?.on("chat:status") { args ->

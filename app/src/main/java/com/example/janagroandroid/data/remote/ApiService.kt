@@ -137,16 +137,16 @@ interface ApiService {
     ): Response<AdminUsersResponse>
 
 //    VOUCHER API
-    @GET("/api/v1/vouchers")
+    @GET("/api/v1/admin/vouchers")
     suspend fun getVouchers(): Response<VoucherListReponse>
 
-    @POST("/api/v1/vouchers")
+    @POST("/api/v1/admin/vouchers")
     suspend fun createVoucher(@Body request: VoucherRequest): Response<AuthResponse>
 
-    @PATCH("/api/v1/vouchers/{id}")
+    @PUT("/api/v1/admin/vouchers/{id}")
     suspend fun updateVoucher(@Path("id") id: Long, @Body request: VoucherRequest): Response<AuthResponse>
 
-    @DELETE("/api/v1/vouchers/{id}")
+    @DELETE("/api/v1/admin/vouchers/{id}")
     suspend fun deleteVoucher(@Path("id") id: Long): Response<AuthResponse>
 
     // CHAT API

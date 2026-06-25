@@ -60,6 +60,9 @@ class AppRepository(
                     // Simpan token ke SessionManager
                     sessionManager.saveToken(token)
                     authData.refreshToken?.let { sessionManager.saveRefreshToken(it) }
+                    // Simpan user id + role agar chat bisa membedakan pesan sendiri vs lawan
+                    sessionManager.saveUserId(userDto.id)
+                    sessionManager.saveUserRole(userDto.role)
 
                     true
                 } else {
