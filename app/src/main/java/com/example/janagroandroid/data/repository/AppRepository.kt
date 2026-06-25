@@ -604,6 +604,20 @@ class AppRepository(
         }
     }
 
+    suspend fun getConversations(): List<ChatRoomDto> {
+        return try {
+            val response = apiService.getConversations()
+            if (response.isSuccessful) {
+                response.body()?.data?.conversations.orEmpty().map { it.toRoom() }
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     suspend fun getRemoteOrderDetail(id: Long): OrderDto? {
         return try {
             val response = apiService.getOrderDetail(id)
@@ -635,16 +649,54 @@ class AppRepository(
         }
     }
 
-    suspend fun checkout(total: Double) {
-        historyDao.insert(
-            HistoryEntity(
-                userId = currentUserId(),
-                date = System.currentTimeMillis().toString(),
-                total = total,
-                status = "PAID"
+    /**
+     * Checkout the user's server-side cart by calling the order API.
+     * The backend computes totals from the cart, creates orders per merchant,
+     * generates payment tokens, and clears the cart server-side.
+     * Returns Pair(success, message) where message is the server message on success
+     * or an error message on failure.
+     */
+    suspend fun checkout(
+        shippingAddress: String,
+        courier: String? = null,
+        voucherCode: String? = null,
+        paymentType: String? = null
+    ): Pair<Boolean, String?> {
+        return try {
+            val request = CheckoutRequest(
+                shippingAddress = shippingAddress,
+                courier = courier?.ifBlank { null },
+                voucherCode = voucherCode?.ifBlank { null },
+                paymentType = paymentType?.ifBlank { null }
             )
-        )
-        clearCart()
+            val response = apiService.checkout(request)
+            if (response.isSuccessful) {
+                // Cart was cleared on the server; sync local cache to reflect it.
+                getRemoteCart()
+                Pair(true, response.body()?.message)
+            } else {
+                Pair(false, parseErrorMessage(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Pair(false, e.message)
+        }
+    }
+
+    /** Extract the "message" field from a JSON error body like {"status":"fail","message":"..."}. */
+    private fun parseErrorMessage(body: String?): String? {
+        body ?: return null
+        return try {
+            val key = "\"message\":\""
+            val msgStart = body.indexOf(key)
+            if (msgStart >= 0) {
+                val start = msgStart + key.length
+                val end = body.indexOf("\"", start)
+                if (end > start) body.substring(start, end) else null
+            } else null
+        } catch (e: Exception) {
+            null
+        }
     }
 
     suspend fun getNotifications(): List<NotificationDto> {

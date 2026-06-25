@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,13 +26,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.data.remote.dto.ChatRoomDto
+import com.example.janagroandroid.di.AppGraph
+import com.example.janagroandroid.ui.AppViewModelFactory
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 import java.text.SimpleDateFormat
 import java.util.*
 
 class ChatListFragment : Fragment() {
+
+    private val viewModel: ChatListViewModel by viewModels {
+        AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +50,12 @@ class ChatListFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 JanAgroTheme {
+                    val chatRooms by viewModel.conversations.collectAsState()
+                    val isLoading by viewModel.isLoading.collectAsState()
+
                     ChatListScreen(
+                        chatRooms = chatRooms,
+                        isLoading = isLoading,
                         onBackClick = { findNavController().navigateUp() },
                         onChatClick = { chatRoom ->
                             val action = ChatListFragmentDirections.actionChatListFragmentToChatFragment(
@@ -56,19 +70,20 @@ class ChatListFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Refresh on entry and when returning from a conversation so unread counts update.
+        viewModel.fetchConversations()
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ChatListScreen(
+        chatRooms: List<ChatRoomDto>,
+        isLoading: Boolean,
         onBackClick: () -> Unit,
         onChatClick: (ChatRoomDto) -> Unit
     ) {
-        // Mock data
-        val chatRooms = listOf(
-            ChatRoomDto(1, "JanAgro Merchant", "Bisa kak, kalau order sebelum jam 3 sore.", System.currentTimeMillis(), unreadCount = 1, partnerId = 101L),
-            ChatRoomDto(2, "Toko Berkah Tani", "Sama-sama kak, ditunggu orderannya.", System.currentTimeMillis() - 86400000, unreadCount = 0, partnerId = 102L),
-            ChatRoomDto(3, "Pupuk Organik Jaya", "Baik kak, akan kami proses.", System.currentTimeMillis() - 172800000, unreadCount = 0, partnerId = 103L)
-        )
-
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -81,17 +96,25 @@ class ChatListFragment : Fragment() {
                 )
             }
         ) { padding ->
-            if (chatRooms.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text("Belum ada percakapan", color = Color.Gray)
+            when {
+                isLoading && chatRooms.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding)
-                ) {
-                    items(chatRooms) { room ->
-                        ChatRoomItem(room = room, onClick = { onChatClick(room) })
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = Color.LightGray)
+                chatRooms.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                        Text("Belum ada percakapan", color = Color.Gray)
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(padding)
+                    ) {
+                        items(chatRooms) { room ->
+                            ChatRoomItem(room = room, onClick = { onChatClick(room) })
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = Color.LightGray)
+                        }
                     }
                 }
             }

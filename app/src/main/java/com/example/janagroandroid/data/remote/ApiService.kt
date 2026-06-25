@@ -113,6 +113,9 @@ interface ApiService {
     suspend fun updateMerchantStatus(@Path("id") id: Long, @Body request: Map<String, String>): Response<AuthResponse>
 
 //    ORDER API
+    @POST("/api/v1/orders/checkout")
+    suspend fun checkout(@Body request: CheckoutRequest): Response<OrderResponse>
+
     @GET("/api/v1/orders")
     suspend fun getOrders(): Response<OrderResponse>
 
@@ -147,6 +150,9 @@ interface ApiService {
     suspend fun deleteVoucher(@Path("id") id: Long): Response<AuthResponse>
 
     // CHAT API
+    @GET("/api/v1/chats/conversations")
+    suspend fun getConversations(): Response<ConversationListResponse>
+
     @GET("/api/v1/chats/conversation/{partnerId}")
     suspend fun getConversation(@Path("partnerId") partnerId: Long): Response<ConversationResponse>
 

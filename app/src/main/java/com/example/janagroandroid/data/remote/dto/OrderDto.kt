@@ -4,6 +4,17 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
+data class CheckoutRequest(
+    @Json(name = "shipping_address")
+    val shippingAddress: String,
+    val courier: String? = null,
+    @Json(name = "voucher_code")
+    val voucherCode: String? = null,
+    @Json(name = "payment_type")
+    val paymentType: String? = null
+)
+
+@JsonClass(generateAdapter = true)
 data class OrderResponse(
     val status: String? = null,
     val message: String? = null,

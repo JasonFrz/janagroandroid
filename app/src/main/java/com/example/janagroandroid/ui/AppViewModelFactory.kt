@@ -13,6 +13,7 @@ import com.example.janagroandroid.ui.admin.AdminUsersViewModel
 import com.example.janagroandroid.ui.admin.AdminVouchersViewModel
 import com.example.janagroandroid.ui.auth.AuthViewModel
 import com.example.janagroandroid.ui.cart.CartViewModel
+import com.example.janagroandroid.ui.chat.ChatListViewModel
 import com.example.janagroandroid.ui.chat.ChatViewModel
 import com.example.janagroandroid.ui.checkout.CheckoutViewModel
 import com.example.janagroandroid.ui.home.HomeViewModel
@@ -52,6 +53,7 @@ class AppViewModelFactory(
             modelClass.isAssignableFrom(AdminMerchantsViewModel::class.java) -> AdminMerchantsViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(AdminVouchersViewModel::class.java) -> AdminVouchersViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(MerchantDetailViewModel::class.java) -> MerchantDetailViewModel(app!!, repo!!)
+            modelClass.isAssignableFrom(ChatListViewModel::class.java) -> ChatListViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(ChatViewModel::class.java) -> ChatViewModel(apiService!!, socketManager!!, sessionManager!!, partnerId!!)
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
