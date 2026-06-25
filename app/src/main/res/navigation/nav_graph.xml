@@ -102,7 +102,16 @@
     <fragment
         android:id="@+id/historyFragment"
         android:name="com.example.janagroandroid.ui.history.HistoryFragment"
-        android:label="History"/>
+        android:label="History">
+        <action android:id="@+id/action_historyFragment_to_invoiceFragment" app:destination="@id/invoiceFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/invoiceFragment"
+        android:name="com.example.janagroandroid.ui.history.InvoiceFragment"
+        android:label="Invoice">
+        <argument android:name="orderId" app:argType="long"/>
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"

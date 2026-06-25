@@ -10,15 +10,16 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.janagroandroid.R
 import com.example.janagroandroid.di.AppGraph
 import com.example.janagroandroid.ui.AppViewModelFactory
 
+import androidx.fragment.app.activityViewModels
+
 class HistoryFragment : Fragment() {
 
-    private val viewModel: HistoryViewModel by viewModels {
+    private val viewModel: HistoryViewModel by activityViewModels {
         AppViewModelFactory(requireActivity().application, AppGraph.repository(requireContext()))
     }
 
@@ -54,6 +55,10 @@ class HistoryFragment : Fragment() {
                     onDetailClick = { id ->
                         // Optional: Navigate to detail
                         Toast.makeText(context, "Detail Pesanan #$id", Toast.LENGTH_SHORT).show()
+                    },
+                    onInvoiceClick = { id ->
+                        val bundle = Bundle().apply { putLong("orderId", id) }
+                        findNavController().navigate(R.id.action_historyFragment_to_invoiceFragment, bundle)
                     },
                     onSubmitReview = { productId, rating, comment, imageUri ->
                         viewModel.submitReview(productId, rating, comment, imageUri) { success ->

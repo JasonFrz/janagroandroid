@@ -39,6 +39,7 @@ fun HistoryScreen(
     onBuyAgainClick: (Long) -> Unit,
     onPayClick: (Long) -> Unit,
     onDetailClick: (Long) -> Unit,
+    onInvoiceClick: (Long) -> Unit,
     onSubmitReview: (productId: Long, rating: Int, comment: String, imageUri: android.net.Uri?) -> Unit
 ) {
     val primaryGreen = Color(0xFF2E7D32)
@@ -211,19 +212,15 @@ fun HistoryScreen(
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
                         items(filteredOrders) { order ->
-                            OrderItem(
+                            OrderItemCard(
                                 order = order,
                                 categories = categories,
                                 primaryColor = primaryGreen,
                                 onBuyAgain = { onBuyAgainClick(order.id) },
                                 onPayClick = { onPayClick(order.id) },
-                                onClick = { onDetailClick(order.id) },
-                                onReview = {
-                                    val pid = order.items?.firstOrNull()?.productId
-                                    if (pid != null) {
-                                        showReviewSheetForProduct = pid
-                                    }
-                                }
+                                onInvoiceClick = { onInvoiceClick(order.id) },
+                                onDetailClick = { onDetailClick(order.id) },
+                                onReviewClick = { pid -> showReviewSheetForProduct = pid }
                             )
                         }
                     }
@@ -244,19 +241,20 @@ fun HistoryScreen(
 }
 
 @Composable
-fun OrderItem(
+fun OrderItemCard(
     order: OrderDto,
     categories: List<CategoryDto>,
     primaryColor: Color,
     onBuyAgain: () -> Unit,
     onPayClick: () -> Unit,
-    onClick: () -> Unit,
-    onReview: () -> Unit = {}
+    onInvoiceClick: () -> Unit,
+    onDetailClick: () -> Unit,
+    onReviewClick: (Long) -> Unit
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable { onDetailClick() },
         color = Color.White
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -389,9 +387,14 @@ fun OrderItem(
                     }
                     "Completed" -> {
                         if (order.isReviewed) {
-                            ActionButton(text = "Lihat Penilaian", onClick = {})
+                            ActionButton(text = "Lihat Faktur", onClick = onInvoiceClick)
                         } else {
-                            ActionButton(text = "Nilai", onClick = onReview, isPrimary = true, primaryColor = primaryColor)
+                            ActionButton(
+                                text = "Nilai",
+                                onClick = { onReviewClick(order.items?.firstOrNull()?.productId ?: 0L) },
+                                isPrimary = true,
+                                primaryColor = primaryColor
+                            )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         ActionButton(text = "Beli Lagi", onClick = onBuyAgain, isPrimary = !order.isReviewed, primaryColor = primaryColor)

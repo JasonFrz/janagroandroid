@@ -57,6 +57,8 @@ data class OrderDto(
     val status: String,
     @Json(name = "payment_token")
     val paymentToken: String? = null,
+    @Json(name = "payment_method")
+    val paymentMethod: String? = null,
     @Json(name = "snap_url")
     val snapUrl: String? = null,
     @Json(name = "shipping_address")
