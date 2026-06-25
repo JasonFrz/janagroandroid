@@ -8,6 +8,8 @@ import com.example.janagroandroid.data.repository.AppRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class HistoryViewModel(
     app: Application,
@@ -56,7 +58,57 @@ class HistoryViewModel(
         }
     }
 
+    fun payOrder(orderId: Long) {
+        viewModelScope.launch {
+            _isLoading.postValue(true)
+            val success = repo.payOrder(orderId)
+            if (success) {
+                fetchOrders()
+            }
+            _isLoading.postValue(false)
+        }
+    }
+
     fun resetBuyAgainStatus() {
         _buyAgainStatus.value = null
+    }
+
+    fun submitReview(
+        productId: Long,
+        rating: Int,
+        comment: String,
+        imageUri: android.net.Uri?,
+        onComplete: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            _isLoading.postValue(true)
+            var imagePart: okhttp3.MultipartBody.Part? = null
+
+            if (imageUri != null) {
+                try {
+                    val contentResolver = getApplication<Application>().contentResolver
+                    val inputStream = contentResolver.openInputStream(imageUri)
+                    val bytes = inputStream?.readBytes()
+                    inputStream?.close()
+
+                    if (bytes != null) {
+                        val mimeType = contentResolver.getType(imageUri) ?: "image/jpeg"
+                        val mediaType = mimeType.toMediaTypeOrNull()
+                        val requestBody = bytes.toRequestBody(mediaType)
+                        imagePart = okhttp3.MultipartBody.Part.createFormData("image", "review_image.jpg", requestBody)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            val success = repo.submitReview(productId, rating, comment, imagePart)
+            if (success) {
+                // Refresh orders after successful review
+                fetchOrders()
+            }
+            _isLoading.postValue(false)
+            onComplete(success)
+        }
     }
 }

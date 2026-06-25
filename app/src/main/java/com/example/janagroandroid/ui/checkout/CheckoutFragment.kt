@@ -1,11 +1,15 @@
 package com.example.janagroandroid.ui.checkout
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import coil.load
 import com.example.janagroandroid.R
 import com.example.janagroandroid.databinding.FragmentCheckoutBinding
 import com.example.janagroandroid.di.AppGraph
@@ -36,8 +40,8 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentCheckoutBinding.bind(view)
 
-        val total = arguments?.getDouble("total") ?: 0.0
-        binding.tvTotal.text = "Total: Rp${String.format(Locale.GERMANY, "%,.0f", total)}"
+        val selectedIds = arguments?.getLongArray("selectedIds") ?: longArrayOf()
+        viewModel.loadItems(selectedIds)
 
         binding.spinnerCourier.adapter = ArrayAdapter(
             requireContext(),
@@ -52,6 +56,14 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
         binding.btnPay.setOnClickListener { submitCheckout() }
 
+        binding.btnUseVoucher1.setOnClickListener {
+            viewModel.toggleVoucher("GRATISONGKIR")
+        }
+
+        binding.btnUseVoucher2.setOnClickListener {
+            viewModel.toggleVoucher("DISKON10")
+        }
+
         observeState()
     }
 
@@ -65,17 +77,72 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
         val courier = courierOptions.getOrNull(binding.spinnerCourier.selectedItemPosition)
         val paymentType = paymentOptions.getOrNull(binding.spinnerPayment.selectedItemPosition)?.second
-        val voucherCode = binding.etVoucherCode.text?.toString()?.trim()?.ifBlank { null }
 
         viewModel.checkout(
             shippingAddress = address,
             courier = courier,
-            voucherCode = voucherCode,
             paymentType = paymentType
         )
     }
 
     private fun observeState() {
+        viewModel.items.observe(viewLifecycleOwner) { items ->
+            binding.llProductList.removeAllViews()
+            val inflater = LayoutInflater.from(requireContext())
+            for (item in items) {
+                val itemView = inflater.inflate(R.layout.item_checkout_product, binding.llProductList, false)
+                val tvMerchantName = itemView.findViewById<TextView>(R.id.tvMerchantName)
+                val ivProductImage = itemView.findViewById<ImageView>(R.id.ivProductImage)
+                val tvProductName = itemView.findViewById<TextView>(R.id.tvProductName)
+                val tvProductPriceQty = itemView.findViewById<TextView>(R.id.tvProductPriceQty)
+
+                tvMerchantName.text = item.merchantName
+                tvProductName.text = item.productName
+                tvProductPriceQty.text = "Rp${String.format(Locale.GERMANY, "%,.0f", item.price)} x ${item.qty}"
+
+                item.imageUrl?.replace("http://", "https://")?.let { url ->
+                    ivProductImage.load(url) {
+                        crossfade(true)
+                        error(R.drawable.farmer)
+                        placeholder(R.drawable.farmer)
+                    }
+                } ?: run {
+                    ivProductImage.setImageResource(R.drawable.farmer)
+                }
+
+                binding.llProductList.addView(itemView)
+            }
+        }
+
+        viewModel.subtotal.observe(viewLifecycleOwner) { subtotal ->
+            binding.tvSubtotal.text = "Rp${String.format(Locale.GERMANY, "%,.0f", subtotal)}"
+        }
+
+        viewModel.discount.observe(viewLifecycleOwner) { discount ->
+            binding.tvDiscount.text = "-Rp${String.format(Locale.GERMANY, "%,.0f", discount)}"
+        }
+
+        viewModel.finalTotal.observe(viewLifecycleOwner) { total ->
+            binding.tvTotal.text = "Rp${String.format(Locale.GERMANY, "%,.0f", total)}"
+        }
+
+        viewModel.selectedVoucher.observe(viewLifecycleOwner) { voucher ->
+            when (voucher) {
+                "GRATISONGKIR" -> {
+                    binding.btnUseVoucher1.text = "Batalkan"
+                    binding.btnUseVoucher2.text = "Gunakan"
+                }
+                "DISKON10" -> {
+                    binding.btnUseVoucher1.text = "Gunakan"
+                    binding.btnUseVoucher2.text = "Batalkan"
+                }
+                else -> {
+                    binding.btnUseVoucher1.text = "Gunakan"
+                    binding.btnUseVoucher2.text = "Gunakan"
+                }
+            }
+        }
+
         viewModel.state.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is CheckoutViewModel.CheckoutState.Loading -> setLoading(true)

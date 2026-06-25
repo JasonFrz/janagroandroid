@@ -483,6 +483,24 @@ class AppRepository(
         }
     }
 
+    suspend fun submitReview(
+        productId: Long,
+        rating: Int,
+        comment: String?,
+        imagePart: MultipartBody.Part?
+    ): Boolean {
+        return try {
+            val ratingBody = rating.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val commentBody = comment?.toRequestBody("text/plain".toMediaTypeOrNull())
+            
+            val response = apiService.submitReview(productId, ratingBody, commentBody, imagePart)
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun getHighestRatedMerchants(limit: Int = 6): List<MerchantDto> {
         return try {
             val response = apiService.getHighestRatedMerchants(limit)
@@ -537,6 +555,10 @@ class AppRepository(
 
     suspend fun addToCart(item: CartEntity) {
         cartDao.insert(item)
+    }
+
+    suspend fun getCartItemsByIds(ids: LongArray): List<CartEntity> {
+        return cartDao.getItemsByIds(ids)
     }
 
     suspend fun getRemoteCart(): Boolean {
@@ -697,6 +719,16 @@ class AppRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    suspend fun payOrder(orderId: Long): Boolean {
+        return try {
+            val response = apiService.payOrder(orderId)
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 

@@ -405,10 +405,11 @@ fun ReviewSection(reviews: List<ReviewDto>) {
             val itemsToShow = filteredReviews.take(3)
             itemsToShow.forEachIndexed { index, review ->
                 ReviewItem(
-                    name = review.user?.name ?: "User #${review.userId}",
+                    name = review.reviewer?.name ?: "User #${review.userId}",
                     date = review.createdAt.split("T").firstOrNull() ?: "",
                     rating = review.rating,
-                    comment = review.comment ?: "Tidak ada komentar"
+                    comment = review.comment ?: "Tidak ada komentar",
+                    imageUrl = review.imageUrl
                 )
                 
                 if (index < itemsToShow.size - 1) {
@@ -443,7 +444,7 @@ fun FilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun ReviewItem(name: String, date: String, rating: Int, comment: String) {
+fun ReviewItem(name: String, date: String, rating: Int, comment: String, imageUrl: String? = null) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -488,6 +489,17 @@ fun ReviewItem(name: String, date: String, rating: Int, comment: String) {
             color = Color.Black,
             lineHeight = 20.sp
         )
+        if (!imageUrl.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Review Image",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
     }
 }
 

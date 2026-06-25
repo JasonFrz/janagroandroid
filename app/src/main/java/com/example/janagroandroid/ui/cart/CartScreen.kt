@@ -40,7 +40,7 @@ fun CartScreen(
     onDeleteClick: (Long) -> Unit,
     onDeleteAllClick: () -> Unit,
     onUpdateQty: (Long, Int) -> Unit,
-    onCheckoutClick: (Double) -> Unit,
+    onCheckoutClick: (Double, LongArray) -> Unit,
     onProductClick: (Long) -> Unit,
     onMerchantClick: (Long) -> Unit
 ) {
@@ -121,7 +121,7 @@ fun CartScreen(
                     onSelectAllChange = { checked ->
                         selectedIds = if (checked) cartItems.map { it.id }.toSet() else emptySet()
                     },
-                    onCheckoutClick = { onCheckoutClick(totalPayment) }
+                    onCheckoutClick = { onCheckoutClick(totalPayment, selectedIds.toLongArray()) }
                 )
             }
         ) { paddingValues ->
@@ -418,55 +418,6 @@ fun CartBottomBar(
         color = Color.White
     ) {
         Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Outlined.ShoppingCart,
-                    contentDescription = null,
-                    tint = primaryColor,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    "Voucher Agrojan",
-                    modifier = Modifier.padding(start = 8.dp),
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                
-                Surface(
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, primaryColor),
-                    shape = RoundedCornerShape(2.dp)
-                ) {
-                    Text(
-                        "-Rp10RB",
-                        color = primaryColor,
-                        fontSize = 10.sp,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Surface(
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, primaryColor),
-                    shape = RoundedCornerShape(2.dp)
-                ) {
-                    Text(
-                        "Gratis Ongkir",
-                        color = primaryColor,
-                        fontSize = 10.sp,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                    )
-                }
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.LightGray)
-            }
-            
-            HorizontalDivider(color = Color(0xFFF2F2F2))
 
             Row(
                 modifier = Modifier

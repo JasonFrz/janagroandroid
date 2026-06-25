@@ -95,6 +95,15 @@ interface ApiService {
     @GET("/api/v1/products/{id}/reviews")
     suspend fun getProductReviews(@Path("id") id: Long): Response<ReviewResponse>
 
+    @Multipart
+    @POST("/api/v1/products/{id}/reviews")
+    suspend fun submitReview(
+        @Path("id") id: Long,
+        @Part("rating") rating: RequestBody,
+        @Part("comment") comment: RequestBody?,
+        @Part image: MultipartBody.Part?
+    ): Response<ReviewResponse>
+
 //    CATEGORY API
     @GET("/api/v1/categories")
     suspend fun getCategories(): Response<CategoryResponse>
@@ -115,6 +124,9 @@ interface ApiService {
 //    ORDER API
     @POST("/api/v1/orders/checkout")
     suspend fun checkout(@Body request: CheckoutRequest): Response<OrderResponse>
+
+    @POST("/api/v1/orders/{id}/pay")
+    suspend fun payOrder(@Path("id") id: Long): Response<OrderResponse>
 
     @GET("/api/v1/orders")
     suspend fun getOrders(): Response<OrderResponse>

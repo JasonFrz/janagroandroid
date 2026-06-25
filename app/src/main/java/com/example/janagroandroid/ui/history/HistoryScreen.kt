@@ -37,12 +37,16 @@ fun HistoryScreen(
     isLoading: Boolean,
     onBackClick: () -> Unit,
     onBuyAgainClick: (Long) -> Unit,
-    onDetailClick: (Long) -> Unit
+    onPayClick: (Long) -> Unit,
+    onDetailClick: (Long) -> Unit,
+    onSubmitReview: (productId: Long, rating: Int, comment: String, imageUri: android.net.Uri?) -> Unit
 ) {
     val primaryGreen = Color(0xFF2E7D32)
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    
+    var showReviewSheetForProduct by remember { mutableStateOf<Long?>(null) }
     
     val tabs = listOf("Semua", "Belum Bayar", "Dikemas", "Dikirim", "Selesai", "Batal")
 
@@ -212,12 +216,29 @@ fun HistoryScreen(
                                 categories = categories,
                                 primaryColor = primaryGreen,
                                 onBuyAgain = { onBuyAgainClick(order.id) },
-                                onClick = { onDetailClick(order.id) }
+                                onPayClick = { onPayClick(order.id) },
+                                onClick = { onDetailClick(order.id) },
+                                onReview = {
+                                    val pid = order.items?.firstOrNull()?.productId
+                                    if (pid != null) {
+                                        showReviewSheetForProduct = pid
+                                    }
+                                }
                             )
                         }
                     }
                 }
             }
+        }
+
+        showReviewSheetForProduct?.let { pid ->
+            ReviewBottomSheet(
+                onDismiss = { showReviewSheetForProduct = null },
+                onSubmit = { rating, comment, uri ->
+                    onSubmitReview(pid, rating, comment, uri)
+                    showReviewSheetForProduct = null
+                }
+            )
         }
     }
 }
@@ -228,7 +249,9 @@ fun OrderItem(
     categories: List<CategoryDto>,
     primaryColor: Color,
     onBuyAgain: () -> Unit,
-    onClick: () -> Unit
+    onPayClick: () -> Unit,
+    onClick: () -> Unit,
+    onReview: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier
@@ -368,13 +391,13 @@ fun OrderItem(
                         if (order.isReviewed) {
                             ActionButton(text = "Lihat Penilaian", onClick = {})
                         } else {
-                            ActionButton(text = "Nilai", onClick = {}, isPrimary = true, primaryColor = primaryColor)
+                            ActionButton(text = "Nilai", onClick = onReview, isPrimary = true, primaryColor = primaryColor)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         ActionButton(text = "Beli Lagi", onClick = onBuyAgain, isPrimary = !order.isReviewed, primaryColor = primaryColor)
                     }
                     else -> {
-                        ActionButton(text = "Pembayaran", onClick = onBuyAgain, isPrimary = true, primaryColor = primaryColor)
+                        ActionButton(text = "Pembayaran", onClick = onPayClick, isPrimary = true, primaryColor = primaryColor)
                     }
                 }
             }

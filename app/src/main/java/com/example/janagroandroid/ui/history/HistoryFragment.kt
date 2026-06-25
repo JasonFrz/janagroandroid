@@ -50,9 +50,19 @@ class HistoryFragment : Fragment() {
                     isLoading = isLoading,
                     onBackClick = { findNavController().navigateUp() },
                     onBuyAgainClick = { id -> viewModel.buyAgain(id) },
+                    onPayClick = { id -> viewModel.payOrder(id) },
                     onDetailClick = { id ->
                         // Optional: Navigate to detail
                         Toast.makeText(context, "Detail Pesanan #$id", Toast.LENGTH_SHORT).show()
+                    },
+                    onSubmitReview = { productId, rating, comment, imageUri ->
+                        viewModel.submitReview(productId, rating, comment, imageUri) { success ->
+                            if (success) {
+                                Toast.makeText(context, "Penilaian berhasil dikirim", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Gagal mengirim penilaian", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 )
             }

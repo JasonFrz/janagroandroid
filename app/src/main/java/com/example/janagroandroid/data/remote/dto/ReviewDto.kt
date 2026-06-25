@@ -16,6 +16,14 @@ data class ReviewData(
 )
 
 @JsonClass(generateAdapter = true)
+data class ReviewerDto(
+    val id: Long = 0,
+    val name: String = "User",
+    @Json(name = "profile_picture")
+    val profilePicture: String? = null
+)
+
+@JsonClass(generateAdapter = true)
 data class ReviewDto(
     val id: Long,
     @Json(name = "user_id")
@@ -26,7 +34,11 @@ data class ReviewDto(
     val orderId: Long,
     val rating: Int,
     val comment: String?,
+    @Json(name = "image_url")
+    val imageUrl: String? = null,
     @Json(name = "created_at")
-    val createdAt: String,
-    val user: UserDto? = null
+    val createdAt: String = "",
+    @Json(name = "reviewer")
+    val reviewer: ReviewerDto? = null
 )
+

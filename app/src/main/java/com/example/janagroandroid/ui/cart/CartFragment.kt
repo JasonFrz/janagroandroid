@@ -38,10 +38,10 @@ class CartFragment : Fragment() {
                     onDeleteClick = { id -> viewModel.deleteCart(id) },
                     onDeleteAllClick = { viewModel.deleteAllCart() },
                     onUpdateQty = { id, qty -> viewModel.updateQuantity(id, qty) },
-                    onCheckoutClick = { total ->
+                    onCheckoutClick = { total, selectedIds ->
                         findNavController().navigate(
                             R.id.checkoutFragment,
-                            bundleOf("total" to total)
+                            bundleOf("total" to total, "selectedIds" to selectedIds)
                         )
                     },
                     onProductClick = { id ->
