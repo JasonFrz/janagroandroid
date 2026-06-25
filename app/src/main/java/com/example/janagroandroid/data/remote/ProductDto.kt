@@ -42,7 +42,10 @@ data class ProductDto(
     val updatedAt: String? = null
 ) {
     val priceDouble: Double get() = price?.toDoubleOrNull() ?: 0.0
-    val firstImageUrl: String? get() = images.firstOrNull()
+    val firstImageUrl: String? get() {
+        val url = images.firstOrNull()
+        return url?.replace("http://", "https://")
+    }
 }
 
 fun ProductDto.toEntity(merchantId: Long = 0): ProductEntity {

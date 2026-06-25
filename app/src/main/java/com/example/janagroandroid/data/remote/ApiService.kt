@@ -25,14 +25,14 @@ interface ApiService {
     suspend fun getProfile(): Response<AuthResponse>
 
     @Multipart
-    @PATCH("/api/v1/users/profile")
+    @PUT("/api/v1/users/profile")
     suspend fun updateProfile(
         @Part("name") name: RequestBody?,
         @Part("phone") phone: RequestBody?,
         @Part image: MultipartBody.Part?
     ): Response<AuthResponse>
 
-    @POST("/api/v1/merchants/request")
+    @POST("/api/v1/merchants/apply")
     suspend fun requestBecomeSeller(@Body request: Map<String, String>): Response<AuthResponse>
 
 //    CART API
@@ -106,10 +106,10 @@ interface ApiService {
     @GET("/api/v1/merchants/highest-rated")
     suspend fun getHighestRatedMerchants(@Query("limit") limit: Int): Response<HighestRatedMerchantsResponse>
 
-    @GET("/api/v1/merchants/pending")
+    @GET("/api/v1/admin/merchants/pending")
     suspend fun getAllPendingMerchants(): Response<HighestRatedMerchantsResponse>
 
-    @PATCH("/api/v1/merchants/{id}/status")
+    @PATCH("/api/v1/admin/merchants/{id}/status")
     suspend fun updateMerchantStatus(@Path("id") id: Long, @Body request: Map<String, String>): Response<AuthResponse>
 
 //    ORDER API

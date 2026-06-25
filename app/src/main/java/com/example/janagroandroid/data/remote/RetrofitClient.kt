@@ -12,9 +12,9 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     // Use 10.0.2.2 for Android Emulator to access host's localhost
-//    private const val BASE_URL = "http://10.0.2.2:3000/"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
     // Use your machine's IP address (e.g., 192.168.x.x) if testing on a physical device
-     private const val BASE_URL = "http://10.36.186.117:3000/"
+//     private const val BASE_URL = "http://10.36.186.117:3000/"
     
     private var apiServiceInstance: ApiService? = null
 
