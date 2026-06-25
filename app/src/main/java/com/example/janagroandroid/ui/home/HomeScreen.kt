@@ -487,7 +487,7 @@ fun HomeVoucherItem(
         Box(modifier = Modifier.fillMaxSize()) {
             // Background Image
             AsyncImage(
-                model = R.drawable.sawid, // Menggunakan sawid.png sebagai background default voucher
+                model = R.drawable.voucher, // Menggunakan voucher.png sebagai background default voucher
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

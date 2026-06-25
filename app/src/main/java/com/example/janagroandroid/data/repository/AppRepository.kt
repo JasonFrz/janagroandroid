@@ -334,6 +334,71 @@ class AppRepository(
         }
     }
 
+    // ── Admin moderation ─────────────────────────────────────────────────────
+    suspend fun setUserStatus(id: Long, status: String): Boolean {
+        return try {
+            apiService.updateUserStatus(id, mapOf("status" to status)).isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun adminDeleteUser(id: Long): Boolean {
+        return try {
+            apiService.adminDeleteUser(id).isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun getAdminProducts(search: String? = null): List<AdminProductDto> {
+        return try {
+            val response = apiService.getAdminProducts(search)
+            if (response.isSuccessful) {
+                response.body()?.data?.products.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun adminDeleteProduct(id: Long): Boolean {
+        return try {
+            apiService.adminDeleteProduct(id).isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun getAdminReviews(): List<AdminReviewDto> {
+        return try {
+            val response = apiService.getAdminReviews()
+            if (response.isSuccessful) {
+                response.body()?.data?.reviews.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun setReviewVisibility(id: Long, isHidden: Boolean): Boolean {
+        return try {
+            apiService.updateReviewVisibility(id, mapOf("is_hidden" to isHidden)).isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun getVouchers(): List<VoucherDto>{
         return try {
             val response = apiService.getVouchers()

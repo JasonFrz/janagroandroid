@@ -65,7 +65,7 @@ fun VoucherDetailScreen(
                         .height(200.dp)
                 ) {
                     AsyncImage(
-                        model = R.drawable.sawid,
+                        model = R.drawable.voucher,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

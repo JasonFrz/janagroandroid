@@ -136,6 +136,31 @@ interface ApiService {
         @Query("role") role: String?
     ): Response<AdminUsersResponse>
 
+//    ADMIN MODERATION API
+    @PATCH("/api/v1/admin/users/{id}/status")
+    suspend fun updateUserStatus(
+        @Path("id") id: Long,
+        @Body request: Map<String, String>
+    ): Response<AuthResponse>
+
+    @DELETE("/api/v1/admin/users/{id}")
+    suspend fun adminDeleteUser(@Path("id") id: Long): Response<AuthResponse>
+
+    @GET("/api/v1/admin/products")
+    suspend fun getAdminProducts(@Query("search") search: String?): Response<AdminProductsResponse>
+
+    @DELETE("/api/v1/admin/products/{id}")
+    suspend fun adminDeleteProduct(@Path("id") id: Long): Response<AuthResponse>
+
+    @GET("/api/v1/admin/reviews")
+    suspend fun getAdminReviews(): Response<AdminReviewsResponse>
+
+    @PATCH("/api/v1/admin/reviews/{id}/visibility")
+    suspend fun updateReviewVisibility(
+        @Path("id") id: Long,
+        @Body request: Map<String, Boolean>
+    ): Response<AuthResponse>
+
 //    VOUCHER API
     @GET("/api/v1/admin/vouchers")
     suspend fun getVouchers(): Response<VoucherListReponse>

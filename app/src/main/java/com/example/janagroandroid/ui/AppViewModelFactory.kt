@@ -9,6 +9,7 @@ import com.example.janagroandroid.data.remote.SocketManager
 import com.example.janagroandroid.data.repository.AppRepository
 import com.example.janagroandroid.ui.admin.AdminHomeViewModel
 import com.example.janagroandroid.ui.admin.AdminMerchantsViewModel
+import com.example.janagroandroid.ui.admin.AdminReportsViewModel
 import com.example.janagroandroid.ui.admin.AdminUsersViewModel
 import com.example.janagroandroid.ui.admin.AdminVouchersViewModel
 import com.example.janagroandroid.ui.auth.AuthViewModel
@@ -52,6 +53,7 @@ class AppViewModelFactory(
             modelClass.isAssignableFrom(AdminUsersViewModel::class.java) -> AdminUsersViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(AdminMerchantsViewModel::class.java) -> AdminMerchantsViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(AdminVouchersViewModel::class.java) -> AdminVouchersViewModel(app!!, repo!!)
+            modelClass.isAssignableFrom(AdminReportsViewModel::class.java) -> AdminReportsViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(MerchantDetailViewModel::class.java) -> MerchantDetailViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(ChatListViewModel::class.java) -> ChatListViewModel(app!!, repo!!)
             modelClass.isAssignableFrom(ChatViewModel::class.java) -> ChatViewModel(apiService!!, socketManager!!, sessionManager!!, partnerId!!)
