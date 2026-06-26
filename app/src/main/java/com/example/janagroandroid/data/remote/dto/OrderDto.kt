@@ -11,7 +11,9 @@ data class CheckoutRequest(
     @Json(name = "voucher_code")
     val voucherCode: String? = null,
     @Json(name = "payment_type")
-    val paymentType: String? = null
+    val paymentType: String? = null,
+    @Json(name = "cart_item_ids")
+    val cartItemIds: List<Long>? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -61,6 +63,13 @@ data class OrderDto(
     val paymentMethod: String? = null,
     @Json(name = "snap_url")
     val snapUrl: String? = null,
+    @Json(name = "qr_string")
+    val qrString: String? = null,
+    @Json(name = "deeplink_url")
+    val deeplinkUrl: String? = null,
+    @Json(name = "va_number")
+    val vaNumber: String? = null,
+    val bank: String? = null,
     @Json(name = "shipping_address")
     val shippingAddress: String? = null,
     @Json(name = "created_at")

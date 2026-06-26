@@ -51,6 +51,7 @@ fun ProductDetailScreen(
     reviews: List<ReviewDto> = emptyList(),
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
+    onBuyNowClick: () -> Unit = {},
     onCartClick: () -> Unit = {},
     onChatClick: (Long, String) -> Unit = { _, _ -> },
     onMerchantClick: (Long) -> Unit = {}
@@ -96,6 +97,7 @@ fun ProductDetailScreen(
             bottomBar = {
                 BottomActionBar(
                     onAddToCartClick = { onAddToCartClick(1) },
+                    onBuyNowClick = onBuyNowClick,
                     onChatClick = {
                         // Gunakan merchantUserId jika ada, jika tidak gunakan merchantId sebagai fallback
                         // Backend resolveChatUser mendukung merchantId untuk mencari owner
@@ -504,7 +506,7 @@ fun ReviewItem(name: String, date: String, rating: Int, comment: String, imageUr
 }
 
 @Composable
-fun BottomActionBar(onAddToCartClick: () -> Unit, onChatClick: () -> Unit = {}) {
+fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}, onChatClick: () -> Unit = {}) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 8.dp,
@@ -533,7 +535,7 @@ fun BottomActionBar(onAddToCartClick: () -> Unit, onChatClick: () -> Unit = {}) 
             }
             
             Button(
-                onClick = { /* Buy Now */ },
+                onClick = onBuyNowClick,
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp),

@@ -128,6 +128,9 @@ interface ApiService {
     @POST("/api/v1/orders/{id}/pay")
     suspend fun payOrder(@Path("id") id: Long): Response<OrderResponse>
 
+    @PUT("/api/v1/orders/{id}/complete")
+    suspend fun completeOrder(@Path("id") id: Long): Response<OrderResponse>
+
     @GET("/api/v1/orders")
     suspend fun getOrders(): Response<OrderResponse>
 

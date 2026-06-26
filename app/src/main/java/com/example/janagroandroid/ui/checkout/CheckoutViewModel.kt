@@ -9,6 +9,7 @@ import com.example.janagroandroid.data.repository.AppRepository
 import kotlinx.coroutines.launch
 
 import com.example.janagroandroid.data.local.entity.CartEntity
+import com.example.janagroandroid.data.remote.dto.VoucherDto
 
 class CheckoutViewModel(
     app: Application,
@@ -18,7 +19,7 @@ class CheckoutViewModel(
     sealed class CheckoutState {
         object Idle : CheckoutState()
         object Loading : CheckoutState()
-        data class Success(val message: String?) : CheckoutState()
+        data class Success(val response: com.example.janagroandroid.data.remote.dto.OrderResponse?) : CheckoutState()
         data class Error(val message: String?) : CheckoutState()
     }
 
@@ -28,37 +29,63 @@ class CheckoutViewModel(
     private val _items = MutableLiveData<List<CartEntity>>(emptyList())
     val items: LiveData<List<CartEntity>> = _items
 
-    private val _selectedVoucher = MutableLiveData<String?>(null)
-    val selectedVoucher: LiveData<String?> = _selectedVoucher
+    private val _activeVouchers = MutableLiveData<List<VoucherDto>>(emptyList())
+    val activeVouchers: LiveData<List<VoucherDto>> = _activeVouchers
+
+    private val _userAddress = MutableLiveData<String>("")
+    val userAddress: LiveData<String> = _userAddress
+
+    private var selectedItemIds: LongArray = longArrayOf()
+
+    private val _selectedVoucher = MutableLiveData<VoucherDto?>(null)
+    val selectedVoucher: LiveData<VoucherDto?> = _selectedVoucher
 
     val subtotal: LiveData<Double> = MutableLiveData(0.0)
     val discount: LiveData<Double> = MutableLiveData(0.0)
     val finalTotal: LiveData<Double> = MutableLiveData(0.0)
 
-    fun loadItems(ids: LongArray) {
+    fun loadInitialData(ids: LongArray) {
+        selectedItemIds = ids
         viewModelScope.launch {
             val list = repo.getCartItemsByIds(ids)
             _items.value = list
             updateCalculations(list, _selectedVoucher.value)
+
+            val vouchers = repo.getActiveVouchers()
+            _activeVouchers.value = vouchers
+
+            // UserEntity currently does not have an address field. 
+            // Default to empty string; user will fill it in the UI.
+            _userAddress.value = ""
         }
     }
 
-    fun toggleVoucher(code: String) {
-        val current = _selectedVoucher.value
-        val newVoucher = if (current == code) null else code
-        _selectedVoucher.value = newVoucher
-        updateCalculations(_items.value.orEmpty(), newVoucher)
+    fun selectVoucher(voucher: VoucherDto?) {
+        _selectedVoucher.value = voucher
+        updateCalculations(_items.value.orEmpty(), voucher)
     }
 
-    private fun updateCalculations(list: List<CartEntity>, voucher: String?) {
+    private fun updateCalculations(list: List<CartEntity>, voucher: VoucherDto?) {
         val sub = list.sumOf { it.price * it.qty }
         (subtotal as MutableLiveData).value = sub
 
-        val disc = when (voucher) {
-            "GRATISONGKIR" -> 10000.0 // Flat Rp 10rb discount
-            "DISKON10" -> sub * 0.10  // 10% discount
-            else -> 0.0
+        var disc = 0.0
+        if (voucher != null) {
+            if (voucher.discountType.equals("Percentage", ignoreCase = true)) {
+                val percentage = voucher.discountValue.toDoubleOrNull() ?: 0.0
+                disc = sub * (percentage / 100.0)
+                val maxDisc = voucher.maxDiscount?.toDoubleOrNull()
+                if (maxDisc != null && disc > maxDisc) {
+                    disc = maxDisc
+                }
+            } else if (voucher.discountType.equals("Fixed_Amount", ignoreCase = true)) {
+                disc = voucher.discountValue.toDoubleOrNull() ?: 0.0
+            }
         }
+        
+        // Cap discount at subtotal
+        if (disc > sub) disc = sub
+        
         (discount as MutableLiveData).value = disc
         (finalTotal as MutableLiveData).value = Math.max(0.0, sub - disc)
     }
@@ -70,13 +97,13 @@ class CheckoutViewModel(
     ) {
         viewModelScope.launch {
             _state.value = CheckoutState.Loading
-            val (success, message) = repo.checkout(
-                shippingAddress, courier, _selectedVoucher.value, paymentType
+            val (success, response) = repo.checkout(
+                shippingAddress, courier, _selectedVoucher.value?.code, paymentType, selectedItemIds
             )
             _state.value = if (success) {
-                CheckoutState.Success(message)
+                CheckoutState.Success(response)
             } else {
-                CheckoutState.Error(message)
+                CheckoutState.Error(response?.message)
             }
         }
     }

@@ -732,6 +732,16 @@ class AppRepository(
         }
     }
 
+    suspend fun completeOrder(orderId: Long): Boolean {
+        return try {
+            val response = apiService.completeOrder(orderId)
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun buyAgain(orderId: Long): Boolean {
         return try {
             val order = getRemoteOrderDetail(orderId) ?: return false
@@ -760,26 +770,28 @@ class AppRepository(
         shippingAddress: String,
         courier: String? = null,
         voucherCode: String? = null,
-        paymentType: String? = null
-    ): Pair<Boolean, String?> {
+        paymentType: String? = null,
+        cartItemIds: LongArray? = null
+    ): Pair<Boolean, com.example.janagroandroid.data.remote.dto.OrderResponse?> {
         return try {
             val request = CheckoutRequest(
                 shippingAddress = shippingAddress,
                 courier = courier?.ifBlank { null },
                 voucherCode = voucherCode?.ifBlank { null },
-                paymentType = paymentType?.ifBlank { null }
+                paymentType = paymentType?.ifBlank { null },
+                cartItemIds = cartItemIds?.toList()
             )
             val response = apiService.checkout(request)
             if (response.isSuccessful) {
                 // Cart was cleared on the server; sync local cache to reflect it.
                 getRemoteCart()
-                Pair(true, response.body()?.message)
+                Pair(true, response.body())
             } else {
-                Pair(false, parseErrorMessage(response.errorBody()?.string()))
+                Pair(false, com.example.janagroandroid.data.remote.dto.OrderResponse(message = parseErrorMessage(response.errorBody()?.string())))
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Pair(false, e.message)
+            Pair(false, com.example.janagroandroid.data.remote.dto.OrderResponse(message = e.message))
         }
     }
 

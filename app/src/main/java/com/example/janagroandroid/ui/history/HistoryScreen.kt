@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -40,6 +41,7 @@ fun HistoryScreen(
     onPayClick: (Long) -> Unit,
     onDetailClick: (Long) -> Unit,
     onInvoiceClick: (Long) -> Unit,
+    onCompleteOrderClick: (Long) -> Unit,
     onSubmitReview: (productId: Long, rating: Int, comment: String, imageUri: android.net.Uri?) -> Unit
 ) {
     val primaryGreen = Color(0xFF2E7D32)
@@ -48,6 +50,7 @@ fun HistoryScreen(
     var searchQuery by remember { mutableStateOf("") }
     
     var showReviewSheetForProduct by remember { mutableStateOf<Long?>(null) }
+    var orderToPay by remember { mutableStateOf<OrderDto?>(null) }
     
     val tabs = listOf("Semua", "Belum Bayar", "Dikemas", "Dikirim", "Selesai", "Batal")
 
@@ -217,15 +220,90 @@ fun HistoryScreen(
                                 categories = categories,
                                 primaryColor = primaryGreen,
                                 onBuyAgain = { onBuyAgainClick(order.id) },
-                                onPayClick = { onPayClick(order.id) },
+                                onPayClick = { orderToPay = order },
                                 onInvoiceClick = { onInvoiceClick(order.id) },
                                 onDetailClick = { onDetailClick(order.id) },
+                                onCompleteOrderClick = { onCompleteOrderClick(order.id) },
                                 onReviewClick = { pid -> showReviewSheetForProduct = pid }
                             )
                         }
                     }
                 }
             }
+        }
+
+        orderToPay?.let { order ->
+            val context = androidx.compose.ui.platform.LocalContext.current
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { orderToPay = null },
+                title = { Text("Informasi Pembayaran", fontWeight = FontWeight.Bold) },
+                text = {
+                    val paymentMethod = order.paymentMethod ?: "Pembayaran"
+                    val paymentInfo = order.snapUrl ?: "-"
+                    val qrData = order.qrString ?: if (!paymentInfo.startsWith("http") && paymentInfo.length > 20) paymentInfo else null
+                    val isUrl = paymentInfo.startsWith("http")
+                    
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "Metode: $paymentMethod",
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        
+                        if (qrData != null) {
+                            Text("Silakan pindai QR Code di bawah ini untuk membayar:", fontSize = 14.sp)
+                            Spacer(Modifier.height(12.dp))
+                            QrImageView(data = qrData)
+                            Spacer(Modifier.height(12.dp))
+//                            Text("Kode: $qrData", fontSize = 10.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                        } else if (isUrl) {
+                            Text("Silakan klik tombol 'Bayar Sekarang' untuk membuka halaman pembayaran (Snap Midtrans/QRIS).", modifier = Modifier.align(Alignment.Start))
+                        } else {
+                            Text("Kode/VA: $paymentInfo", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = primaryGreen)
+                            Spacer(Modifier.height(8.dp))
+                            Text("Setelah melakukan pembayaran, silakan tekan tombol 'Sudah Bayar' di bawah untuk konfirmasi.", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.align(Alignment.Start))
+                        }
+                    }
+                },
+                confirmButton = {
+                    Row {
+                        if (order.snapUrl?.startsWith("http") == true) {
+                            Button(
+                                onClick = {
+                                    try {
+                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(order.snapUrl))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        // Handle if no browser found
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
+                            ) {
+                                Text("Bayar Sekarang")
+                            }
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        
+                        TextButton(
+                            onClick = {
+                                onPayClick(order.id)
+                                orderToPay = null
+                            }
+                        ) {
+                            Text("Sudah Bayar", color = primaryGreen, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { orderToPay = null }) {
+                        Text("Tutup", color = Color.Gray)
+                    }
+                }
+            )
         }
 
         showReviewSheetForProduct?.let { pid ->
@@ -249,6 +327,7 @@ fun OrderItemCard(
     onPayClick: () -> Unit,
     onInvoiceClick: () -> Unit,
     onDetailClick: () -> Unit,
+    onCompleteOrderClick: () -> Unit,
     onReviewClick: (Long) -> Unit
 ) {
     Surface(
@@ -399,12 +478,40 @@ fun OrderItemCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         ActionButton(text = "Beli Lagi", onClick = onBuyAgain, isPrimary = !order.isReviewed, primaryColor = primaryColor)
                     }
-                    else -> {
+                    "Pending_Payment" -> {
                         ActionButton(text = "Pembayaran", onClick = onPayClick, isPrimary = true, primaryColor = primaryColor)
+                    }
+                    "Shipped" -> {
+                        ActionButton(text = "Pesanan Diterima", onClick = onCompleteOrderClick, isPrimary = true, primaryColor = primaryColor)
+                    }
+                    "Paid", "Packed" -> {
+                        // Do nothing, just wait for shipping
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun QrImageView(data: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier
+            .size(220.dp)
+            .padding(4.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = Color.White,
+        shadowElevation = 2.dp
+    ) {
+        AsyncImage(
+            model = "https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=$data",
+            contentDescription = "QR Code",
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+            error = painterResource(id = R.drawable.farmer)
+        )
     }
 }
 

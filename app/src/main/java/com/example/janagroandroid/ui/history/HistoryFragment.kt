@@ -60,6 +60,7 @@ class HistoryFragment : Fragment() {
                         val bundle = Bundle().apply { putLong("orderId", id) }
                         findNavController().navigate(R.id.action_historyFragment_to_invoiceFragment, bundle)
                     },
+                    onCompleteOrderClick = { id -> viewModel.completeOrder(id) },
                     onSubmitReview = { productId, rating, comment, imageUri ->
                         viewModel.submitReview(productId, rating, comment, imageUri) { success ->
                             if (success) {

@@ -85,6 +85,7 @@
         <argument android:name="merchantCity" app:argType="string" app:nullable="true" android:defaultValue="Surabaya, Jawa Timur"/>
         <action android:id="@+id/action_productDetailFragment_to_chatFragment" app:destination="@id/chatFragment"/>
         <action android:id="@+id/action_productDetailFragment_to_merchantDetailFragment" app:destination="@id/merchantDetailFragment"/>
+        <action android:id="@+id/action_productDetailFragment_to_cartFragment" app:destination="@id/cartFragment"/>
     </fragment>
 
     <fragment

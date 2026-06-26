@@ -70,8 +70,12 @@ class ProductDetailFragment : Fragment() {
                     onAddToCartClick = { qty ->
                         viewModel.addToCart(id, qty)
                     },
+                    onBuyNowClick = {
+                        viewModel.addToCart(id, 1)
+                        findNavController().navigate(R.id.action_productDetailFragment_to_cartFragment)
+                    },
                     onCartClick = {
-                        findNavController().navigate(R.id.cartFragment)
+                        findNavController().navigate(R.id.action_productDetailFragment_to_cartFragment)
                     },
                     onMerchantClick = { mId ->
                         if (mId != 0L) {

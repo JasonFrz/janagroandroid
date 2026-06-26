@@ -69,6 +69,17 @@ class HistoryViewModel(
         }
     }
 
+    fun completeOrder(orderId: Long) {
+        viewModelScope.launch {
+            _isLoading.postValue(true)
+            val success = repo.completeOrder(orderId)
+            if (success) {
+                fetchOrders()
+            }
+            _isLoading.postValue(false)
+        }
+    }
+
     fun resetBuyAgainStatus() {
         _buyAgainStatus.value = null
     }
