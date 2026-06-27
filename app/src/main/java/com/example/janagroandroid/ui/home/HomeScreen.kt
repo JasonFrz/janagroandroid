@@ -176,12 +176,7 @@ fun HomeHeader(
         ) {
             Text(
                 text = user?.name ?: "Guest User",
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-            Text(
-                text = if (user != null) "Suroboyo mas, ID" else "Log in for more features",
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )

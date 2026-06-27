@@ -165,21 +165,8 @@ fun ProductDetailScreen(
                                 color = Color(0xFFFBC02D)
                             )
                         }
-                        
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = if (avgRating > 0) Color(0xFFFFB300) else Color(0xFF757575),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = " ${String.format(Locale.US, "%.1f", avgRating)} ($totalSold terjual)",
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
-                        }
                     }
+
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -286,18 +273,6 @@ fun ProductDetailScreen(
                         .fillMaxWidth()
                         .padding(24.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("✨", fontSize = 24.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Tips Cerdas Gemini AI",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            color = Color(0xFF6A1B9A)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     if (isAiLoading) {
                         Box(
                             modifier = Modifier
@@ -645,11 +620,13 @@ fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}
 
 @Composable
 fun MarkdownText(text: String, modifier: Modifier = Modifier) {
-    // Basic Markdown parser for **bold** and * bullet points
-    val cleanedText = text.replace("* ", "• ")
+    // 1. Ganti bullet point markdown (asterisk di awal baris) dengan bullet symbol
+    val bulletRegex = "(?m)^\\s*\\*\\s+".toRegex()
+    val cleanedText = text.replace(bulletRegex, "• ")
     
     val annotatedString = buildAnnotatedString {
         var currentIndex = 0
+        // Match **text**
         val boldRegex = "\\*\\*(.*?)\\*\\*".toRegex()
         val matches = boldRegex.findAll(cleanedText)
         
