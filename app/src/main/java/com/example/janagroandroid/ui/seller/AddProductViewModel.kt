@@ -35,11 +35,12 @@ class AddProductViewModel(
         viewModelScope.launch {
             _loading.value = true
             try {
-                // Map category name to ID (Assume 1: Bibit, 2: Pupuk, 3: Alat based on requirements)
                 val categoryId = when (categoryName) {
-                    "Bibit" -> 1
-                    "Pupuk" -> 2
-                    "Alat" -> 3
+                    "Alat" -> 1
+                    "Benih", "Bibit" -> 2
+                    "Pupuk" -> 3
+                    "Pestisida" -> 4
+                    "Irigasi" -> 5
                     else -> 1
                 }
 

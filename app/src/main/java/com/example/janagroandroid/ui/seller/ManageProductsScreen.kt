@@ -66,7 +66,7 @@ fun ManageProductsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
-    val categories = listOf("Semua", "Bibit", "Pupuk", "Alat")
+    val categories = listOf("Semua", "Alat", "Benih", "Pupuk", "Pestisida", "Irigasi")
     val filteredProducts = remember(searchQuery, selectedCategory, products) {
         products.filter { product ->
             val matchesQuery = searchQuery.isBlank() ||

@@ -100,46 +100,67 @@ class HomeViewModel(
 
     fun refreshRemote() {
         viewModelScope.launch {
-            repo.refreshRemoteProducts()
-            fetchCategories()
-            fetchTopMerchants()
-            fetchActiveVouchers()
-            if (repo.isLoggedIn()) {
-                repo.refreshProfile()
-                repo.getRemoteCart()
-                fetchNotifications()
+            try {
+                repo.refreshRemoteProducts()
+                fetchCategories()
+                fetchTopMerchants()
+                fetchActiveVouchers()
+                if (repo.isLoggedIn()) {
+                    repo.refreshProfile()
+                    repo.getRemoteCart()
+                    fetchNotifications()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
     fun fetchActiveVouchers() {
         viewModelScope.launch {
-            val result = repo.getActiveVouchers()
-            _activeVouchers.postValue(result)
+            try {
+                val result = repo.getActiveVouchers()
+                _activeVouchers.postValue(result)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun fetchCategories() {
         viewModelScope.launch {
-            val result = repo.getCategories()
-            _categories.postValue(result)
+            try {
+                val result = repo.getCategories()
+                _categories.postValue(result)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun fetchTopMerchants() {
         viewModelScope.launch {
-            val result = repo.getHighestRatedMerchants(6)
-            _topMerchants.postValue(result)
+            try {
+                val result = repo.getHighestRatedMerchants(6)
+                _topMerchants.postValue(result)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun addToCart(productId: Long, qty: Int = 1) {
         viewModelScope.launch {
-            val (success, errorMsg) = repo.addRemoteCart(productId, qty)
-            if (success) {
-                _addToCartResult.postValue(Result.success("Produk ditambahkan ke keranjang"))
-            } else {
-                _addToCartResult.postValue(Result.failure(Exception(errorMsg ?: "Gagal menambahkan ke keranjang")))
+            try {
+                val (success, errorMsg) = repo.addRemoteCart(productId, qty)
+                if (success) {
+                    _addToCartResult.postValue(Result.success("Produk ditambahkan ke keranjang"))
+                } else {
+                    _addToCartResult.postValue(Result.failure(Exception(errorMsg ?: "Gagal menambahkan ke keranjang")))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _addToCartResult.postValue(Result.failure(Exception("Terjadi kesalahan jaringan")))
             }
         }
     }
@@ -153,22 +174,30 @@ class HomeViewModel(
 
     fun fetchNotifications() {
         viewModelScope.launch {
-            if (repo.isLoggedIn()) {
-                val result = repo.getNotifications()
-                _notifications.postValue(result)
-            } else {
-                _notifications.postValue(emptyList())
+            try {
+                if (repo.isLoggedIn()) {
+                    val result = repo.getNotifications()
+                    _notifications.postValue(result)
+                } else {
+                    _notifications.postValue(emptyList())
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
     fun markNotificationsAsRead() {
         viewModelScope.launch {
-            if (repo.isLoggedIn()) {
-                val success = repo.readNotifications()
-                if (success) {
-                    fetchNotifications()
+            try {
+                if (repo.isLoggedIn()) {
+                    val success = repo.readNotifications()
+                    if (success) {
+                        fetchNotifications()
+                    }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

@@ -105,7 +105,7 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
     }
 
     private fun setupCategoryDropdown() {
-        val categories = arrayOf("Bibit", "Pupuk", "Alat")
+        val categories = arrayOf("Alat", "Benih", "Pupuk", "Pestisida", "Irigasi")
         val adapter = ArrayAdapter(requireContext(), R.layout.list_item_dropdown, categories)
         binding.spinnerCategory.setAdapter(adapter)
     }
