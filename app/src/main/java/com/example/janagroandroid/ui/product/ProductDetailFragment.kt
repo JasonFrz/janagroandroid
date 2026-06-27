@@ -53,6 +53,8 @@ class ProductDetailFragment : Fragment() {
             setContent {
                 val productDetail by viewModel.product.observeAsState()
                 val reviews by viewModel.reviews.observeAsState(emptyList())
+                val aiTips by viewModel.aiTips.observeAsState()
+                val isAiLoading by viewModel.isAiLoading.observeAsState(false)
 
                 ProductDetailScreen(
                     id = id,
@@ -66,6 +68,9 @@ class ProductDetailFragment : Fragment() {
                     merchantAddress = productDetail?.merchant_city ?: initialMerchantCity,
                     category = productDetail?.category ?: "",
                     reviews = reviews,
+                    aiTips = aiTips,
+                    isAiLoading = isAiLoading,
+                    onAiTipsClick = { viewModel.fetchAiTips(id) },
                     onBackClick = { findNavController().popBackStack() },
                     onAddToCartClick = { qty ->
                         viewModel.addToCart(id, qty)

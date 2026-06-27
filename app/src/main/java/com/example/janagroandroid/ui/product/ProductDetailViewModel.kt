@@ -15,6 +15,15 @@ class ProductDetailViewModel(
     private val repo: AppRepository
 ) : AndroidViewModel(app) {
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+    
+    private val _aiTips = MutableLiveData<String?>()
+    val aiTips: LiveData<String?> = _aiTips
+
+    private val _isAiLoading = MutableLiveData<Boolean>()
+    val isAiLoading: LiveData<Boolean> = _isAiLoading
+
     private val _product = MutableLiveData<ProductEntity?>()
     val product: LiveData<ProductEntity?> = _product
 
@@ -46,11 +55,26 @@ class ProductDetailViewModel(
                 if (result.first) {
                     _addToCartResult.postValue(Result.success("Produk berhasil ditambahkan ke keranjang"))
                 } else {
-                    _addToCartResult.postValue(Result.failure(Exception(result.second ?: "Gagal menambahkan ke keranjang")))
+                    _addToCartResult.postValue(Result.failure(Exception(result.second ?: "Gagal menambahkan produk")))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _addToCartResult.postValue(Result.failure(Exception("Terjadi kesalahan jaringan")))
+            }
+        }
+    }
+
+    fun fetchAiTips(productId: Long) {
+        viewModelScope.launch {
+            _isAiLoading.value = true
+            try {
+                val tips = repo.getProductAiTips(productId)
+                _aiTips.postValue(tips)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _aiTips.postValue(null)
+            } finally {
+                _isAiLoading.value = false
             }
         }
     }

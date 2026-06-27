@@ -48,4 +48,12 @@ class SessionManager(context: Context) {
     fun clear() {
         prefs.edit().clear().apply()
     }
+
+    fun saveAiTips(productId: Long, tips: String) {
+        prefs.edit().putString("ai_tips_$productId", tips).apply()
+    }
+
+    fun getAiTips(productId: Long): String? {
+        return prefs.getString("ai_tips_$productId", null)
+    }
 }

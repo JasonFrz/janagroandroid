@@ -496,8 +496,33 @@ class AppRepository(
             val response = apiService.submitReview(productId, ratingBody, commentBody, imagePart)
             response.isSuccessful
         } catch (e: Exception) {
-            e.printStackTrace()
             false
+        }
+    }
+
+    suspend fun getProductAiTips(productId: Long): String? {
+        // 1. Check local cache first
+        val cachedTips = sessionManager.getAiTips(productId)
+        if (!cachedTips.isNullOrBlank()) {
+            return cachedTips
+        }
+        
+        // 2. If not in cache, fetch from API
+        return try {
+            val response = apiService.getProductAiTips(productId)
+            if (response.isSuccessful) {
+                val tips = response.body()?.data?.tips
+                if (!tips.isNullOrBlank()) {
+                    // Save to local cache
+                    sessionManager.saveAiTips(productId, tips)
+                    tips
+                } else null
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 

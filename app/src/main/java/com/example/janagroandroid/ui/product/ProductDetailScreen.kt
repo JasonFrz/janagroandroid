@@ -24,9 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
@@ -49,6 +54,9 @@ fun ProductDetailScreen(
     merchantAddress: String = "",
     category: String = "",
     reviews: List<ReviewDto> = emptyList(),
+    aiTips: String? = null,
+    isAiLoading: Boolean = false,
+    onAiTipsClick: () -> Unit = {},
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
     onBuyNowClick: () -> Unit = {},
@@ -58,6 +66,8 @@ fun ProductDetailScreen(
 ) {
     val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
     val totalSold = (reviews.size * 3) + 7 // Mock sold count based on reviews
+    
+    var showAiTipsSheet by remember { mutableStateOf(false) }
 
     JanAgroTheme {
         Scaffold(
@@ -217,6 +227,43 @@ fun ProductDetailScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // AI Tips Button Section
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clickable {
+                            onAiTipsClick()
+                            showAiTipsSheet = true
+                        },
+                    color = Color(0xFFF3E5F5), // Light purple background
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("✨", fontSize = 24.sp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Tanya Gemini AI",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6A1B9A),
+                                fontSize = 16.sp
+                            )
+                            Text(
+                                text = "Dapatkan panduan cerdas cara penggunaan dan tips untuk produk ini.",
+                                color = Color(0xFF8E24AA),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 // Description Section
                 DescriptionSection(description)
 
@@ -226,6 +273,54 @@ fun ProductDetailScreen(
                 ReviewSection(reviews)
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
+        if (showAiTipsSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showAiTipsSheet = false },
+                containerColor = Color.White
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("✨", fontSize = 24.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Tips Cerdas Gemini AI",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = Color(0xFF6A1B9A)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (isAiLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF6A1B9A))
+                        }
+                    } else if (aiTips != null) {
+                        MarkdownText(
+                            text = aiTips,
+                            modifier = Modifier.verticalScroll(rememberScrollState())
+                        )
+                    } else {
+                        Text(
+                            text = "Gagal memuat tips AI. Silakan coba lagi nanti.",
+                            color = Color.Red,
+                            fontSize = 14.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
     }
@@ -546,4 +641,45 @@ fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}
             }
         }
     }
+}
+
+@Composable
+fun MarkdownText(text: String, modifier: Modifier = Modifier) {
+    // Basic Markdown parser for **bold** and * bullet points
+    val cleanedText = text.replace("* ", "• ")
+    
+    val annotatedString = buildAnnotatedString {
+        var currentIndex = 0
+        val boldRegex = "\\*\\*(.*?)\\*\\*".toRegex()
+        val matches = boldRegex.findAll(cleanedText)
+        
+        for (match in matches) {
+            val startIndex = match.range.first
+            val endIndex = match.range.last + 1
+            val matchText = match.groupValues[1]
+
+            // Append text before bold
+            append(cleanedText.substring(currentIndex, startIndex))
+            
+            // Append bold text
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) {
+                append(matchText)
+            }
+            
+            currentIndex = endIndex
+        }
+        
+        // Append remaining text
+        if (currentIndex < cleanedText.length) {
+            append(cleanedText.substring(currentIndex))
+        }
+    }
+
+    Text(
+        text = annotatedString,
+        modifier = modifier,
+        fontSize = 14.sp,
+        color = Color(0xFF424242), // Darker gray for better readability
+        lineHeight = 24.sp
+    )
 }

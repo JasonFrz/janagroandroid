@@ -92,6 +92,16 @@ interface ApiService {
     @DELETE("/api/v1/merchant/products/{id}")
     suspend fun deleteProduct(@Path("id") id: Long): Response<Void>
 
+    @GET("/api/v1/products/{id}/chat-partner")
+    suspend fun getProductChatPartner(
+        @Path("id") id: Long
+    ): Response<ApiResponse<ChatPartnerDto>>
+
+    @GET("/api/v1/products/{id}/ai-tips")
+    suspend fun getProductAiTips(
+        @Path("id") id: Long
+    ): Response<ApiResponse<AiTipsDto>>
+
     @GET("/api/v1/products/{id}/reviews")
     suspend fun getProductReviews(@Path("id") id: Long): Response<ReviewResponse>
 
