@@ -79,10 +79,18 @@ data class OrderDto(
     @Json(name = "is_reviewed")
     val isReviewed: Boolean = false,
     val items: List<OrderItemDto>? = null,
-    val merchant: MerchantDto? = null
+    val merchant: MerchantDto? = null,
+    val customer: OrderCustomerDto? = null
 ) {
     val totalPriceDouble: Double get() = totalPrice.toDoubleOrNull() ?: 0.0
 }
+
+@JsonClass(generateAdapter = true)
+data class OrderCustomerDto(
+    val id: Long? = null,
+    val name: String? = null,
+    val email: String? = null
+)
 
 @JsonClass(generateAdapter = true)
 data class OrderItemDto(

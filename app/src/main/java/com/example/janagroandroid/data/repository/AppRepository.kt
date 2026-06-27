@@ -742,6 +742,32 @@ class AppRepository(
         }
     }
 
+    // SELLER: orders belonging to the logged-in seller's store (Manage Transactions).
+    suspend fun getMerchantOrders(): List<OrderDto> {
+        return try {
+            val response = apiService.getMerchantOrders()
+            if (response.isSuccessful) {
+                response.body()?.data?.orders.orEmpty()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    // SELLER: update the shipping status of one of the store's orders.
+    suspend fun updateShippingStatus(orderId: Long, status: String): Boolean {
+        return try {
+            val response = apiService.updateOrderShippingStatus(orderId, mapOf("status" to status))
+            response.isSuccessful
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun buyAgain(orderId: Long): Boolean {
         return try {
             val order = getRemoteOrderDetail(orderId) ?: return false

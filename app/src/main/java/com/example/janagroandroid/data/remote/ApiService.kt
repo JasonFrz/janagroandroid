@@ -137,6 +137,16 @@ interface ApiService {
     @GET("/api/v1/orders/{id}")
     suspend fun getOrderDetail(@Path("id") id: Long): Response<SingleOrderResponse>
 
+    // SELLER ORDER (Manage Transactions)
+    @GET("/api/v1/merchant/orders")
+    suspend fun getMerchantOrders(): Response<OrderResponse>
+
+    @PATCH("/api/v1/merchant/orders/{id}/status")
+    suspend fun updateOrderShippingStatus(
+        @Path("id") id: Long,
+        @Body request: Map<String, String>
+    ): Response<SingleOrderResponse>
+
     // VOUCHER API
     @GET("/api/v1/vouchers/active")
     suspend fun getActiveVouchers(): Response<VoucherListReponse>

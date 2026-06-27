@@ -85,6 +85,9 @@ class ProfileFragment : Fragment() {
                     },
                     onManageProductsClick = {
                         findNavController().navigate(R.id.manageProductsFragment)
+                    },
+                    onManageOrdersClick = {
+                        findNavController().navigate(R.id.sellerOrdersFragment)
                     }
                 )
             }

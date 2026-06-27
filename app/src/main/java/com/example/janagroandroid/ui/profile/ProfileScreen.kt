@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,7 +43,8 @@ fun ProfileScreen(
     onUpdateProfile: (String, String) -> Unit,
     onChatListClick: () -> Unit = {},
     onRequestBecomeSeller: (String, String) -> Unit = { _, _ -> },
-    onManageProductsClick: () -> Unit = {}
+    onManageProductsClick: () -> Unit = {},
+    onManageOrdersClick: () -> Unit = {}
 ) {
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -129,6 +131,12 @@ fun ProfileScreen(
                             icon = Icons.Default.Store,
                             title = "Manage Produk",
                             onClick = onManageProductsClick
+                        )
+
+                        ProfileMenuItem(
+                            icon = Icons.Default.ReceiptLong,
+                            title = "Kelola Transaksi",
+                            onClick = onManageOrdersClick
                         )
                     }
                     

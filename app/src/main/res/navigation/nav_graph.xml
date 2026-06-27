@@ -132,6 +132,11 @@
         android:label="Manage Produk" />
 
     <fragment
+        android:id="@+id/sellerOrdersFragment"
+        android:name="com.example.janagroandroid.ui.seller.SellerOrdersFragment"
+        android:label="Kelola Transaksi" />
+
+    <fragment
         android:id="@+id/exploreFragment"
         android:name="com.example.janagroandroid.ui.explore.ExploreFragment"
         android:label="Explore">
