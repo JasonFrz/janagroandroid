@@ -42,7 +42,8 @@ fun CartScreen(
     onUpdateQty: (Long, Int) -> Unit,
     onCheckoutClick: (Double, LongArray) -> Unit,
     onProductClick: (Long) -> Unit,
-    onMerchantClick: (Long) -> Unit
+    onMerchantClick: (Long) -> Unit,
+    onChatClick: () -> Unit = {}
 ) {
     var selectedIds by remember { mutableStateOf(setOf<Long>()) }
     var showClearDialog by remember { mutableStateOf(false) }
@@ -103,7 +104,9 @@ fun CartScreen(
                                 Icons.Default.Email,
                                 contentDescription = "Chat",
                                 tint = primaryGreen,
-                                modifier = Modifier.padding(end = 16.dp)
+                                modifier = Modifier
+                                    .padding(end = 16.dp)
+                                    .clickable { onChatClick() }
                             )
                         },
                         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
@@ -131,18 +134,50 @@ fun CartScreen(
                     .padding(paddingValues)
                     .background(Color(0xFFF8F5F2))
             ) {
-                items(cartItems) { item ->
-                    CartItem(
-                        item = item,
-                        isSelected = item.id in selectedIds,
-                        primaryColor = primaryGreen,
-                        onSelectionChange = { isChecked ->
-                            selectedIds = if (isChecked) selectedIds + item.id else selectedIds - item.id
-                        },
-                        onDelete = { onDeleteClick(item.id) },
-                        onUpdateQty = { qty -> onUpdateQty(item.id, qty) },
-                        onMerchantClick = { onMerchantClick(item.merchantId) }
-                    )
+                if (cartItems.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 64.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.ShoppingCart,
+                                contentDescription = null,
+                                modifier = Modifier.size(80.dp),
+                                tint = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "Keranjang masih kosong",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.DarkGray
+                            )
+                            Text(
+                                "Yuk, cari produk pertanian terbaik!",
+                                fontSize = 14.sp,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                    }
+                } else {
+                    items(cartItems) { item ->
+                        CartItem(
+                            item = item,
+                            isSelected = item.id in selectedIds,
+                            primaryColor = primaryGreen,
+                            onSelectionChange = { isChecked ->
+                                selectedIds = if (isChecked) selectedIds + item.id else selectedIds - item.id
+                            },
+                            onDelete = { onDeleteClick(item.id) },
+                            onUpdateQty = { qty -> onUpdateQty(item.id, qty) },
+                            onMerchantClick = { onMerchantClick(item.merchantId) }
+                        )
+                    }
                 }
 
                 item {
@@ -351,14 +386,20 @@ fun RecommendationSection(primaryColor: Color, onProductClick: (Long) -> Unit) {
             fontSize = 18.sp,
         )
 
+        val recommendations = remember {
+            listOf(
+                Triple("Pupuk NPK Mutiara", 45000.0, R.drawable.sawid),
+                Triple("Bibit Sawit Unggul", 125000.0, R.drawable.sawid),
+                Triple("Pestisida Organik", 35000.0, R.drawable.logo),
+                Triple("Alat Semprot Hama", 200000.0, R.drawable.logo),
+                Triple("Traktor Mini", 5000000.0, R.drawable.sawid)
+            ).shuffled().take(4)
+        }
+        
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val recommendations = listOf(
-                Pair("Pupuk NPK Mutiara", 45000.0),
-                Pair("Bibit Sawit Unggul", 125000.0)
-            )
             items(recommendations) { item ->
                 Surface(
                     modifier = Modifier
@@ -370,14 +411,14 @@ fun RecommendationSection(primaryColor: Color, onProductClick: (Long) -> Unit) {
                 ) {
                     Column {
                         AsyncImage(
-                            model = R.drawable.farmer,
+                            model = item.third,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(140.dp),
                             contentScale = ContentScale.Crop,
-                            placeholder = painterResource(id = R.drawable.farmer),
-                            error = painterResource(id = R.drawable.farmer)
+                            placeholder = painterResource(id = item.third),
+                            error = painterResource(id = item.third)
                         )
                         Column(modifier = Modifier.padding(8.dp)) {
                             Text(
@@ -450,11 +491,6 @@ fun CartBottomBar(
                             )
                             Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, modifier = Modifier.size(16.dp))
                         }
-                        Text(
-                            "Hemat Rp12.145",
-                            color = primaryColor,
-                            fontSize = 10.sp
-                        )
                     }
                 }
 

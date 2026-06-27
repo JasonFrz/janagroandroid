@@ -64,12 +64,24 @@ class ProfileViewModel(
         }
     }
 
-    // Fungsi untuk memperbarui nama dan nomor telepon
-    fun updateProfileInfo(name: String, phone: String) {
+    // Fungsi untuk memperbarui nama, nomor telepon, dan password
+    fun updateProfileInfo(
+        name: String, 
+        phone: String,
+        oldPassword: String? = null,
+        newPassword: String? = null,
+        confirmNewPassword: String? = null
+    ) {
         _profileUpdateStatus.value = ProfileUpdateStatus.Loading
         viewModelScope.launch {
             try {
-                val success = repo.updateProfile(name = name, phone = phone)
+                val success = repo.updateProfile(
+                    name = name, 
+                    phone = phone,
+                    oldPassword = oldPassword,
+                    newPassword = newPassword,
+                    confirmNewPassword = confirmNewPassword
+                )
                 if (success) {
                     _profileUpdateStatus.postValue(ProfileUpdateStatus.Success)
                     repo.refreshProfile()

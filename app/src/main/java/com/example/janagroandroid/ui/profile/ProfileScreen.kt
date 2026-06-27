@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,7 +29,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.janagroandroid.R
@@ -40,7 +45,7 @@ fun ProfileScreen(
     user: UserEntity?,
     onLogoutClick: () -> Unit,
     onImageSelected: (Uri) -> Unit,
-    onUpdateProfile: (String, String) -> Unit,
+    onUpdateProfile: (String, String, String?, String?, String?) -> Unit,
     onChatListClick: () -> Unit = {},
     onRequestBecomeSeller: (String, String) -> Unit = { _, _ -> },
     onManageProductsClick: () -> Unit = {},
@@ -255,8 +260,8 @@ fun ProfileScreen(
                 currentName = user.name,
                 currentPhone = user.phone ?: "",
                 onDismiss = { showEditDialog = false },
-                onConfirm = { newName, newPhone ->
-                    onUpdateProfile(newName, newPhone)
+                onConfirm = { newName, newPhone, oldPassword, newPassword, confirmNewPassword ->
+                    onUpdateProfile(newName, newPhone, oldPassword, newPassword, confirmNewPassword)
                     showEditDialog = false
                 }
             )
@@ -279,42 +284,154 @@ fun EditProfileDialog(
     currentName: String,
     currentPhone: String,
     onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit
+    onConfirm: (String, String, String?, String?, String?) -> Unit
 ) {
     var name by remember { mutableStateOf(currentName) }
     var phone by remember { mutableStateOf(currentPhone) }
+    
+    var showPasswordFields by remember { mutableStateOf(false) }
+    var oldPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmNewPassword by remember { mutableStateOf("") }
+    
+    var oldPasswordVisible by remember { mutableStateOf(false) }
+    var newPasswordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Profile") },
-        text = {
-            Column {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Edit Profile",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
+                
                 Spacer(modifier = Modifier.height(8.dp))
+                
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
                     label = { Text("Phone") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onConfirm(name, phone) }) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = showPasswordFields,
+                        onCheckedChange = { showPasswordFields = it }
+                    )
+                    Text("Ganti Password", fontSize = 14.sp)
+                }
+                
+                if (showPasswordFields) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    OutlinedTextField(
+                        value = oldPassword,
+                        onValueChange = { oldPassword = it },
+                        label = { Text("Password Lama") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (oldPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (oldPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            IconButton(onClick = { oldPasswordVisible = !oldPasswordVisible }) {
+                                Icon(imageVector = image, contentDescription = null)
+                            }
+                        }
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        label = { Text("Password Baru") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (newPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
+                                Icon(imageVector = image, contentDescription = null)
+                            }
+                        }
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    OutlinedTextField(
+                        value = confirmNewPassword,
+                        onValueChange = { confirmNewPassword = it },
+                        label = { Text("Konfirmasi Password Baru") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(imageVector = image, contentDescription = null)
+                            }
+                        }
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Batal", color = Color.Gray)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = { 
+                            if (showPasswordFields) {
+                                onConfirm(name, phone, oldPassword, newPassword, confirmNewPassword)
+                            } else {
+                                onConfirm(name, phone, null, null, null)
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                    ) {
+                        Text("Simpan", color = Color.White)
+                    }
+                }
             }
         }
-    )
+    }
 }
 
 @Composable

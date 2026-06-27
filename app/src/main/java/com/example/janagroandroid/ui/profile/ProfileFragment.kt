@@ -74,8 +74,8 @@ class ProfileFragment : Fragment() {
                     onImageSelected = { uri ->
                         viewModel.updateProfilePicture(uri)
                     },
-                    onUpdateProfile = { name, phone ->
-                        viewModel.updateProfileInfo(name, phone)
+                    onUpdateProfile = { name, phone, oldPassword, newPassword, confirmNewPassword ->
+                        viewModel.updateProfileInfo(name, phone, oldPassword, newPassword, confirmNewPassword)
                     },
                     onChatListClick = {
                         findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToChatListFragment())

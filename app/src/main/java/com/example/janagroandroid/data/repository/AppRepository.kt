@@ -145,13 +145,19 @@ class AppRepository(
     suspend fun updateProfile(
         name: String? = null,
         phone: String? = null,
+        oldPassword: String? = null,
+        newPassword: String? = null,
+        confirmNewPassword: String? = null,
         imagePart: MultipartBody.Part? = null
     ): Boolean {
         return try {
             val nameBody = name?.toRequestBody("text/plain".toMediaTypeOrNull())
             val phoneBody = phone?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val oldPasswordBody = oldPassword?.takeIf { it.isNotBlank() }?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val newPasswordBody = newPassword?.takeIf { it.isNotBlank() }?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val confirmNewPasswordBody = confirmNewPassword?.takeIf { it.isNotBlank() }?.toRequestBody("text/plain".toMediaTypeOrNull())
 
-            val response = apiService.updateProfile(nameBody, phoneBody, imagePart)
+            val response = apiService.updateProfile(nameBody, phoneBody, oldPasswordBody, newPasswordBody, confirmNewPasswordBody, imagePart)
             if (response.isSuccessful) {
                 val updatedUser = response.body()?.data?.user
                 if (updatedUser != null) {

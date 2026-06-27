@@ -54,6 +54,9 @@ class CartFragment : Fragment() {
                                 bundleOf("merchantId" to mId)
                             )
                         }
+                    },
+                    onChatClick = {
+                        findNavController().navigate(R.id.chatListFragment)
                     }
                 )
             }

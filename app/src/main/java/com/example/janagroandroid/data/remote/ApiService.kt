@@ -29,6 +29,9 @@ interface ApiService {
     suspend fun updateProfile(
         @Part("name") name: RequestBody?,
         @Part("phone") phone: RequestBody?,
+        @Part("oldPassword") oldPassword: RequestBody?,
+        @Part("newPassword") newPassword: RequestBody?,
+        @Part("confirmNewPassword") confirmNewPassword: RequestBody?,
         @Part image: MultipartBody.Part?
     ): Response<AuthResponse>
 
