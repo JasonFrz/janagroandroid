@@ -24,29 +24,35 @@ class AdminVouchersViewModel(
     fun loadVouchers(){
         viewModelScope.launch {
             _isLoading.postValue(true)
-            _vouchers.postValue(repo.getVouchers())
+            try { _vouchers.postValue(repo.getVouchers()) } catch (e: Exception) { e.printStackTrace() }
             _isLoading.postValue(false)
         }
     }
 
     fun createVoucher(request: VoucherRequest){
         viewModelScope.launch {
-            repo.createVouchers(request)
-            _vouchers.postValue(repo.getVouchers())
+            try {
+                repo.createVouchers(request)
+                _vouchers.postValue(repo.getVouchers())
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 
     fun updateVoucher(id: Long, request: VoucherRequest){
         viewModelScope.launch {
-            repo.updateVouchers(id, request)
-            _vouchers.postValue(repo.getVouchers())
+            try {
+                repo.updateVouchers(id, request)
+                _vouchers.postValue(repo.getVouchers())
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 
     fun deleteVoucher(id: Long){
         viewModelScope.launch {
-            repo.deleteVouchers(id)
-            _vouchers.postValue(repo.getVouchers())
+            try {
+                repo.deleteVouchers(id)
+                _vouchers.postValue(repo.getVouchers())
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 }

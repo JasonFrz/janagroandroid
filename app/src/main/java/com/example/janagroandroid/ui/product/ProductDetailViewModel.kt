@@ -27,21 +27,30 @@ class ProductDetailViewModel(
 
     fun fetchProductDetail(id: Long) {
         viewModelScope.launch {
-            val result = repo.getRemoteProductDetail(id)
-            _product.postValue(result)
+            try {
+                val result = repo.getRemoteProductDetail(id)
+                _product.postValue(result)
 
-            val reviewList = repo.getProductReviews(id)
-            _reviews.postValue(reviewList)
+                val reviewList = repo.getProductReviews(id)
+                _reviews.postValue(reviewList)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun addToCart(productId: Long, qty: Int = 1) {
         viewModelScope.launch {
-            val result = repo.addRemoteCart(productId, qty)
-            if (result.first) {
-                _addToCartResult.postValue(Result.success("Produk berhasil ditambahkan ke keranjang"))
-            } else {
-                _addToCartResult.postValue(Result.failure(Exception(result.second ?: "Gagal menambahkan ke keranjang")))
+            try {
+                val result = repo.addRemoteCart(productId, qty)
+                if (result.first) {
+                    _addToCartResult.postValue(Result.success("Produk berhasil ditambahkan ke keranjang"))
+                } else {
+                    _addToCartResult.postValue(Result.failure(Exception(result.second ?: "Gagal menambahkan ke keranjang")))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _addToCartResult.postValue(Result.failure(Exception("Terjadi kesalahan jaringan")))
             }
         }
     }

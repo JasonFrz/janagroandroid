@@ -28,9 +28,14 @@ class AdminUsersViewModel(
     fun loadUsers() {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            allUsers = repo.getAdminUsers()
-            applyFilters()
-            _isLoading.postValue(false)
+            try {
+                allUsers = repo.getAdminUsers()
+                applyFilters()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.postValue(false)
+            }
         }
     }
 

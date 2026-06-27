@@ -23,9 +23,14 @@ class AdminHomeViewModel(
     fun loadStats() {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            val result = repo.getAdminStats()
-            _stats.postValue(result)
-            _isLoading.postValue(false)
+            try {
+                val result = repo.getAdminStats()
+                _stats.postValue(result)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.postValue(false)
+            }
         }
     }
 }

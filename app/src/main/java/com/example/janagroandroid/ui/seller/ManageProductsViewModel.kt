@@ -22,15 +22,24 @@ class ManageProductsViewModel(
 
     fun loadProducts() {
         viewModelScope.launch {
-            val result = repo.getCurrentSellerProducts()
-            _products.postValue(result)
+            try {
+                val result = repo.getCurrentSellerProducts()
+                _products.postValue(result)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun deleteProduct(productId: Long) {
         viewModelScope.launch {
-            val success = repo.deleteRemoteProduct(productId)
-            _deleteStatus.postValue(success)
+            try {
+                val success = repo.deleteRemoteProduct(productId)
+                _deleteStatus.postValue(success)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _deleteStatus.postValue(false)
+            }
         }
     }
 }

@@ -31,13 +31,17 @@ class MerchantDetailViewModel(
     fun loadMerchantData(merchantId: Long) {
         viewModelScope.launch {
             _isLoading.value = true
-            val merchantData = repo.getRemoteMerchantDetail(merchantId)
-            
-            _merchant.postValue(merchantData)
-            allProducts = merchantData?.products ?: emptyList()
-            filterProducts(_searchQuery.value ?: "")
-
-            _isLoading.value = false
+            try {
+                val merchantData = repo.getRemoteMerchantDetail(merchantId)
+                
+                _merchant.postValue(merchantData)
+                allProducts = merchantData?.products ?: emptyList()
+                filterProducts(_searchQuery.value ?: "")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 

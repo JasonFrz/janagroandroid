@@ -24,8 +24,13 @@ class ChatListViewModel(
     fun fetchConversations() {
         viewModelScope.launch {
             _isLoading.value = true
-            _conversations.value = repo.getConversations()
-            _isLoading.value = false
+            try {
+                _conversations.value = repo.getConversations()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

@@ -25,19 +25,29 @@ class AdminMerchantsViewModel(
     fun loadPending(){
         viewModelScope.launch {
             _isLoading.postValue(true)
-            _merchants.postValue(repo.getPendingMerchants())
-            _isLoading.postValue(false)
+            try {
+                _merchants.postValue(repo.getPendingMerchants())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.postValue(false)
+            }
         }
     }
 
     fun updateStatus(id: Long, status: String){
         viewModelScope.launch {
-            val success = repo.updateMerchantStatus(id, status)
-            if(success){
-                _message.postValue("Merchant berhasil di-$status")
-                loadPending()
-            }else{
-                _message.postValue("Gagal mengubah status merchant")
+            try {
+                val success = repo.updateMerchantStatus(id, status)
+                if(success){
+                    _message.postValue("Merchant berhasil di-$status")
+                    loadPending()
+                }else{
+                    _message.postValue("Gagal mengubah status merchant")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _message.postValue("Terjadi kesalahan jaringan")
             }
         }
     }

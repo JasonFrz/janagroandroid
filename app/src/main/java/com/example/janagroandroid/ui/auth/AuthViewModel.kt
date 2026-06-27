@@ -27,13 +27,19 @@ class AuthViewModel(
 
     fun login(email: String, password: String, onResult: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            _uiState.value = AuthUiState.Loading
-            val success = repo.login(email, password)
-            if (success) {
-                _uiState.value = AuthUiState.Success("Login successful")
-                onResult(true)
-            } else {
-                _uiState.value = AuthUiState.Error("Invalid credentials")
+            try {
+                _uiState.value = AuthUiState.Loading
+                val success = repo.login(email, password)
+                if (success) {
+                    _uiState.value = AuthUiState.Success("Login successful")
+                    onResult(true)
+                } else {
+                    _uiState.value = AuthUiState.Error("Invalid credentials")
+                    onResult(false)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.value = AuthUiState.Error(e.message ?: "Terjadi kesalahan jaringan")
                 onResult(false)
             }
         }
@@ -45,22 +51,28 @@ class AuthViewModel(
         onResult: (Boolean) -> Unit = {}
     ) {
         viewModelScope.launch {
-            _uiState.value = AuthUiState.Loading
-            
-            val user = UserEntity(
-                name = name,
-                email = email,
-                password = password,
-                phone = phone,
-                role = role
-            )
-            
-            val success = repo.register(user, passwordConfirm)
-            if (success) {
-                _uiState.value = AuthUiState.Success("Registration successful")
-                onResult(true)
-            } else {
-                _uiState.value = AuthUiState.Error("Registration failed")
+            try {
+                _uiState.value = AuthUiState.Loading
+                
+                val user = UserEntity(
+                    name = name,
+                    email = email,
+                    password = password,
+                    phone = phone,
+                    role = role
+                )
+                
+                val success = repo.register(user, passwordConfirm)
+                if (success) {
+                    _uiState.value = AuthUiState.Success("Registration successful")
+                    onResult(true)
+                } else {
+                    _uiState.value = AuthUiState.Error("Registration failed")
+                    onResult(false)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.value = AuthUiState.Error(e.message ?: "Terjadi kesalahan jaringan")
                 onResult(false)
             }
         }
@@ -72,7 +84,7 @@ class AuthViewModel(
 
     fun logout() {
         viewModelScope.launch {
-            repo.logout()
+            try { repo.logout() } catch (e: Exception) { e.printStackTrace() }
         }
     }
 }

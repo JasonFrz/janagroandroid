@@ -47,16 +47,20 @@ class CheckoutViewModel(
     fun loadInitialData(ids: LongArray) {
         selectedItemIds = ids
         viewModelScope.launch {
-            val list = repo.getCartItemsByIds(ids)
-            _items.value = list
-            updateCalculations(list, _selectedVoucher.value)
+            try {
+                val list = repo.getCartItemsByIds(ids)
+                _items.value = list
+                updateCalculations(list, _selectedVoucher.value)
 
-            val vouchers = repo.getActiveVouchers()
-            _activeVouchers.value = vouchers
+                val vouchers = repo.getActiveVouchers()
+                _activeVouchers.value = vouchers
 
-            // UserEntity currently does not have an address field. 
-            // Default to empty string; user will fill it in the UI.
-            _userAddress.value = ""
+                // UserEntity currently does not have an address field. 
+                // Default to empty string; user will fill it in the UI.
+                _userAddress.value = ""
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -96,14 +100,19 @@ class CheckoutViewModel(
         paymentType: String? = null
     ) {
         viewModelScope.launch {
-            _state.value = CheckoutState.Loading
-            val (success, response) = repo.checkout(
-                shippingAddress, courier, _selectedVoucher.value?.code, paymentType, selectedItemIds
-            )
-            _state.value = if (success) {
-                CheckoutState.Success(response)
-            } else {
-                CheckoutState.Error(response?.message)
+            try {
+                _state.value = CheckoutState.Loading
+                val (success, response) = repo.checkout(
+                    shippingAddress, courier, _selectedVoucher.value?.code, paymentType, selectedItemIds
+                )
+                _state.value = if (success) {
+                    CheckoutState.Success(response)
+                } else {
+                    CheckoutState.Error(response?.message)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _state.value = CheckoutState.Error(e.message ?: "Terjadi kesalahan jaringan")
             }
         }
     }

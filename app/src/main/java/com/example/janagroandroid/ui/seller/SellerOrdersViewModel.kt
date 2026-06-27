@@ -26,9 +26,14 @@ class SellerOrdersViewModel(
     fun loadOrders() {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            val result = repo.getMerchantOrders()
-            _orders.postValue(result)
-            _isLoading.postValue(false)
+            try {
+                val result = repo.getMerchantOrders()
+                _orders.postValue(result)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.postValue(false)
+            }
         }
     }
 
@@ -38,14 +43,20 @@ class SellerOrdersViewModel(
      */
     fun updateStatus(orderId: Long, status: String) {
         viewModelScope.launch {
-            _isLoading.postValue(true)
-            val success = repo.updateShippingStatus(orderId, status)
-            if (success) {
-                loadOrders()
-            } else {
+            try {
+                _isLoading.postValue(true)
+                val success = repo.updateShippingStatus(orderId, status)
+                if (success) {
+                    loadOrders()
+                } else {
+                    _isLoading.postValue(false)
+                }
+                _updateStatus.postValue(success)
+            } catch (e: Exception) {
+                e.printStackTrace()
                 _isLoading.postValue(false)
+                _updateStatus.postValue(false)
             }
-            _updateStatus.postValue(success)
         }
     }
 

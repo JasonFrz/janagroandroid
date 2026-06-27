@@ -45,7 +45,7 @@ class AdminReportsViewModel(
     fun loadUsers(search: String? = null) {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            _users.postValue(repo.getAdminUsers(search = search))
+            try { _users.postValue(repo.getAdminUsers(search = search)) } catch (e: Exception) { e.printStackTrace() }
             _isLoading.postValue(false)
         }
     }
@@ -53,7 +53,7 @@ class AdminReportsViewModel(
     fun loadProducts(search: String? = null) {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            _products.postValue(repo.getAdminProducts(search))
+            try { _products.postValue(repo.getAdminProducts(search)) } catch (e: Exception) { e.printStackTrace() }
             _isLoading.postValue(false)
         }
     }
@@ -61,7 +61,7 @@ class AdminReportsViewModel(
     fun loadReviews() {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            _reviews.postValue(repo.getAdminReviews())
+            try { _reviews.postValue(repo.getAdminReviews()) } catch (e: Exception) { e.printStackTrace() }
             _isLoading.postValue(false)
         }
     }
@@ -72,41 +72,61 @@ class AdminReportsViewModel(
 
     private fun setUserStatus(id: Long, status: String) {
         viewModelScope.launch {
-            val ok = repo.setUserStatus(id, status)
-            _message.postValue(
-                if (ok) {
-                    if (status == "Banned") "Pengguna berhasil diban" else "Ban pengguna dibuka"
-                } else "Gagal mengubah status pengguna"
-            )
-            if (ok) _users.postValue(repo.getAdminUsers())
+            try {
+                val ok = repo.setUserStatus(id, status)
+                _message.postValue(
+                    if (ok) {
+                        if (status == "Banned") "Pengguna berhasil diban" else "Ban pengguna dibuka"
+                    } else "Gagal mengubah status pengguna"
+                )
+                if (ok) _users.postValue(repo.getAdminUsers())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _message.postValue("Terjadi kesalahan jaringan")
+            }
         }
     }
 
     fun deleteUser(id: Long) {
         viewModelScope.launch {
-            val ok = repo.adminDeleteUser(id)
-            _message.postValue(if (ok) "Pengguna dihapus" else "Gagal menghapus pengguna")
-            if (ok) _users.postValue(repo.getAdminUsers())
+            try {
+                val ok = repo.adminDeleteUser(id)
+                _message.postValue(if (ok) "Pengguna dihapus" else "Gagal menghapus pengguna")
+                if (ok) _users.postValue(repo.getAdminUsers())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _message.postValue("Terjadi kesalahan jaringan")
+            }
         }
     }
 
     fun deleteProduct(id: Long) {
         viewModelScope.launch {
-            val ok = repo.adminDeleteProduct(id)
-            _message.postValue(if (ok) "Produk dihapus" else "Gagal menghapus produk")
-            if (ok) _products.postValue(repo.getAdminProducts())
+            try {
+                val ok = repo.adminDeleteProduct(id)
+                _message.postValue(if (ok) "Produk dihapus" else "Gagal menghapus produk")
+                if (ok) _products.postValue(repo.getAdminProducts())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _message.postValue("Terjadi kesalahan jaringan")
+            }
         }
     }
 
     fun setReviewHidden(id: Long, hidden: Boolean) {
         viewModelScope.launch {
-            val ok = repo.setReviewVisibility(id, hidden)
-            _message.postValue(
-                if (ok) {
-                    if (hidden) "Ulasan disembunyikan" else "Ulasan ditampilkan kembali"
-                } else "Gagal mengubah ulasan"
-            )
-            if (ok) _reviews.postValue(repo.getAdminReviews())
+            try {
+                val ok = repo.setReviewVisibility(id, hidden)
+                _message.postValue(
+                    if (ok) {
+                        if (hidden) "Ulasan disembunyikan" else "Ulasan ditampilkan kembali"
+                    } else "Gagal mengubah ulasan"
+                )
+                if (ok) _reviews.postValue(repo.getAdminReviews())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _message.postValue("Terjadi kesalahan jaringan")
+            }
         }
     }
 }

@@ -33,7 +33,7 @@ class ProfileViewModel(
 
     fun refreshProfile() {
         viewModelScope.launch {
-            repo.refreshProfile()
+            try { repo.refreshProfile() } catch (e: Exception) { e.printStackTrace() }
         }
     }
 
