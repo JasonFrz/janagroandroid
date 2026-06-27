@@ -1,11 +1,7 @@
 package com.example.janagroandroid.data.local.entity
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity(tableName = "products")
 data class ProductEntity(
-    @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val merchant_id: Long = 0,
     val merchantUserId: Long = 0,

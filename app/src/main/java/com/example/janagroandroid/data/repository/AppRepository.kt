@@ -5,7 +5,6 @@ import androidx.lifecycle.switchMap
 import com.example.janagroandroid.data.local.SessionManager
 import com.example.janagroandroid.data.local.dao.CartDao
 import com.example.janagroandroid.data.local.dao.HistoryDao
-import com.example.janagroandroid.data.local.dao.ProductDao
 import com.example.janagroandroid.data.local.dao.UserDao
 import com.example.janagroandroid.data.local.entity.CartEntity
 import com.example.janagroandroid.data.local.entity.HistoryEntity
@@ -20,13 +19,14 @@ import retrofit2.Response
 
 class AppRepository(
     private val userDao: UserDao,
-    private val productDao: ProductDao,
     private val cartDao: CartDao,
     private val historyDao: HistoryDao,
     private val apiService: ApiService,
     private val sessionManager: SessionManager
 ) {
-    val products: LiveData<List<ProductEntity>> = productDao.getAll()
+    private val _products = androidx.lifecycle.MutableLiveData<List<ProductEntity>>()
+    val products: LiveData<List<ProductEntity>> = _products
+    
     val history: LiveData<List<HistoryEntity>> = historyDao.getAll()
     val getUser: LiveData<UserEntity?> = userDao.getCurrentUser()
 
@@ -39,9 +39,8 @@ class AppRepository(
         cartDao.getByUser(user?.id ?: -1L)
     }
 
-    val sellerProducts: LiveData<List<ProductEntity>> = getUser.switchMap { user ->
-        productDao.getSellerProducts(user?.id ?: -1L)
-    }
+    private val _sellerProducts = androidx.lifecycle.MutableLiveData<List<ProductEntity>>()
+    val sellerProducts: LiveData<List<ProductEntity>> = _sellerProducts
 
     suspend fun login(email: String, password: String): Boolean {
         return try {
@@ -195,7 +194,9 @@ class AppRepository(
     }
 
     suspend fun addProduct(product: ProductEntity) {
-        productDao.insert(product)
+        val currentList = _products.value.orEmpty().toMutableList()
+        currentList.add(product)
+        _products.postValue(currentList)
     }
 
     suspend fun createRemoteProduct(
@@ -270,13 +271,18 @@ class AppRepository(
     }
 
     suspend fun refreshRemoteProducts(): Boolean {
-        val response = apiService.getProducts(limit = 10, sortBy = "created_at", sortDir = "DESC")
-        return if (response.isSuccessful) {
-            val items = response.body()?.data?.products.orEmpty()
-                .map { it.toEntity(merchantId = 0) }
-            productDao.insertAll(items)
-            true
-        } else {
+        return try {
+            val response = apiService.getProducts(limit = 100, sortBy = "created_at", sortDir = "DESC")
+            if (response.isSuccessful) {
+                val items = response.body()?.data?.products.orEmpty()
+                    .map { it.toEntity(merchantId = 0) }
+                _products.postValue(items)
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }
@@ -300,9 +306,11 @@ class AppRepository(
             val currentUser = userDao.getCurrentUserSync()
             val response = apiService.getProducts(limit = 100)
             if (response.isSuccessful) {
-                response.body()?.data?.products.orEmpty()
+                val items = response.body()?.data?.products.orEmpty()
                     .filter { it.merchant?.userId == currentUser?.id }
                     .map { it.toEntity(merchantId = currentUser?.id ?: 0L) }
+                _sellerProducts.postValue(items)
+                items
             } else {
                 emptyList()
             }
