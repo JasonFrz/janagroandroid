@@ -5,6 +5,24 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
+data class ActiveNegotiationResponse(
+    val status: String? = null,
+    val message: String? = null,
+    val data: ActiveNegotiationData? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ActiveNegotiationData(
+    val active: Boolean = false,
+    @Json(name = "negotiated_price")
+    val negotiatedPrice: Double? = null,
+    @Json(name = "remaining_minutes")
+    val remainingMinutes: Int? = null,
+    @Json(name = "expires_at")
+    val expiresAt: String? = null
+)
+
+@JsonClass(generateAdapter = true)
 data class CategoryDto(
     val id: Long? = null,
     val name: String? = null
@@ -39,9 +57,14 @@ data class ProductDto(
     @Json(name = "created_at")
     val createdAt: String? = null,
     @Json(name = "updated_at")
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    @Json(name = "wholesale_min_qty")
+    val wholesaleMinQty: Int? = null,
+    @Json(name = "wholesale_price")
+    val wholesalePrice: String? = null
 ) {
     val priceDouble: Double get() = price?.toDoubleOrNull() ?: 0.0
+    val wholesalePriceDouble: Double? get() = wholesalePrice?.toDoubleOrNull()
     val firstImageUrl: String? get() {
         val url = images.firstOrNull()
         return url?.replace("http://", "https://")
@@ -61,6 +84,9 @@ fun ProductDto.toEntity(merchantId: Long = 0): ProductEntity {
         imageUrl = firstImageUrl ?: "",
         description = description ?: "",
         category = category?.name ?: "",
+        wholesaleMinQty = wholesaleMinQty,
+        wholesalePrice = wholesalePriceDouble,
+        merchantProfileUrl = merchant?.profile_picture ?: merchant?.owner?.profilePicture ?: "",
         createdAt = createdAt ?: ""
     )
 }

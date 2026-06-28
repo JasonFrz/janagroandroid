@@ -261,6 +261,20 @@ class AppRepository(
         }
     }
 
+    suspend fun getActiveNegotiation(productId: Long): com.example.janagroandroid.data.remote.dto.ActiveNegotiationData? {
+        return try {
+            val response = apiService.getActiveNegotiation(productId)
+            if (response.isSuccessful) {
+                response.body()?.data
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     suspend fun deleteRemoteProduct(productId: Long): Boolean {
         return try {
             apiService.deleteProduct(productId).isSuccessful

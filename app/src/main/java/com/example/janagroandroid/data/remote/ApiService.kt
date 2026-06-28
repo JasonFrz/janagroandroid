@@ -63,11 +63,16 @@ interface ApiService {
         @Query("page") page: Int? = 1,
         @Query("limit") limit: Int? = 10,
         @Query("sortBy") sortBy: String? = null,
-        @Query("sortDir") sortDir: String? = null
+        @Query("sortDir") sortDir: String? = null,
+        @Query("minPrice") minPrice: Double? = null,
+        @Query("maxPrice") maxPrice: Double? = null
     ): Response<RemoteProductResponse>
 
     @GET("/api/v1/products/{id}")
     suspend fun getProductDetail(@Path("id") id: Long): Response<SingleProductResponse>
+
+    @GET("/api/v1/products/{id}/active-negotiation")
+    suspend fun getActiveNegotiation(@Path("id") id: Long): Response<ActiveNegotiationResponse>
 
     @Multipart
     @POST("/api/v1/merchant/products")

@@ -52,22 +52,29 @@ fun ProductDetailScreen(
     merchantUserId: Long = 0L,
     merchantName: String = "",
     merchantAddress: String = "",
+    merchantProfileUrl: String = "",
     category: String = "",
     reviews: List<ReviewDto> = emptyList(),
     aiTips: String? = null,
     isAiLoading: Boolean = false,
+    activeNegotiation: com.example.janagroandroid.data.remote.dto.ActiveNegotiationData? = null,
     onAiTipsClick: () -> Unit = {},
     onBackClick: () -> Unit,
     onAddToCartClick: (Int) -> Unit,
     onBuyNowClick: () -> Unit = {},
     onCartClick: () -> Unit = {},
     onChatClick: (Long, String) -> Unit = { _, _ -> },
-    onMerchantClick: (Long) -> Unit = {}
+    onMerchantClick: (Long) -> Unit = {},
+    wholesaleMinQty: Int? = null,
+    wholesalePrice: Double? = null,
+    onNegoSubmit: (String) -> Unit = {}
 ) {
     val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
     val totalSold = (reviews.size * 3) + 7 // Mock sold count based on reviews
     
     var showAiTipsSheet by remember { mutableStateOf(false) }
+    var showNegoDialog by remember { mutableStateOf(false) }
+    var negoPriceInput by remember { mutableStateOf("") }
 
     JanAgroTheme {
         Scaffold(
@@ -109,11 +116,10 @@ fun ProductDetailScreen(
                     onAddToCartClick = { onAddToCartClick(1) },
                     onBuyNowClick = onBuyNowClick,
                     onChatClick = {
-                        // Gunakan merchantUserId jika ada, jika tidak gunakan merchantId sebagai fallback
-                        // Backend resolveChatUser mendukung merchantId untuk mencari owner
                         val finalPartnerId = if (merchantUserId != 0L) merchantUserId else merchantId
                         onChatClick(finalPartnerId, merchantName)
-                    }
+                    },
+                    onNegoClick = { showNegoDialog = true }
                 )
             }
         ) { padding ->
@@ -179,12 +185,34 @@ fun ProductDetailScreen(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
+                    val displayPrice = if (activeNegotiation?.active == true && activeNegotiation.negotiatedPrice != null) {
+                        activeNegotiation.negotiatedPrice
+                    } else {
+                        price
+                    }
+
                     Text(
-                        text = "Rp ${String.format(Locale.US, "%,.0f", price)}",
+                        text = "Rp ${String.format(Locale.US, "%,.0f", displayPrice)}",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32)
                     )
+
+                    if (activeNegotiation?.active == true) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            color = Color(0xFFE8F5E9),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "Harga Nego Aktif (Sisa: ${activeNegotiation.remainingMinutes ?: 0} mnt)",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                fontSize = 12.sp,
+                                color = Color(0xFF2E7D32),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -202,6 +230,27 @@ fun ProductDetailScreen(
                             color = Color.Gray
                         )
                     }
+
+                    if (wholesaleMinQty != null && wholesalePrice != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Surface(
+                            color = Color(0xFFE8F5E9),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text("Harga Grosir", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32), fontSize = 14.sp)
+                                    Text("Beli ${wholesaleMinQty} atau lebih", color = Color.Gray, fontSize = 12.sp)
+                                }
+                                Text("Rp ${String.format(Locale.US, "%,.0f", wholesalePrice)}/pcs", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32), fontSize = 16.sp)
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -209,6 +258,7 @@ fun ProductDetailScreen(
                 // Merchant Section
                 ProductMerchantSection(
                     merchantName = merchantName.ifBlank { "Agrojan Store" },
+                    merchantProfileUrl = merchantProfileUrl,
                     onVisitStoreClick = { onMerchantClick(merchantId) }
                 )
 
@@ -298,11 +348,50 @@ fun ProductDetailScreen(
                 }
             }
         }
+        
+        if (showNegoDialog) {
+            AlertDialog(
+                onDismissRequest = { showNegoDialog = false },
+                title = { Text("Ajukan Harga Nego", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text("Masukkan harga yang ingin Anda ajukan untuk produk ini:")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = negoPriceInput,
+                            onValueChange = { if (it.all { char -> char.isDigit() }) negoPriceInput = it },
+                            label = { Text("Harga Nego (Rp)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (negoPriceInput.isNotBlank()) {
+                                showNegoDialog = false
+                                onNegoSubmit(negoPriceInput)
+                                negoPriceInput = ""
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                    ) {
+                        Text("Ajukan", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showNegoDialog = false }) {
+                        Text("Batal", color = Color.Gray)
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun ProductMerchantSection(merchantName: String, onVisitStoreClick: () -> Unit = {}) {
+fun ProductMerchantSection(merchantName: String, merchantProfileUrl: String = "", onVisitStoreClick: () -> Unit = {}) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color.White
@@ -317,7 +406,7 @@ fun ProductMerchantSection(merchantName: String, onVisitStoreClick: () -> Unit =
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = R.drawable.farmer,
+                model = if (merchantProfileUrl.isNotBlank()) merchantProfileUrl.replace("http://", "https://") else R.drawable.farmer,
                 contentDescription = null,
                 modifier = Modifier
                     .size(48.dp)
@@ -576,7 +665,7 @@ fun ReviewItem(name: String, date: String, rating: Int, comment: String, imageUr
 }
 
 @Composable
-fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}, onChatClick: () -> Unit = {}) {
+fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}, onChatClick: () -> Unit = {}, onNegoClick: () -> Unit = {}) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 8.dp,
@@ -601,9 +690,21 @@ fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}
                 modifier = Modifier.clickable { onAddToCartClick() }.padding(end = 16.dp)
             ) {
                 Icon(Icons.Outlined.ShoppingCart, contentDescription = "Keranjang", tint = Color.Gray)
-                Text("Keranjang", fontSize = 10.sp, color = Color.Gray)
+                Text("Beli", fontSize = 10.sp, color = Color.Gray)
             }
             
+            Button(
+                onClick = onNegoClick,
+                modifier = Modifier
+                    .weight(0.7f)
+                    .height(48.dp)
+                    .padding(end = 8.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF57F17))
+            ) {
+                Text("Nego", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+
             Button(
                 onClick = onBuyNowClick,
                 modifier = Modifier
@@ -612,7 +713,7 @@ fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E20))
             ) {
-                Text("Beli Sekarang", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Beli Sekarang", fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     }

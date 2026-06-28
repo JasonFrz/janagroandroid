@@ -160,6 +160,8 @@
         android:label="Chat Detail">
         <argument android:name="partnerId" app:argType="long"/>
         <argument android:name="partnerName" app:argType="string"/>
+        <argument android:name="negoProductId" app:argType="long" android:defaultValue="-1L"/>
+        <argument android:name="negoPrice" app:argType="string" app:nullable="true" android:defaultValue="@null"/>
     </fragment>
 
     <!-- Admin Fragments -->

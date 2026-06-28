@@ -13,5 +13,8 @@ data class ProductEntity(
     val stock: Int,
     val category: String = "",
     val imageUrl: String,
+    val wholesaleMinQty: Int? = null,
+    val wholesalePrice: Double? = null,
+    val merchantProfileUrl: String = "",
     val createdAt: String = ""
 )

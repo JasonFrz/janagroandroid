@@ -12,6 +12,10 @@ data class ChatMessageDto(
     @Json(name = "is_read") val isRead: Boolean = false,
     @Json(name = "created_at") val createdAt: String? = null,
     @Json(name = "status") val statusStr: String? = null,
+    @Json(name = "type") val type: String = "text",
+    @Json(name = "product_id") val productId: Long? = null,
+    @Json(name = "negotiated_price") val negotiatedPrice: String? = null,
+    @Json(name = "negotiation_status") val negotiationStatus: String? = null,
     // Client-side mapping (bukan dari JSON server)
     @Transient val status: MessageStatus = MessageStatus.SENT
 ) {

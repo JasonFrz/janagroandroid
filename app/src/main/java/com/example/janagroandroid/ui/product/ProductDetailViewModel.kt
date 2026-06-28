@@ -29,6 +29,9 @@ class ProductDetailViewModel(
 
     private val _reviews = MutableLiveData<List<ReviewDto>>()
     val reviews: LiveData<List<ReviewDto>> = _reviews
+    
+    private val _activeNegotiation = MutableLiveData<com.example.janagroandroid.data.remote.dto.ActiveNegotiationData?>()
+    val activeNegotiation: LiveData<com.example.janagroandroid.data.remote.dto.ActiveNegotiationData?> = _activeNegotiation
 
     /** null = idle, non-null = message to show (success or error) */
     private val _addToCartResult = MutableLiveData<Result<String>?>()
@@ -42,6 +45,9 @@ class ProductDetailViewModel(
 
                 val reviewList = repo.getProductReviews(id)
                 _reviews.postValue(reviewList)
+                
+                val negotiation = repo.getActiveNegotiation(id)
+                _activeNegotiation.postValue(negotiation)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

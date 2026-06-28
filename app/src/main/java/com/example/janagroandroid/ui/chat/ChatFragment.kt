@@ -95,6 +95,22 @@ class ChatFragment : Fragment() {
                 listState.animateScrollToItem(messages.size - 1)
             }
         }
+        
+        var negoTriggered by remember { mutableStateOf(false) }
+        val negoProductId = args.negoProductId
+        val negoPrice = args.negoPrice
+
+        LaunchedEffect(negoProductId, negoPrice, negoTriggered) {
+            if (!negoTriggered && negoProductId != -1L && negoPrice != null) {
+                negoTriggered = true
+                viewModel.sendMessage(
+                    messageText = "Saya mengajukan nego Rp $negoPrice",
+                    type = "negotiation",
+                    productId = negoProductId,
+                    negotiatedPrice = negoPrice
+                )
+            }
+        }
 
         Scaffold(
             topBar = {
@@ -135,7 +151,12 @@ class ChatFragment : Fragment() {
                 items(messages) { message ->
                     MessageBubble(
                         message = message,
-                        isMine = message.senderId == currentUserId
+                        isMine = message.senderId == currentUserId,
+                        onRespondNegotiation = { status ->
+                            if (message.id != null) {
+                                viewModel.respondNegotiation(message.id, status)
+                            }
+                        }
                     )
                 }
             }
@@ -143,7 +164,11 @@ class ChatFragment : Fragment() {
     }
 
     @Composable
-    fun MessageBubble(message: ChatMessageDto, isMine: Boolean) {
+    fun MessageBubble(
+        message: ChatMessageDto,
+        isMine: Boolean,
+        onRespondNegotiation: (String) -> Unit
+    ) {
         val alignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
         val bgColor = if (isMine) MaterialTheme.colorScheme.primary else Color(0xFFF0F0F0)
         val textColor = if (isMine) Color.White else Color.Black
@@ -161,7 +186,64 @@ class ChatFragment : Fragment() {
                     .background(bgColor)
                     .padding(12.dp)
             ) {
-                Text(text = message.message, color = textColor, fontSize = 15.sp)
+                if (message.type == "negotiation") {
+                    Text(
+                        text = "Pengajuan Negosiasi",
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = message.message, color = textColor, fontSize = 15.sp)
+                    
+                    if (message.negotiatedPrice != null) {
+                        Text(
+                            text = "Harga: Rp ${message.negotiatedPrice}",
+                            color = textColor,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    when (message.negotiationStatus) {
+                        "pending" -> {
+                            if (!isMine) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    Button(
+                                        onClick = { onRespondNegotiation("rejected") },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.weight(1f).padding(end = 4.dp)
+                                    ) {
+                                        Text("Tolak", fontSize = 12.sp, color = Color.White)
+                                    }
+                                    Button(
+                                        onClick = { onRespondNegotiation("approved") },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.weight(1f).padding(start = 4.dp)
+                                    ) {
+                                        Text("Terima", fontSize = 12.sp, color = Color.White)
+                                    }
+                                }
+                            } else {
+                                Text("Menunggu persetujuan...", color = textColor.copy(alpha = 0.8f), fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                            }
+                        }
+                        "approved" -> {
+                            Text("✅ Disetujui", color = if(isMine) Color.White else Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+                        "rejected" -> {
+                            Text("❌ Ditolak", color = if(isMine) Color.White else Color.Red, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+                    }
+                } else {
+                    Text(text = message.message, color = textColor, fontSize = 15.sp)
+                }
                 
                 Row(
                     modifier = Modifier.align(Alignment.End),

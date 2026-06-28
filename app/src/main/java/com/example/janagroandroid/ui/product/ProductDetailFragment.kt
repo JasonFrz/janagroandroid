@@ -55,6 +55,7 @@ class ProductDetailFragment : Fragment() {
                 val reviews by viewModel.reviews.observeAsState(emptyList())
                 val aiTips by viewModel.aiTips.observeAsState()
                 val isAiLoading by viewModel.isAiLoading.observeAsState(false)
+                val activeNegotiation by viewModel.activeNegotiation.observeAsState()
 
                 ProductDetailScreen(
                     id = id,
@@ -66,10 +67,12 @@ class ProductDetailFragment : Fragment() {
                     merchantUserId = productDetail?.merchantUserId ?: initialMerchantUserId,
                     merchantName = productDetail?.merchant_name ?: initialMerchantName,
                     merchantAddress = productDetail?.merchant_city ?: initialMerchantCity,
+                    merchantProfileUrl = productDetail?.merchantProfileUrl ?: "",
                     category = productDetail?.category ?: "",
                     reviews = reviews,
                     aiTips = aiTips,
                     isAiLoading = isAiLoading,
+                    activeNegotiation = activeNegotiation,
                     onAiTipsClick = { viewModel.fetchAiTips(id) },
                     onBackClick = { findNavController().popBackStack() },
                     onAddToCartClick = { qty ->
@@ -93,6 +96,24 @@ class ProductDetailFragment : Fragment() {
                             val bundle = bundleOf(
                                 "partnerId" to partnerId,
                                 "partnerName" to partnerName
+                            )
+                            findNavController().navigate(R.id.action_productDetailFragment_to_chatFragment, bundle)
+                        } else {
+                            Toast.makeText(requireContext(), "ID Penjual tidak ditemukan", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    wholesaleMinQty = productDetail?.wholesaleMinQty,
+                    wholesalePrice = productDetail?.wholesalePrice,
+                    onNegoSubmit = { negoPrice ->
+                        val mUserId = productDetail?.merchantUserId ?: initialMerchantUserId
+                        val mId = productDetail?.merchant_id ?: initialMerchantId
+                        val finalPartnerId = if (mUserId != 0L) mUserId else mId
+                        if (finalPartnerId != 0L) {
+                            val bundle = bundleOf(
+                                "partnerId" to finalPartnerId,
+                                "partnerName" to (productDetail?.merchant_name ?: initialMerchantName),
+                                "negoProductId" to id,
+                                "negoPrice" to negoPrice
                             )
                             findNavController().navigate(R.id.action_productDetailFragment_to_chatFragment, bundle)
                         } else {

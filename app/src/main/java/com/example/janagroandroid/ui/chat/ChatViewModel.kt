@@ -114,26 +114,52 @@ class ChatViewModel(
                 } else it
             }
         }
+        
+        socket?.on("chat:negotiation_update") { args ->
+            val data = args.getOrNull(0) as? JSONObject ?: return@on
+            val msgId = data.optLong("id")
+            val negotiationStatus = data.optString("negotiation_status")
+            
+            _messages.value = _messages.value.map {
+                if (it.id == msgId) {
+                    it.copy(negotiationStatus = negotiationStatus)
+                } else it
+            }
+        }
     }
 
-    fun sendMessage(messageText: String) {
+    fun sendMessage(messageText: String, type: String = "text", productId: Long? = null, negotiatedPrice: String? = null) {
         if (messageText.isBlank()) return
 
         val tempMessage = ChatMessageDto(
             senderId = _currentUserId.value,
             receiverId = partnerId,
             message = messageText,
-            status = MessageStatus.SENDING
+            status = MessageStatus.SENDING,
+            type = type,
+            productId = productId,
+            negotiatedPrice = negotiatedPrice
         )
         
         _messages.value = _messages.value + tempMessage
         
-        socketManager.sendMessage(partnerId, messageText)
+        socketManager.sendMessage(partnerId, messageText, type, productId, negotiatedPrice)
+    }
+    
+    fun respondNegotiation(messageId: Long, status: String) {
+        socketManager.respondNegotiation(messageId, status)
+        // Optimistically update the UI
+        _messages.value = _messages.value.map {
+            if (it.id == messageId) {
+                it.copy(negotiationStatus = status)
+            } else it
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
         socketManager.getSocket()?.off("chat:message")
         socketManager.getSocket()?.off("chat:status")
+        socketManager.getSocket()?.off("chat:negotiation_update")
     }
 }

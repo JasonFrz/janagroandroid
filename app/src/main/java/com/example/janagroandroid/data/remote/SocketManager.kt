@@ -60,15 +60,30 @@ class SocketManager(private val sessionManager: SessionManager) {
 
     fun getSocket(): Socket? = mSocket
 
-    fun sendMessage(receiverId: Long, message: String) {
+    fun sendMessage(receiverId: Long, message: String, type: String = "text", productId: Long? = null, negotiatedPrice: String? = null) {
         val data = JSONObject().apply {
             put("receiverId", receiverId)
             put("message", message)
+            put("type", type)
+            if (productId != null) put("productId", productId)
+            if (negotiatedPrice != null) put("negotiatedPrice", negotiatedPrice)
         }
         
         mSocket?.emit("sendMessage", data, Ack { args ->
             val response = if (args != null && args.isNotEmpty()) args[0] as? JSONObject else null
             Log.d(TAG, "Send Message Response: $response")
+        })
+    }
+
+    fun respondNegotiation(messageId: Long, status: String) {
+        val data = JSONObject().apply {
+            put("messageId", messageId)
+            put("status", status)
+        }
+        
+        mSocket?.emit("respondNegotiation", data, Ack { args ->
+            val response = if (args != null && args.isNotEmpty()) args[0] as? JSONObject else null
+            Log.d(TAG, "Respond Negotiation Response: $response")
         })
     }
 
