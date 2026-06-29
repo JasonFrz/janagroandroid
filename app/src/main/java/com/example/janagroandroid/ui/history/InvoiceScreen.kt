@@ -23,12 +23,17 @@ import com.example.janagroandroid.data.remote.dto.OrderDto
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.material.icons.filled.Print
+import androidx.compose.ui.platform.LocalContext
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoiceScreen(
     order: OrderDto?,
     onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -36,6 +41,15 @@ fun InvoiceScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (order != null) {
+                        IconButton(onClick = {
+                            PrintHelper.printInvoice(context, order)
+                        }) {
+                            Icon(Icons.Filled.Print, contentDescription = "Print")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
