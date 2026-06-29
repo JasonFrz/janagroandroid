@@ -135,7 +135,13 @@ fun AdminUsersScreen(viewModel: AdminUsersViewModel) {
                         }
                     }
                     else -> {
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp)
+                        ) {
                             items(users) { user ->
                                 UserCard(user)
                             }
