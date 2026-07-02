@@ -26,6 +26,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -88,6 +90,11 @@ class ChatFragment : Fragment() {
         val currentUserId by viewModel.currentUserId.collectAsState()
         var inputText by remember { mutableStateOf("") }
         val listState = rememberLazyListState()
+        
+        var showCounterNegoDialog by remember { mutableStateOf(false) }
+        var counterNegoPriceInput by remember { mutableStateOf("") }
+        var counteringMessageId by remember { mutableStateOf<Long?>(null) }
+        var counteringProductId by remember { mutableStateOf<Long?>(null) }
 
         // Auto scroll to bottom when new message arrives
         LaunchedEffect(messages.size) {
@@ -139,22 +146,79 @@ class ChatFragment : Fragment() {
                 )
             }
         ) { padding ->
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
-            ) {
-                items(messages) { message ->
-                    MessageBubble(
-                        message = message,
-                        isMine = message.senderId == currentUserId,
-                        onRespondNegotiation = { status ->
-                            if (message.id != null) {
-                                viewModel.respondNegotiation(message.id, status)
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    items(messages) { message ->
+                        MessageBubble(
+                            message = message,
+                            isMine = message.senderId == currentUserId,
+                            onRespondNegotiation = { status ->
+                                if (message.id != null) {
+                                    viewModel.respondNegotiation(message.id, status)
+                                }
+                            },
+                            onCounterNegotiation = {
+                                if (message.id != null) {
+                                    counteringMessageId = message.id
+                                    counteringProductId = message.productId
+                                    counterNegoPriceInput = ""
+                                    showCounterNegoDialog = true
+                                }
+                            }
+                        )
+                    }
+                }
+                
+                if (showCounterNegoDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showCounterNegoDialog = false },
+                        title = { Text("Tawar Harga Balik", fontWeight = FontWeight.Bold) },
+                        text = {
+                            Column {
+                                Text("Masukkan nominal harga baru (Rp):", fontSize = 14.sp, color = Color.Gray)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = counterNegoPriceInput,
+                                    onValueChange = { if (it.all { char -> char.isDigit() }) counterNegoPriceInput = it },
+                                    label = { Text("Harga Nego Baru") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    if (counterNegoPriceInput.isNotBlank()) {
+                                        counteringMessageId?.let { msgId ->
+                                            viewModel.respondNegotiation(msgId, "countered")
+                                        }
+                                        viewModel.sendMessage(
+                                            messageText = "Saya mengajukan nego ulang Rp $counterNegoPriceInput",
+                                            type = "negotiation",
+                                            productId = counteringProductId,
+                                            negotiatedPrice = counterNegoPriceInput
+                                        )
+                                        showCounterNegoDialog = false
+                                        counterNegoPriceInput = ""
+                                    }
+                                }
+                            ) {
+                                Text("Ajukan")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showCounterNegoDialog = false }) {
+                                Text("Batal", color = Color.Gray)
                             }
                         }
                     )
@@ -167,7 +231,8 @@ class ChatFragment : Fragment() {
     fun MessageBubble(
         message: ChatMessageDto,
         isMine: Boolean,
-        onRespondNegotiation: (String) -> Unit
+        onRespondNegotiation: (String) -> Unit,
+        onCounterNegotiation: () -> Unit
     ) {
         val alignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
         val bgColor = if (isMine) MaterialTheme.colorScheme.primary else Color(0xFFF0F0F0)
@@ -230,6 +295,15 @@ class ChatFragment : Fragment() {
                                         Text("Terima", fontSize = 12.sp, color = Color.White)
                                     }
                                 }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Button(
+                                    onClick = onCounterNegotiation,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Tawar Balik", fontSize = 12.sp, color = Color.White)
+                                }
                             } else {
                                 Text("Menunggu persetujuan...", color = textColor.copy(alpha = 0.8f), fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                             }
@@ -239,6 +313,20 @@ class ChatFragment : Fragment() {
                         }
                         "rejected" -> {
                             Text("❌ Ditolak", color = if(isMine) Color.White else Color.Red, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            if (isMine) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Button(
+                                    onClick = onCounterNegotiation,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Ajukan Ulang", fontSize = 12.sp, color = Color.White)
+                                }
+                            }
+                        }
+                        "countered" -> {
+                            Text("🔄 Nego Dibalas", color = if(isMine) Color.White else Color(0xFFFFB300), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         }
                     }
                 } else {
