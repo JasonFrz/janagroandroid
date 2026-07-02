@@ -10,12 +10,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +41,7 @@ import coil.compose.AsyncImage
 import com.example.janagroandroid.R
 import com.example.janagroandroid.data.remote.dto.ReviewDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
+import com.example.janagroandroid.ui.theme.shimmerModifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +51,7 @@ fun ProductDetailScreen(
     price: Double,
     imageUrl: String,
     description: String,
+    isLoading: Boolean = false,
     merchantId: Long = 0L,
     merchantUserId: Long = 0L,
     merchantName: String = "",
@@ -123,13 +127,16 @@ fun ProductDetailScreen(
                 )
             }
         ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .background(Color(0xFFF8F8F8))
-            ) {
+            if (isLoading) {
+                ProductDetailSkeleton(modifier = Modifier.padding(padding))
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState())
+                        .background(Color(0xFFF8F8F8))
+                ) {
                 // Product Image Section
                 Box(
                     modifier = Modifier
@@ -245,7 +252,7 @@ fun ProductDetailScreen(
                             ) {
                                 Column {
                                     Text("Harga Grosir", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32), fontSize = 14.sp)
-                                    Text("Beli ${wholesaleMinQty} atau lebih", color = Color.Gray, fontSize = 12.sp)
+                                    Text("Beli $wholesaleMinQty atau lebih", color = Color.Gray, fontSize = 12.sp)
                                 }
                                 Text("Rp ${String.format(Locale.US, "%,.0f", wholesalePrice)}/pcs", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32), fontSize = 16.sp)
                             }
@@ -312,39 +319,111 @@ fun ProductDetailScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
 
         if (showAiTipsSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showAiTipsSheet = false },
-                containerColor = Color.White
+                containerColor = Color.White,
+                dragHandle = { BottomSheetDefaults.DragHandle() },
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp)
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 32.dp)
                 ) {
+                    // Header
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    ) {
+                        Surface(
+                            color = Color(0xFFF3E5F5),
+                            shape = CircleShape,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("✨", fontSize = 20.sp)
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Tips Cerdas Gemini AI",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color(0xFF6A1B9A)
+                            )
+                            Text(
+                                text = "Panduan & Cara Penggunaan",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                        IconButton(onClick = { showAiTipsSheet = false }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(color = Color(0xFFF5F5F5), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     if (isAiLoading) {
-                        Box(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(150.dp),
-                            contentAlignment = Alignment.Center
+                                .height(200.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            CircularProgressIndicator(color = Color(0xFF6A1B9A))
+                            CircularProgressIndicator(
+                                color = Color(0xFF6A1B9A),
+                                strokeWidth = 3.dp,
+                                modifier = Modifier.size(36.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Sedang meramu tips untukmu...",
+                                fontSize = 14.sp,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
                     } else if (aiTips != null) {
-                        MarkdownText(
-                            text = aiTips,
-                            modifier = Modifier.verticalScroll(rememberScrollState())
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            MarkdownText(text = aiTips)
+                        }
                     } else {
-                        Text(
-                            text = "Gagal memuat tips AI. Silakan coba lagi nanti.",
-                            color = Color.Red,
-                            fontSize = 14.sp
-                        )
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ErrorOutline,
+                                contentDescription = null,
+                                tint = Color.Red.copy(alpha = 0.6f),
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Gagal memuat tips AI. Silakan coba lagi nanti.",
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
@@ -386,6 +465,66 @@ fun ProductDetailScreen(
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun ProductDetailSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F8F8))
+    ) {
+        // Image Skeleton
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .background(Color.White)
+                .shimmerModifier()
+        )
+        
+        // Info Section Skeleton
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            Box(modifier = Modifier.width(80.dp).height(20.dp).clip(RoundedCornerShape(16.dp)).shimmerModifier())
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(modifier = Modifier.fillMaxWidth(0.7f).height(28.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(modifier = Modifier.width(120.dp).height(32.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(modifier = Modifier.width(200.dp).height(18.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Merchant Section Skeleton
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .shimmerModifier()
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Description Skeleton
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            Box(modifier = Modifier.width(150.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(modifier = Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
         }
     }
 }
@@ -545,7 +684,7 @@ fun ReviewSection(reviews: List<ReviewDto>) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             filterOptions.forEach { option ->
-                FilterChip(
+                CustomFilterChip(
                     selected = selectedFilter == option,
                     label = option,
                     onClick = { selectedFilter = option }
@@ -582,7 +721,7 @@ fun ReviewSection(reviews: List<ReviewDto>) {
 }
 
 @Composable
-fun FilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
+fun CustomFilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
     Surface(
         color = if (selected) Color(0xFF2E7D32) else Color(0xFFF5F7F9),
         shape = RoundedCornerShape(20.dp),
@@ -721,15 +860,85 @@ fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}
 
 @Composable
 fun MarkdownText(text: String, modifier: Modifier = Modifier) {
-    // 1. Ganti bullet point markdown (asterisk di awal baris) dengan bullet symbol
-    val bulletRegex = "(?m)^\\s*\\*\\s+".toRegex()
-    val cleanedText = text.replace(bulletRegex, "• ")
+    // Split text by numbered headers (e.g., "1. ", "2. ")
+    val sectionRegex = Regex("(?m)^(?=\\d+\\.)")
+    val sections = text.split(sectionRegex).filter { it.isNotBlank() }
     
-    val annotatedString = buildAnnotatedString {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        sections.forEach { section ->
+            MarkdownSectionItem(section)
+        }
+    }
+}
+
+@Composable
+fun MarkdownSectionItem(sectionContent: String) {
+    val lines = sectionContent.trim().lines()
+    val headerLine = lines.firstOrNull() ?: ""
+    val bodyLines = lines.drop(1)
+
+    Surface(
+        color = Color(0xFFFBF9FF), // Very light purple/white
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF3E5F5)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header
+            Text(
+                text = parseMarkdownInline(headerLine),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6A1B9A),
+                    fontSize = 16.sp
+                )
+            )
+            
+            if (bodyLines.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                bodyLines.forEach { line ->
+                    val trimmed = line.trim()
+                    if (trimmed.isEmpty()) return@forEach
+                    
+                    if (trimmed.startsWith("*") || trimmed.startsWith("•") || trimmed.startsWith("-")) {
+                        Row(modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)) {
+                            Text("•", color = Color(0xFF9C27B0), fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = parseMarkdownInline(trimmed.removePrefix("*").removePrefix("•").removePrefix("-").trim()),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = Color(0xFF424242),
+                                    lineHeight = 22.sp,
+                                    fontSize = 14.sp
+                                )
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = parseMarkdownInline(trimmed),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = Color(0xFF424242),
+                                lineHeight = 22.sp,
+                                fontSize = 14.sp
+                            ),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun parseMarkdownInline(text: String): AnnotatedString {
+    return buildAnnotatedString {
         var currentIndex = 0
-        // Match **text**
+        // Match **text** (Bold)
         val boldRegex = "\\*\\*(.*?)\\*\\*".toRegex()
-        val matches = boldRegex.findAll(cleanedText)
+        val matches = boldRegex.findAll(text)
         
         for (match in matches) {
             val startIndex = match.range.first
@@ -737,10 +946,13 @@ fun MarkdownText(text: String, modifier: Modifier = Modifier) {
             val matchText = match.groupValues[1]
 
             // Append text before bold
-            append(cleanedText.substring(currentIndex, startIndex))
+            append(text.substring(currentIndex, startIndex))
             
             // Append bold text
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) {
+            withStyle(style = SpanStyle(
+                fontWeight = FontWeight.Bold, 
+                color = Color(0xFF212121)
+            )) {
                 append(matchText)
             }
             
@@ -748,16 +960,8 @@ fun MarkdownText(text: String, modifier: Modifier = Modifier) {
         }
         
         // Append remaining text
-        if (currentIndex < cleanedText.length) {
-            append(cleanedText.substring(currentIndex))
+        if (currentIndex < text.length) {
+            append(text.substring(currentIndex))
         }
     }
-
-    Text(
-        text = annotatedString,
-        modifier = modifier,
-        fontSize = 14.sp,
-        color = Color(0xFF424242), // Darker gray for better readability
-        lineHeight = 24.sp
-    )
 }

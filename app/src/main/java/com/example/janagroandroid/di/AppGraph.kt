@@ -27,7 +27,8 @@ object AppGraph {
             cartDao = db.cartDao(),
             historyDao = db.historyDao(),
             apiService = RetrofitClient.getApiService(sessionManager),
-            sessionManager = sessionManager
+            sessionManager = sessionManager,
+            productDao = db.productDao()
         )
     }
 }

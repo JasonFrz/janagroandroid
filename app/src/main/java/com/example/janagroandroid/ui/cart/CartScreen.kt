@@ -30,12 +30,14 @@ import coil.compose.AsyncImage
 import com.example.janagroandroid.R
 import com.example.janagroandroid.data.local.entity.CartEntity
 import com.example.janagroandroid.ui.theme.JanAgroTheme
+import com.example.janagroandroid.ui.theme.shimmerModifier
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     cartItems: List<CartEntity>,
+    isLoading: Boolean = false,
     onBackClick: () -> Unit,
     onDeleteClick: (Long) -> Unit,
     onDeleteAllClick: () -> Unit,
@@ -134,7 +136,11 @@ fun CartScreen(
                     .padding(paddingValues)
                     .background(Color(0xFFF8F5F2))
             ) {
-                if (cartItems.isEmpty()) {
+                if (isLoading && cartItems.isEmpty()) {
+                    items(3) {
+                        CartItemSkeleton()
+                    }
+                } else if (cartItems.isEmpty()) {
                     item {
                         Column(
                             modifier = Modifier
@@ -508,6 +514,42 @@ fun CartBottomBar(
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CartItemSkeleton() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        color = Color.White
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(24.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                Spacer(modifier = Modifier.width(12.dp))
+                Box(modifier = Modifier.width(120.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row {
+                Box(modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)).shimmerModifier())
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Box(modifier = Modifier.fillMaxWidth().height(18.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(modifier = Modifier.width(100.dp).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Box(modifier = Modifier.width(80.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                        Box(modifier = Modifier.width(60.dp).height(24.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                    }
                 }
             }
         }

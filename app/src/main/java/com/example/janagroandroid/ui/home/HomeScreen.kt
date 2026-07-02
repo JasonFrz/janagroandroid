@@ -39,6 +39,7 @@ import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.data.remote.dto.NotificationDto
 import com.example.janagroandroid.data.remote.dto.VoucherDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
+import com.example.janagroandroid.ui.theme.shimmerModifier
 
 @Composable
 fun HomeScreen(
@@ -46,6 +47,7 @@ fun HomeScreen(
     products: List<ProductEntity>,
     recentlyListed: List<ProductEntity>,
     categories: List<CategoryDto>,
+    isLoading: Boolean = false,
     selectedCategory: String? = null,
     topMerchants: List<MerchantDto> = emptyList(),
     activeVouchers: List<VoucherDto> = emptyList(),
@@ -89,48 +91,68 @@ fun HomeScreen(
             ) {
                 SearchSection(onSearch = onSearchSubmit)
 
-                CategorySection(
-                    categories = categories,
-                    selectedCategory = selectedCategory,
-                    onCategoryClick = onCategoryClick
-                )
-
-                if (selectedCategory == null && activeVouchers.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    HomeVoucherSection(
-                        vouchers = activeVouchers,
-                        onVoucherClick = onVoucherClick
+                if (isLoading && categories.isEmpty()) {
+                    HomeCategorySkeleton()
+                } else {
+                    CategorySection(
+                        categories = categories,
+                        selectedCategory = selectedCategory,
+                        onCategoryClick = onCategoryClick
                     )
+                }
+
+                if (selectedCategory == null) {
+                    if (isLoading && activeVouchers.isEmpty()) {
+                        HomeVoucherSkeleton()
+                    } else if (activeVouchers.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        HomeVoucherSection(
+                            vouchers = activeVouchers,
+                            onVoucherClick = onVoucherClick
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 if (selectedCategory == null) {
-                    ProductSection(
-                        title = "Recently Listed",
-                        products = recentlyListed.take(4),
-                        onProductClick = onProductClick,
-                        onAddToCartClick = onAddToCartClick,
-                        onViewAllClick = onViewAllRecentlyListed
-                    )
-
-                    if (user != null && topMerchants.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        HomeMerchantSection(
-                            title = "Top Rated Merchants",
-                            merchants = topMerchants
+                    if (isLoading && recentlyListed.isEmpty()) {
+                        HomeProductSectionSkeleton(title = "Recently Listed")
+                    } else {
+                        ProductSection(
+                            title = "Recently Listed",
+                            products = recentlyListed.take(4),
+                            onProductClick = onProductClick,
+                            onAddToCartClick = onAddToCartClick,
+                            onViewAllClick = onViewAllRecentlyListed
                         )
+                    }
+
+                    if (user != null && (isLoading || topMerchants.isNotEmpty())) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        if (isLoading && topMerchants.isEmpty()) {
+                            HomeMerchantSkeleton()
+                        } else {
+                            HomeMerchantSection(
+                                title = "Top Rated Merchants",
+                                merchants = topMerchants
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                AllProductsSection(
-                    title = if (selectedCategory == null) "All Products" else "Products in $selectedCategory",
-                    products = products,
-                    onProductClick = onProductClick,
-                    onAddToCartClick = onAddToCartClick
-                )
+                if (isLoading && products.isEmpty()) {
+                    HomeAllProductSkeleton()
+                } else {
+                    AllProductsSection(
+                        title = if (selectedCategory == null) "All Products" else "Products in $selectedCategory",
+                        products = products,
+                        onProductClick = onProductClick,
+                        onAddToCartClick = onAddToCartClick
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -157,7 +179,7 @@ fun HomeHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = if (user?.profilePicture.isNullOrEmpty()) R.drawable.farmer else user?.profilePicture,
+            model = if (user?.profilePicture.isNullOrEmpty()) R.drawable.farmer else user.profilePicture,
             contentDescription = "Profile",
             modifier = Modifier
                 .size(48.dp)
@@ -263,7 +285,7 @@ fun HomeHeader(
                             },
                             onClick = { isNotificationDropdownExpanded = false }
                         )
-                        Divider(color = Color(0xFFEEEEEE))
+                        HorizontalDivider(color = Color(0xFFEEEEEE))
                     }
                 }
             }
@@ -506,7 +528,7 @@ fun HomeVoucherItem(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = "PROMO TERBATAS",
+                        text = "PROMO TERBATAS ",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -519,7 +541,16 @@ fun HomeVoucherItem(
                 Text(
                     text = voucher.code,
                     color = Color.White,
-                    fontSize = 22.sp,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = "Quota: ${voucher.quota}",
+                    color = Color.White,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -912,6 +943,109 @@ fun ProductItem(
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeCategorySkeleton() {
+    Column(modifier = Modifier.padding(top = 16.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.width(100.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+        }
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(5) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(56.dp).clip(CircleShape).shimmerModifier())
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(modifier = Modifier.width(40.dp).height(12.dp).clip(RoundedCornerShape(2.dp)).shimmerModifier())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeVoucherSkeleton() {
+    Spacer(modifier = Modifier.height(24.dp))
+    Column {
+        Box(modifier = Modifier.padding(horizontal = 16.dp).width(120.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(2) {
+                Box(modifier = Modifier.width(280.dp).height(120.dp).clip(RoundedCornerShape(12.dp)).shimmerModifier())
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeProductSectionSkeleton(title: String) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.width(140.dp).height(22.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            Box(modifier = Modifier.width(60.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(3) {
+                Box(modifier = Modifier.width(160.dp).height(220.dp).clip(RoundedCornerShape(16.dp)).shimmerModifier())
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeMerchantSkeleton() {
+    Column {
+        Box(modifier = Modifier.padding(horizontal = 16.dp).width(160.dp).height(22.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(4) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(70.dp).clip(CircleShape).shimmerModifier())
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(modifier = Modifier.width(60.dp).height(14.dp).clip(RoundedCornerShape(2.dp)).shimmerModifier())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeAllProductSkeleton() {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Box(modifier = Modifier.width(120.dp).height(22.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+        Spacer(modifier = Modifier.height(12.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            repeat(3) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.weight(1f).height(240.dp).clip(RoundedCornerShape(16.dp)).shimmerModifier())
+                    Box(modifier = Modifier.weight(1f).height(240.dp).clip(RoundedCornerShape(16.dp)).shimmerModifier())
                 }
             }
         }

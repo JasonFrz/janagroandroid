@@ -14,8 +14,14 @@ import com.example.janagroandroid.data.local.entity.HistoryEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 
 @Database(
-    entities = [UserEntity::class, CartEntity::class, HistoryEntity::class],
-    version = 8,
+    entities = [
+        UserEntity::class,
+        CartEntity::class,
+        HistoryEntity::class,
+        ProductEntity::class,
+        TransactionEntity::class
+    ],
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,6 +30,8 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun cartDao(): CartDao
     abstract fun historyDao(): HistoryDao
+    abstract fun productDao(): ProductDao
+    abstract fun transactionDao(): TransactionDao
 
     companion object {
         @Volatile

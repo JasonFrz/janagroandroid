@@ -33,6 +33,7 @@ import com.example.janagroandroid.data.remote.dto.MerchantDto
 import com.example.janagroandroid.data.remote.dto.ProductDto
 import com.example.janagroandroid.data.remote.dto.toEntity
 import com.example.janagroandroid.ui.theme.JanAgroTheme
+import com.example.janagroandroid.ui.theme.shimmerModifier
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,15 +74,8 @@ fun MerchantDetailScreen(
                 )
             }
         ) { padding ->
-            if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF2E7D32))
-                }
+            if (isLoading && merchant == null) {
+                MerchantDetailSkeleton(modifier = Modifier.padding(padding))
             } else {
                 Column(
                     modifier = Modifier
@@ -257,6 +251,60 @@ fun MerchantDetailScreen(
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MerchantDetailSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F8F8))
+    ) {
+        // Header Skeleton
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color.White,
+            shadowElevation = 1.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(modifier = Modifier.size(80.dp).clip(CircleShape).shimmerModifier())
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(modifier = Modifier.width(150.dp).height(24.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(modifier = Modifier.width(100.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Search Bar Skeleton
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(56.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .shimmerModifier()
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Product Grid Skeleton
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            repeat(3) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(modifier = Modifier.weight(1f).height(200.dp).clip(RoundedCornerShape(12.dp)).shimmerModifier())
+                    Box(modifier = Modifier.weight(1f).height(200.dp).clip(RoundedCornerShape(12.dp)).shimmerModifier())
                 }
             }
         }

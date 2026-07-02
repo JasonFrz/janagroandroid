@@ -55,6 +55,7 @@ class ProductDetailFragment : Fragment() {
                 val reviews by viewModel.reviews.observeAsState(emptyList())
                 val aiTips by viewModel.aiTips.observeAsState()
                 val isAiLoading by viewModel.isAiLoading.observeAsState(false)
+                val isLoading by viewModel.isLoading.observeAsState(false)
                 val activeNegotiation by viewModel.activeNegotiation.observeAsState()
 
                 ProductDetailScreen(
@@ -63,6 +64,7 @@ class ProductDetailFragment : Fragment() {
                     price = productDetail?.price ?: initialPrice,
                     imageUrl = productDetail?.imageUrl ?: initialImageUrl,
                     description = productDetail?.description ?: initialDescription,
+                    isLoading = isLoading && productDetail == null,
                     merchantId = productDetail?.merchant_id ?: initialMerchantId,
                     merchantUserId = productDetail?.merchantUserId ?: initialMerchantUserId,
                     merchantName = productDetail?.merchant_name ?: initialMerchantName,

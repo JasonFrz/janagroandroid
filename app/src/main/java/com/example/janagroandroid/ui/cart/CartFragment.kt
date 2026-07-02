@@ -31,9 +31,11 @@ class CartFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val cartItems by viewModel.cart.observeAsState(emptyList())
+                val isLoading by viewModel.isLoading.observeAsState(false)
 
                 CartScreen(
                     cartItems = cartItems,
+                    isLoading = isLoading,
                     onBackClick = { findNavController().navigateUp() },
                     onDeleteClick = { id -> viewModel.deleteCart(id) },
                     onDeleteAllClick = { viewModel.deleteAllCart() },

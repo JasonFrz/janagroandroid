@@ -28,6 +28,7 @@ import com.example.janagroandroid.R
 import com.example.janagroandroid.data.remote.dto.CategoryDto
 import com.example.janagroandroid.data.remote.dto.OrderDto
 import com.example.janagroandroid.ui.theme.JanAgroTheme
+import com.example.janagroandroid.ui.theme.shimmerModifier
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -185,10 +186,7 @@ fun HistoryScreen(
                     .background(Color(0xFFF2F2F2))
             ) {
                 if (isLoading && orders.isEmpty()) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = primaryGreen
-                    )
+                    HistorySkeleton()
                 } else if (filteredOrders.isEmpty()) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -314,6 +312,95 @@ fun HistoryScreen(
                     showReviewSheetForProduct = null
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun HistorySkeleton() {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(bottom = 16.dp),
+        userScrollEnabled = false
+    ) {
+        items(5) {
+            OrderItemSkeleton()
+        }
+    }
+}
+
+@Composable
+fun OrderItemSkeleton() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.White
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.width(40.dp).height(16.dp).clip(RoundedCornerShape(2.dp)).shimmerModifier())
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(modifier = Modifier.width(100.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                }
+                Box(modifier = Modifier.width(60.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF2F2F2))
+
+            // Product Info
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerModifier()
+                )
+
+                Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
+                    Box(modifier = Modifier.fillMaxWidth(0.7f).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(modifier = Modifier.width(80.dp).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Box(modifier = Modifier.width(30.dp).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                        Box(modifier = Modifier.width(80.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                    }
+                }
+            }
+
+            // Total Summary
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.width(100.dp).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                Spacer(modifier = Modifier.width(4.dp))
+                Box(modifier = Modifier.width(100.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF2F2F2))
+
+            // Action Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.width(100.dp).height(36.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(modifier = Modifier.width(100.dp).height(36.dp).clip(RoundedCornerShape(4.dp)).shimmerModifier())
+            }
         }
     }
 }

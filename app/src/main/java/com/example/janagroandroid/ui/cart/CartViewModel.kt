@@ -3,6 +3,7 @@ package com.example.janagroandroid.ui.cart
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.janagroandroid.data.local.entity.CartEntity
 import com.example.janagroandroid.data.repository.AppRepository
@@ -15,9 +16,14 @@ class CartViewModel(
 
     val cart: LiveData<List<CartEntity>> = repo.cart
 
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
     fun fetchCart() {
         viewModelScope.launch {
+            _isLoading.postValue(true)
             try { repo.getRemoteCart() } catch (e: Exception) { e.printStackTrace() }
+            finally { _isLoading.postValue(false) }
         }
     }
 

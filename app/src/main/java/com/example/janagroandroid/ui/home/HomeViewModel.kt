@@ -26,6 +26,9 @@ class HomeViewModel(
     private val _selectedCategory = MutableLiveData<String?>(null)
     val selectedCategory: LiveData<String?> = _selectedCategory
 
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
     val products = MediatorLiveData<List<ProductEntity>>().apply {
         addSource(_allProducts) { value = filterProducts(it, _selectedCategory.value) }
         addSource(_selectedCategory) { value = filterProducts(_allProducts.value, it) }
@@ -100,6 +103,7 @@ class HomeViewModel(
 
     fun refreshRemote() {
         viewModelScope.launch {
+            _isLoading.postValue(true)
             try {
                 repo.refreshRemoteProducts()
                 fetchCategories()
@@ -112,6 +116,8 @@ class HomeViewModel(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _isLoading.postValue(false)
             }
         }
     }

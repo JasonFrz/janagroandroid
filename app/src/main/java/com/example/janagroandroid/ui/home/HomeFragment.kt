@@ -54,6 +54,7 @@ class HomeFragment : Fragment() {
                 val activeVouchers by viewModel.activeVouchers.observeAsState(emptyList())
                 val user by viewModel.currentUser.observeAsState()
                 val cartItems by viewModel.cart.observeAsState(emptyList())
+                val isLoading by viewModel.isLoading.observeAsState(false)
                 // Total item count across all distinct products in cart
                 val cartCount = cartItems.sumOf { it.qty }
 
@@ -64,6 +65,7 @@ class HomeFragment : Fragment() {
                     products = products,
                     recentlyListed = recentlyListed,
                     categories = categories,
+                    isLoading = isLoading,
                     selectedCategory = selectedCategory,
                     topMerchants = topMerchants,
                     activeVouchers = activeVouchers,

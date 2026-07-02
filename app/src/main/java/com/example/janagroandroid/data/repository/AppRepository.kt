@@ -2,6 +2,7 @@ package com.example.janagroandroid.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.switchMap
+import com.example.janagroandroid.data.local.ProductDao
 import com.example.janagroandroid.data.local.SessionManager
 import com.example.janagroandroid.data.local.dao.CartDao
 import com.example.janagroandroid.data.local.dao.HistoryDao
@@ -22,7 +23,8 @@ class AppRepository(
     private val cartDao: CartDao,
     private val historyDao: HistoryDao,
     private val apiService: ApiService,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val productDao: ProductDao
 ) {
     private val _products = androidx.lifecycle.MutableLiveData<List<ProductEntity>>()
     val products: LiveData<List<ProductEntity>> = _products
