@@ -51,6 +51,7 @@ fun HistoryScreen(
     
     var showReviewSheetForProduct by remember { mutableStateOf<Long?>(null) }
     var orderToPay by remember { mutableStateOf<OrderDto?>(null) }
+    var orderToCancelDetail by remember { mutableStateOf<OrderDto?>(null) }
     
     val tabs = listOf("Semua", "Belum Bayar", "Dikemas", "Dikirim", "Selesai", "Batal")
 
@@ -221,6 +222,7 @@ fun HistoryScreen(
                                 primaryColor = primaryGreen,
                                 onBuyAgain = { onBuyAgainClick(order.id) },
                                 onPayClick = { orderToPay = order },
+                                onCancelDetailClick = { orderToCancelDetail = order },
                                 onInvoiceClick = { onInvoiceClick(order.id) },
                                 onDetailClick = { onDetailClick(order.id) },
                                 onCompleteOrderClick = { onCompleteOrderClick(order.id) },
@@ -259,7 +261,6 @@ fun HistoryScreen(
                             Spacer(Modifier.height(12.dp))
                             QrImageView(data = qrData)
                             Spacer(Modifier.height(12.dp))
-//                            Text("Kode: $qrData", fontSize = 10.sp, color = Color.Gray, textAlign = TextAlign.Center)
                         } else if (isUrl) {
                             Text("Silakan klik tombol 'Bayar Sekarang' untuk membuka halaman pembayaran (Snap Midtrans/QRIS).", modifier = Modifier.align(Alignment.Start))
                         } else {
@@ -315,6 +316,65 @@ fun HistoryScreen(
                 }
             )
         }
+        
+        orderToCancelDetail?.let { order ->
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { orderToCancelDetail = null },
+                title = { Text("Faktur Pembatalan", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val totalPrice = order.totalPrice.toDoubleOrNull() ?: 0.0
+                        val shippingCost = order.shippingCost?.toDoubleOrNull() ?: 0.0
+                        val voucherDiscount = order.voucherDiscount?.toDoubleOrNull() ?: 0.0
+                        val totalRefund = totalPrice + shippingCost - voucherDiscount
+
+                        Text("Order ID: #${order.id}", fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Harga Produk:", color = Color.Gray)
+                            Text("Rp ${totalPrice.toLong()}")
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Ongkos Kirim:", color = Color.Gray)
+                            Text("Rp ${shippingCost.toLong()}")
+                        }
+                        if (voucherDiscount > 0) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Diskon Voucher:", color = Color.Gray)
+                                Text("- Rp ${voucherDiscount.toLong()}")
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Dana Batal:", fontWeight = FontWeight.Bold)
+                            Text("Rp ${totalRefund.toLong()}", fontWeight = FontWeight.Bold, color = primaryGreen)
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Catatan:", fontWeight = FontWeight.SemiBold)
+                        Text("Pesanan ini telah dibatalkan. Jika Anda sudah melakukan pembayaran, dana akan dikembalikan ke metode pembayaran awal Anda sesuai kebijakan yang berlaku.", fontSize = 12.sp, color = Color.Gray)
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { orderToCancelDetail = null },
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
+                    ) {
+                        Text("Tutup", color = Color.White)
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -324,8 +384,9 @@ fun OrderItemCard(
     categories: List<CategoryDto>,
     primaryColor: Color,
     onBuyAgain: () -> Unit,
-    onPayClick: () -> Unit,
-    onInvoiceClick: () -> Unit,
+    onPayClick: () -> Unit = {},
+    onCancelDetailClick: () -> Unit = {},
+    onInvoiceClick: () -> Unit = {},
     onDetailClick: () -> Unit,
     onCompleteOrderClick: () -> Unit,
     onReviewClick: (Long) -> Unit
@@ -460,7 +521,7 @@ fun OrderItemCard(
             ) {
                 when (order.status) {
                     "Cancelled" -> {
-                        ActionButton(text = "Rincian Pembatalan", onClick = {})
+                        ActionButton(text = "Rincian Pembatalan", onClick = onCancelDetailClick)
                         Spacer(modifier = Modifier.width(8.dp))
                         ActionButton(text = "Beli Lagi", onClick = onBuyAgain, isPrimary = true, primaryColor = primaryColor)
                     }
