@@ -19,6 +19,11 @@ class CartViewModel(
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _toastMessage = MutableLiveData<String?>(null)
+    val toastMessage: LiveData<String?> = _toastMessage
+
+    fun clearToast() { _toastMessage.value = null }
+
     fun fetchCart() {
         viewModelScope.launch {
             _isLoading.postValue(true)
@@ -29,7 +34,10 @@ class CartViewModel(
 
     fun updateQuantity(id: Long, newQty: Int) {
         viewModelScope.launch {
-            try { repo.updateRemoteCart(id, newQty) } catch (e: Exception) { e.printStackTrace() }
+            val (success, error) = repo.updateCartLocal(id, newQty)
+            if (!success && error != null) {
+                _toastMessage.postValue(error)
+            }
         }
     }
 

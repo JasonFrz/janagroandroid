@@ -7,7 +7,7 @@ import com.example.janagroandroid.data.local.entity.CartEntity
 @Dao
 interface CartDao {
     @Query("""
-        SELECT c.id, c.userId, c.productId, c.productName, c.price, c.imageUrl, c.qty, 
+        SELECT c.id, c.userId, c.productId, c.productName, c.price, c.imageUrl, c.qty, c.stock,
                c.merchantId as merchantId, 
                COALESCE(NULLIF(c.merchantName, ''), 'Toko Tani Makmur') as merchantName
         FROM cart c 
@@ -16,13 +16,25 @@ interface CartDao {
     fun getByUser(userId: Long): LiveData<List<CartEntity>>
 
     @Query("""
-        SELECT c.id, c.userId, c.productId, c.productName, c.price, c.imageUrl, c.qty, 
+        SELECT c.id, c.userId, c.productId, c.productName, c.price, c.imageUrl, c.qty, c.stock,
                c.merchantId as merchantId, 
                COALESCE(NULLIF(c.merchantName, ''), 'Toko Tani Makmur') as merchantName
         FROM cart c 
         WHERE c.id IN (:ids)
     """)
     suspend fun getItemsByIds(ids: LongArray): List<CartEntity>
+
+    @Query("""
+        SELECT c.id, c.userId, c.productId, c.productName, c.price, c.imageUrl, c.qty, c.stock,
+               c.merchantId as merchantId, 
+               COALESCE(NULLIF(c.merchantName, ''), 'Toko Tani Makmur') as merchantName
+        FROM cart c 
+        WHERE c.id = :id
+    """)
+    suspend fun getById(id: Long): CartEntity?
+
+    @Query("UPDATE cart SET qty = :qty WHERE id = :id")
+    suspend fun updateQty(id: Long, qty: Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: CartEntity)

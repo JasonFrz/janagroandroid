@@ -13,6 +13,7 @@ data class CartEntity(
     val price: Double,
     val imageUrl: String,
     val qty: Int,
+    val stock: Int = 0,
     val merchantId: Long = 0L,
     val merchantName: String = ""
-)
+)

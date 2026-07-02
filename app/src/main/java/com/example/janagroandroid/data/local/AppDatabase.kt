@@ -21,7 +21,7 @@ import com.example.janagroandroid.data.local.entity.UserEntity
         ProductEntity::class,
         TransactionEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

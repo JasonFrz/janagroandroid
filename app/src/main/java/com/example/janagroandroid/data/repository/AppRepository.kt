@@ -18,6 +18,9 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AppRepository(
     private val userDao: UserDao,
@@ -706,13 +709,35 @@ class AppRepository(
     suspend fun updateRemoteCart(id: Long, quantity: Int): Boolean {
         return try {
             val response = apiService.updateCartItem(id, mapOf("quantity" to quantity.toLong()))
-            if (response.isSuccessful) {
-                getRemoteCart()
-                true
-            } else false
+            response.isSuccessful
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+
+    suspend fun updateCartLocal(id: Long, quantity: Int): Pair<Boolean, String?> {
+        return try {
+            val item = cartDao.getById(id) ?: return Pair(false, "Item tidak ditemukan")
+            if (quantity > item.stock) {
+                return Pair(false, "Stok tidak mencukupi (Tersisa ${item.stock})")
+            }
+            if (quantity < 1) return Pair(false, "Jumlah minimal 1")
+            
+            cartDao.updateQty(id, quantity)
+            
+            // Sync to server in background without blocking/fetching
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    apiService.updateCartItem(id, mapOf("quantity" to quantity.toLong()))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            Pair(true, null)
+        } catch (e: Exception) {
+            Pair(false, e.message)
         }
     }
 
