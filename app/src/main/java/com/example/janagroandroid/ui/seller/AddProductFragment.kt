@@ -177,8 +177,10 @@ class AddProductFragment : Fragment(R.layout.fragment_add_product) {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                 findNavController().navigateUp()
             } else if (success == false) {
-                val message = if (editingProductId > 0) "Gagal memperbarui produk." else "Gagal memposting produk."
+                val errorMsg = viewModel.errorMessage.value
+                val message = errorMsg ?: (if (editingProductId > 0) "Gagal memperbarui produk." else "Gagal memposting produk.")
                 Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                viewModel.clearErrorMessage()
             }
         }
 

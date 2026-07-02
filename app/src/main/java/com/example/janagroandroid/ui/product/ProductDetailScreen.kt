@@ -860,9 +860,26 @@ fun BottomActionBar(onAddToCartClick: () -> Unit, onBuyNowClick: () -> Unit = {}
 
 @Composable
 fun MarkdownText(text: String, modifier: Modifier = Modifier) {
-    // Split text by numbered headers (e.g., "1. ", "2. ")
-    val sectionRegex = Regex("(?m)^(?=\\d+\\.)")
-    val sections = text.split(sectionRegex).filter { it.isNotBlank() }
+    // Split text by numbered headers (e.g., "1. ", "* 1. ", "## 1. ")
+    val sectionRegex = Regex("(?m)^[*# ]*(\\d+\\..*)")
+    val matches = sectionRegex.findAll(text).toList()
+    val sections = mutableListOf<String>()
+
+    if (matches.isEmpty()) {
+        sections.add(text)
+    } else {
+        for (i in matches.indices) {
+            val match = matches[i]
+            if (i == 0 && match.range.first > 0) {
+                val preamble = text.substring(0, match.range.first).trim()
+                if (preamble.isNotBlank()) sections.add(preamble)
+            }
+            
+            val start = match.range.first
+            val end = if (i + 1 < matches.size) matches[i + 1].range.first else text.length
+            sections.add(text.substring(start, end).trim())
+        }
+    }
     
     Column(
         modifier = modifier,
@@ -877,8 +894,11 @@ fun MarkdownText(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun MarkdownSectionItem(sectionContent: String) {
     val lines = sectionContent.trim().lines()
-    val headerLine = lines.firstOrNull() ?: ""
+    var headerLine = lines.firstOrNull() ?: ""
     val bodyLines = lines.drop(1)
+
+    // Clean header from markdown artifacts
+    val cleanHeader = headerLine.replace("*", "").replace("#", "").trim()
 
     Surface(
         color = Color(0xFFFBF9FF), // Very light purple/white
@@ -889,7 +909,7 @@ fun MarkdownSectionItem(sectionContent: String) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header
             Text(
-                text = parseMarkdownInline(headerLine),
+                text = parseMarkdownInline(cleanHeader),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF6A1B9A),
@@ -903,12 +923,20 @@ fun MarkdownSectionItem(sectionContent: String) {
                     val trimmed = line.trim()
                     if (trimmed.isEmpty()) return@forEach
                     
-                    if (trimmed.startsWith("*") || trimmed.startsWith("•") || trimmed.startsWith("-")) {
+                    // Improved bullet point detection
+                    val isBullet = trimmed.startsWith("*") || trimmed.startsWith("•") || 
+                                 trimmed.startsWith("-") || (trimmed.length > 2 && trimmed[0].isDigit() && trimmed[1] == '.')
+                    
+                    if (isBullet && !trimmed.matches(Regex("^\\d+\\..*"))) {
                         Row(modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)) {
                             Text("•", color = Color(0xFF9C27B0), fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
                             Spacer(modifier = Modifier.width(12.dp))
+                            
+                            // Remove bullet marker and trim
+                            val content = trimmed.replaceFirst(Regex("^[*•\\-]"), "").trim()
+                            
                             Text(
-                                text = parseMarkdownInline(trimmed.removePrefix("*").removePrefix("•").removePrefix("-").trim()),
+                                text = parseMarkdownInline(content),
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = Color(0xFF424242),
                                     lineHeight = 22.sp,

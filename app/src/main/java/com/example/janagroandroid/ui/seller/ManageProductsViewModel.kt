@@ -20,6 +20,13 @@ class ManageProductsViewModel(
     private val _deleteStatus = MutableLiveData<Boolean?>()
     val deleteStatus: LiveData<Boolean?> = _deleteStatus
 
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> = _errorMessage
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+
     fun loadProducts() {
         viewModelScope.launch {
             try {
@@ -38,6 +45,7 @@ class ManageProductsViewModel(
                 _deleteStatus.postValue(success)
             } catch (e: Exception) {
                 e.printStackTrace()
+                _errorMessage.postValue(e.message ?: "Terjadi kesalahan tidak terduga")
                 _deleteStatus.postValue(false)
             }
         }

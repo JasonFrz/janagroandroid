@@ -12,6 +12,7 @@ import com.example.janagroandroid.data.local.entity.HistoryEntity
 import com.example.janagroandroid.data.local.entity.ProductEntity
 import com.example.janagroandroid.data.local.entity.UserEntity
 import com.example.janagroandroid.data.remote.ApiService
+import com.example.janagroandroid.data.remote.ErrorParser
 import com.example.janagroandroid.data.remote.dto.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -45,7 +46,7 @@ class AppRepository(
     val sellerProducts: LiveData<List<ProductEntity>> = _sellerProducts
 
     suspend fun login(email: String, password: String): Boolean {
-        return try {
+        try {
             val response = apiService.login(mapOf("email" to email, "password" to password))
             if (response.isSuccessful) {
                 val responseBody = response.body()
@@ -65,21 +66,25 @@ class AppRepository(
                     sessionManager.saveUserId(userDto.id)
                     sessionManager.saveUserRole(userDto.role)
 
-                    true
+                    return true
                 } else {
-                    false
+                    throw Exception("Data login yang diterima tidak valid.")
                 }
             } else {
-                false
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Email atau password salah. Silakan coba lagi."
+                throw Exception(ErrorParser.translateErrorMessage(errorMsg))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            if (e is java.io.IOException || e is retrofit2.HttpException) {
+                throw Exception(ErrorParser.parse(e))
+            }
+            throw e
         }
     }
 
     suspend fun register(user: UserEntity, passwordConfirm: String): Boolean {
-        return try {
+        try {
             val request = mapOf(
                 "name" to user.name,
                 "email" to user.email,
@@ -96,16 +101,24 @@ class AppRepository(
                 
                 if (userDto != null) {
                     userDao.insert(userDto.toEntity())
-                    true
+                    return true
                 } else {
-                    responseBody?.status == "success"
+                    if (responseBody?.status == "success") {
+                        return true
+                    } else {
+                        throw Exception("Data registrasi yang diterima tidak valid.")
+                    }
                 }
             } else {
-                false
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Registrasi gagal. Silakan coba lagi."
+                throw Exception(ErrorParser.translateErrorMessage(errorMsg))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            if (e is java.io.IOException || e is retrofit2.HttpException) {
+                throw Exception(ErrorParser.parse(e))
+            }
+            throw e
         }
     }
 
@@ -151,7 +164,7 @@ class AppRepository(
         confirmNewPassword: String? = null,
         imagePart: MultipartBody.Part? = null
     ): Boolean {
-        return try {
+        try {
             val nameBody = name?.toRequestBody("text/plain".toMediaTypeOrNull())
             val phoneBody = phone?.toRequestBody("text/plain".toMediaTypeOrNull())
             val oldPasswordBody = oldPassword?.takeIf { it.isNotBlank() }?.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -163,21 +176,29 @@ class AppRepository(
                 val updatedUser = response.body()?.data?.user
                 if (updatedUser != null) {
                     userDao.insert(updatedUser.toEntity(isLoggedIn = true))
-                    true
+                    return true
                 } else {
-                    response.body()?.status == "success"
+                    if (response.body()?.status == "success") {
+                        return true
+                    } else {
+                        throw Exception("Gagal memperbarui profil.")
+                    }
                 }
             } else {
-                false
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Gagal memperbarui profil."
+                throw Exception(ErrorParser.translateErrorMessage(errorMsg))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            if (e is java.io.IOException || e is retrofit2.HttpException) {
+                throw Exception(ErrorParser.parse(e))
+            }
+            throw e
         }
     }
 
     suspend fun requestBecomeSeller(storeName: String, description: String): Boolean {
-        return try {
+        try {
             val request = mapOf(
                 "store_name" to storeName,
                 "description" to description
@@ -185,13 +206,17 @@ class AppRepository(
             val response = apiService.requestBecomeSeller(request)
             if (response.isSuccessful) {
                 refreshProfile()
-                true
+                return true
             } else {
-                false
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Gagal mengirim permintaan untuk menjadi penjual."
+                throw Exception(ErrorParser.translateErrorMessage(errorMsg))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            if (e is java.io.IOException || e is retrofit2.HttpException) {
+                throw Exception(ErrorParser.parse(e))
+            }
+            throw e
         }
     }
 
@@ -209,7 +234,7 @@ class AppRepository(
         categoryId: Int,
         imageParts: List<MultipartBody.Part>
     ): Boolean {
-        return try {
+        try {
             val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
             val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
             val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
@@ -224,10 +249,18 @@ class AppRepository(
                 categoryIdBody,
                 imageParts
             )
-            response.isSuccessful
+            if (response.isSuccessful) {
+                return true
+            } else {
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Gagal memposting produk."
+                throw Exception(errorMsg)
+            }
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            if (e is java.io.IOException || e is retrofit2.HttpException) {
+                throw Exception(ErrorParser.parse(e))
+            }
+            throw e
         }
     }
 
@@ -240,7 +273,7 @@ class AppRepository(
         categoryId: Int,
         imageParts: List<MultipartBody.Part>
     ): Boolean {
-        return try {
+        try {
             val nameBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
             val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
             val priceBody = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
@@ -256,10 +289,18 @@ class AppRepository(
                 categoryIdBody,
                 imageParts
             )
-            response.isSuccessful
+            if (response.isSuccessful) {
+                return true
+            } else {
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Gagal memperbarui produk."
+                throw Exception(errorMsg)
+            }
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            if (e is java.io.IOException || e is retrofit2.HttpException) {
+                throw Exception(ErrorParser.parse(e))
+            }
+            throw e
         }
     }
 
@@ -278,11 +319,20 @@ class AppRepository(
     }
 
     suspend fun deleteRemoteProduct(productId: Long): Boolean {
-        return try {
-            apiService.deleteProduct(productId).isSuccessful
+        try {
+            val response = apiService.deleteProduct(productId)
+            if (response.isSuccessful) {
+                return true
+            } else {
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Gagal menghapus produk."
+                throw Exception(errorMsg)
+            }
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            if (e is java.io.IOException || e is retrofit2.HttpException) {
+                throw Exception(ErrorParser.parse(e))
+            }
+            throw e
         }
     }
 
@@ -643,23 +693,13 @@ class AppRepository(
                 getRemoteCart()
                 Pair(true, null)
             } else {
-                val errorMsg = try {
-                    val errBody = response.errorBody()?.string()
-                    // Try to extract message from JSON body e.g. {"status":"fail","message":"..."}
-                    errBody?.let {
-                        val msgStart = it.indexOf("\"message\":\"")
-                        if (msgStart >= 0) {
-                            val start = msgStart + 11
-                            val end = it.indexOf("\"", start)
-                            if (end > start) it.substring(start, end) else null
-                        } else null
-                    }
-                } catch (e: Exception) { null }
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Gagal menambahkan item ke keranjang."
                 Pair(false, errorMsg)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Pair(false, e.message)
+            Pair(false, ErrorParser.parse(e))
         }
     }
 
@@ -868,11 +908,13 @@ class AppRepository(
                 getRemoteCart()
                 Pair(true, response.body())
             } else {
-                Pair(false, com.example.janagroandroid.data.remote.dto.OrderResponse(message = parseErrorMessage(response.errorBody()?.string())))
+                val errorMsg = ErrorParser.parseErrorBody(response.errorBody()?.string())
+                    ?: "Checkout gagal."
+                Pair(false, com.example.janagroandroid.data.remote.dto.OrderResponse(message = errorMsg))
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Pair(false, com.example.janagroandroid.data.remote.dto.OrderResponse(message = e.message))
+            Pair(false, com.example.janagroandroid.data.remote.dto.OrderResponse(message = ErrorParser.parse(e)))
         }
     }
 

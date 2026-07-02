@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.janagroandroid.ui.components.ErrorCard
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,7 +27,8 @@ import com.example.janagroandroid.ui.theme.JanAgroTheme
 fun RegisterScreen(
     uiState: AuthUiState,
     onRegisterClick: (String, String, String, String, String, String) -> Unit,
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onErrorDismiss: () -> Unit = {}
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -183,6 +185,11 @@ fun RegisterScreen(
                         Text("Register", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
+
+                ErrorCard(
+                    message = (uiState as? AuthUiState.Error)?.message,
+                    onDismiss = onErrorDismiss
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
             }

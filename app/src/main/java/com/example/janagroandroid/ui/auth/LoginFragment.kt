@@ -33,6 +33,9 @@ class LoginFragment : Fragment() {
                     },
                     onRegisterClick = {
                         findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+                    },
+                    onErrorDismiss = {
+                        vm.resetState()
                     }
                 )
             }
@@ -41,7 +44,7 @@ class LoginFragment : Fragment() {
 
     private fun handleLogin(emailOrUsername: String, pass: String) {
         if (emailOrUsername.isEmpty() || pass.isEmpty()) {
-            Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Silakan isi semua kolom", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -57,8 +60,6 @@ class LoginFragment : Fragment() {
                             findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                         }
                     }
-                } else {
-                    Toast.makeText(requireContext(), "Invalid credentials", Toast.LENGTH_SHORT).show()
                 }
             }
         }

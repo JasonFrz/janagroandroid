@@ -23,6 +23,13 @@ class AddProductViewModel(
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> = _loading
 
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> = _errorMessage
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+
     fun saveProduct(
         name: String,
         description: String,
@@ -71,6 +78,7 @@ class AddProductViewModel(
                 _status.postValue(success)
             } catch (e: Exception) {
                 e.printStackTrace()
+                _errorMessage.postValue(e.message ?: "Terjadi kesalahan tidak terduga")
                 _status.postValue(false)
             } finally {
                 _loading.postValue(false)

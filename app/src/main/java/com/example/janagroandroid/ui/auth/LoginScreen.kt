@@ -25,13 +25,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.janagroandroid.R
+import com.example.janagroandroid.ui.components.ErrorCard
 import com.example.janagroandroid.ui.theme.JanAgroTheme
 
 @Composable
 fun LoginScreen(
     uiState: AuthUiState,
     onLoginClick: (String, String) -> Unit,
-    onRegisterClick: () -> Unit
+    onRegisterClick: () -> Unit,
+    onErrorDismiss: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -141,14 +143,10 @@ fun LoginScreen(
                     )
                 }
 
-                if (uiState is AuthUiState.Error) {
-                    Text(
-                        text = uiState.message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 16.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                ErrorCard(
+                    message = (uiState as? AuthUiState.Error)?.message,
+                    onDismiss = onErrorDismiss
+                )
             }
         }
     }

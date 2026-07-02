@@ -78,7 +78,10 @@ class ManageProductsFragment : Fragment() {
                 Toast.makeText(requireContext(), "Produk berhasil dihapus", Toast.LENGTH_SHORT).show()
                 viewModel.loadProducts()
             } else if (success == false) {
-                Toast.makeText(requireContext(), "Gagal menghapus produk", Toast.LENGTH_LONG).show()
+                val errorMsg = viewModel.errorMessage.value
+                val message = errorMsg ?: "Gagal menghapus produk"
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                viewModel.clearErrorMessage()
             }
         }
     }
