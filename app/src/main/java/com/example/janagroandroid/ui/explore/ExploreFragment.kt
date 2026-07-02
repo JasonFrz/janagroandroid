@@ -48,7 +48,7 @@ class ExploreFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val products by viewModel.products.observeAsState(emptyList())
+                val products by viewModel.allProducts.observeAsState(emptyList())
                 val categories by viewModel.categories.observeAsState(emptyList())
                 val user by viewModel.currentUser.observeAsState()
                 val isLoading by viewModel.isLoading.observeAsState(false)

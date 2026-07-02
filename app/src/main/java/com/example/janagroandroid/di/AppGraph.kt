@@ -11,7 +11,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 object AppGraph {
+    @Volatile
+    private var repositoryInstance: AppRepository? = null
+
     fun repository(context: Context): AppRepository {
+        return repositoryInstance ?: synchronized(this) {
+            repositoryInstance ?: createRepository(context).also { repositoryInstance = it }
+        }
+    }
+
+    private fun createRepository(context: Context): AppRepository {
         val db = AppDatabase.getInstance(context)
         val sessionManager = SessionManager(context)
 
