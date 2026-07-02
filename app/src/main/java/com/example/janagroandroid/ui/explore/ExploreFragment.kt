@@ -35,7 +35,7 @@ class ExploreFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val products by viewModel.products.observeAsState(emptyList())
+                val products by viewModel.allProducts.observeAsState(emptyList())
                 val categories by viewModel.categories.observeAsState(emptyList())
 
                 ExploreScreen(
@@ -62,5 +62,10 @@ class ExploreFragment : Fragment() {
                 )
             }
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.refreshRemote()
     }
 }

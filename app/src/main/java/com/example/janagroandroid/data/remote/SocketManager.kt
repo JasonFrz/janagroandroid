@@ -16,8 +16,8 @@ class SocketManager(private val sessionManager: SessionManager) {
 
         private const val TAG = "SocketManager"
 //        private const val SOCKET_URL = "http://10.36.186.142:3000"
-//        private const val SOCKET_URL = "http://10.0.2.2:3000"
-        private const val SOCKET_URL = "https://janagro-backend-production.up.railway.app"
+        private const val SOCKET_URL = "http://10.0.2.2:3000"
+//        private const val SOCKET_URL = "https://janagro-backend-production.up.railway.app"
         // Emulator: gunakan "http://10.0.2.2:3000"
         // Production (Railway): gunakan "https://janagro-backend-production.up.railway.app"
     }

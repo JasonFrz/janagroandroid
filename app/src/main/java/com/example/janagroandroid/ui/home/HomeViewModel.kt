@@ -22,18 +22,18 @@ class HomeViewModel(
     private val socketManager: SocketManager
 ) : AndroidViewModel(app) {
 
-    private val _allProducts = repo.products
+    val allProducts = repo.products
     private val _selectedCategory = MutableLiveData<String?>(null)
     val selectedCategory: LiveData<String?> = _selectedCategory
 
     val products = MediatorLiveData<List<ProductEntity>>().apply {
-        addSource(_allProducts) { value = filterProducts(it, _selectedCategory.value) }
-        addSource(_selectedCategory) { value = filterProducts(_allProducts.value, it) }
+        addSource(allProducts) { value = filterProducts(it, _selectedCategory.value) }
+        addSource(_selectedCategory) { value = filterProducts(allProducts.value, it) }
     }
 
     // Recently listed products: top 4 newest products
     val recentlyListed = MediatorLiveData<List<ProductEntity>>().apply {
-        addSource(_allProducts) { list ->
+        addSource(allProducts) { list ->
             value = list?.sortedByDescending { it.createdAt }?.take(4) ?: emptyList()
         }
     }
